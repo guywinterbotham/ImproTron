@@ -77,7 +77,7 @@ def textFontChanged(new_font):
     display.sizeTextFont(new_font)
 
 @Slot()
-def getImageFile():
+def getImageFileLeft():
     dialog = QFileDialog(improTronControlBoard)
     locations = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
     directory = locations[-1] if locations else QDir.currentPath()
@@ -88,7 +88,22 @@ def getImageFile():
     newImage = reader.read()
 
     # Scale to match the preview
-    improTronControlBoard.imagePreview.setPixmap(QPixmap.fromImage(newImage.scaled(improTronControlBoard.imagePreview.size())))
+    improTronControlBoard.imagePreviewLeft.setPixmap(QPixmap.fromImage(newImage.scaled(improTronControlBoard.imagePreviewLeft.size())))
+    display.showImage(newImage)
+
+@Slot()
+def getImageFileRight():
+    dialog = QFileDialog(improTronControlBoard)
+    locations = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
+    directory = locations[-1] if locations else QDir.currentPath()
+    dialog.setDirectory(directory)
+    fileName = QFileDialog.getOpenFileName(improTronControlBoard, "Open Image", "" , "Image Files (*.png *.jpg *.bmp)")
+    reader = QImageReader(fileName[0])
+    reader.setAutoTransform(True)
+    newImage = reader.read()
+
+    # Scale to match the preview
+    improTronControlBoard.imagePreviewRight.setPixmap(QPixmap.fromImage(newImage.scaled(improTronControlBoard.imagePreviewRight.size())))
     display.showImage(newImage)
 
 @Slot()
@@ -158,7 +173,8 @@ if __name__ == "__main__":
     # Connect info (text and images) message updates
     improTronControlBoard.leftShowText.clicked.connect(showLeftText)
     improTronControlBoard.rightShowText.clicked.connect(showRightText)
-    improTronControlBoard.loadImagePB.clicked.connect(getImageFile)
+    improTronControlBoard.loadImageLeftPB.clicked.connect(getImageFileLeft)
+    improTronControlBoard.loadImageRightPB.clicked.connect(getImageFileRight)
 
     # Connect Show Text Config elements
     improTronControlBoard.rightTextColorPB.clicked.connect(pickRightTextColor)
@@ -202,7 +218,7 @@ if __name__ == "__main__":
         Qt.WindowMinimizeButtonHint |
         Qt.WindowMaximizeButtonHint |
         Qt.WindowCloseButtonHint |
-        Qt.WindowStaysOnTopHint |
+
         Qt.WindowTitleHint
         )
     improTronControlBoard.show()

@@ -144,7 +144,8 @@ class HotButton():
         directory = locations[-1] if locations else QDir.currentPath()
         dialog.setDirectory(directory)
         fileName = QFileDialog.getOpenFileName(self.control_board, "Open Image", "" , "Image Files (*.png *.jpg *.bmp)")
-        self.hot_button_image_file.setText(fileName[0])
+        if len(fileName[0])>0:
+            self.hot_button_image_file.setText(fileName[0])
 
     @Slot()
     def hotButtonClicked(self):
@@ -153,7 +154,8 @@ class HotButton():
         newImage = reader.read()
 
         # Scale to match the preview
-        self.control_board.imagePreview.setPixmap(QPixmap.fromImage(newImage.scaled(self.control_board.imagePreview.size())))
+        self.control_board.imagePreviewLeft.setPixmap(QPixmap.fromImage(newImage.scaled(self.control_board.imagePreviewLeft.size())))
+        self.control_board.imagePreviewRight.setPixmap(QPixmap.fromImage(newImage.scaled(self.control_board.imagePreviewRight.size())))
         self.display.showImage(newImage)
 
 #Code for returning screen information
