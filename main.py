@@ -2,24 +2,26 @@
 import sys
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QFont
-from PySide6.QtWidgets import QApplication, QColorDialog, QFileDialog, QFileSystemModel
+from PySide6.QtWidgets import QApplication, QColorDialog, QFileDialog, QFileSystemModel, QListWidgetItem, QMessageBox
 from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt
 from Improtronics import ImproTron, MonitorInfoApp, HotButtonManager
-from audioPlayer import AudioPlayer
 #export QT_LOGGING_RULES="qt.pyside.libpyside.warning=true"
-
+#color: white; background-color: rgb(0, 0, 255)
 @Slot()
 def pickLeftTeamColor():
     color_chooser = QColorDialog()
     colorSelected = color_chooser.getColor(title = 'Pick Left Team Color')
     if (colorSelected.red()*0.299 + colorSelected.green()*0.587 + colorSelected.blue()*0.114) < 186:
         buttonCSS = f"QPushButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QPushButton {{color:white}}"
+        radioButtonCSS = f"QRadioButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QRadioButton {{color:white}}"
         labelCSS = f"QLabel {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QLabel {{color:white}}"
     else:
         buttonCSS = f"QPushButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QPushButton {{color:black}}"
+        radioButtonCSS = f"QRadioButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QRadioButton {{color:black}}"
         labelCSS = f"QLabel {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QLabel {{color:black}}"
 
     improTronControlBoard.colorLeftPB.setStyleSheet(buttonCSS)
+    improTronControlBoard.leftThingTeamRB.setStyleSheet(radioButtonCSS)
     display.colorizeLeftScore(labelCSS)
 
 @Slot()
@@ -28,12 +30,15 @@ def pickRightTeamColor():
     colorSelected = color_chooser.getColor(title = 'Pick Right Team Color')
     if (colorSelected.red()*0.299 + colorSelected.green()*0.587 + colorSelected.blue()*0.114) < 186:
         buttonCSS = f"QPushButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QPushButton {{color:white}}"
+        radioButtonCSS = f"QRadioButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QRadioButton {{color:white}}"
         labelCSS = f"QLabel {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QLabel {{color:white}}"
     else:
         buttonCSS = f"QPushButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QPushButton {{color:black}}"
+        radioButtonCSS = f"QRadioButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QRadioButton {{color:black}}"
         labelCSS = f"QLabel {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QLabel {{color:black}}"
 
     improTronControlBoard.colorRightPB.setStyleSheet(buttonCSS)
+    improTronControlBoard.rightThingTeamRB.setStyleSheet(radioButtonCSS)
     display.colorizeRightScore(labelCSS)
 
 @Slot()
@@ -113,10 +118,12 @@ def showScores():
 @Slot(str)
 def showLeftTeam(teamName):
     display.showLeftTeam(teamName)
+    improTronControlBoard.leftThingTeamRB.setText(teamName)
 
 @Slot(str)
 def showRightTeam(teamName):
     display.showRightTeam(teamName)
+    improTronControlBoard.rightThingTeamRB.setText(teamName)
 
 @Slot()
 def showLeftText():
@@ -149,6 +156,48 @@ def getImageList():
     path = QFileDialog.getExistingDirectory(improTronControlBoard, "Select Image Directory")
     model.index(path)
 
+# Slots for Thingz List Management
+@Slot()
+def addThingtoList():
+    thingStr = improTronControlBoard.thingNameTxt.text()
+    if len(thingStr) > 0:
+        newThing = QListWidgetItem(thingStr, improTronControlBoard.thingzListLW)
+        newThingFont = newThing.font()
+        newThingFont.setPointSize(12)
+        newThing.setFont(newThingFont)
+        newThing.setFlags(newThing.flags() | Qt.ItemIsEditable)
+        improTronControlBoard.thingNameTxt.setText("")
+        improTronControlBoard.thingNameTxt.setFocus()
+
+@Slot()
+def thingzMoveDown():
+    thingRow = improTronControlBoard.thingzListLW.currentRow()
+    if thingRow < 0:
+        return
+    thing = improTronControlBoard.thingzListLW.takeItem(thingRow)
+    improTronControlBoard.thingzListLW.insertItem(thingRow+1,thing)
+    improTronControlBoard.thingzListLW.setCurrentRow(thingRow+1)
+
+@Slot()
+def thingzMoveUp():
+    thingRow = improTronControlBoard.thingzListLW.currentRow()
+    if thingRow < 0:
+        return
+    thing = improTronControlBoard.thingzListLW.takeItem(thingRow)
+    improTronControlBoard.thingzListLW.insertItem(thingRow-1,thing)
+    improTronControlBoard.thingzListLW.setCurrentRow(thingRow-1)
+
+@Slot()
+def removeThingfromList():
+    improTronControlBoard.thingzListLW.takeItem(improTronControlBoard.thingzListLW.row(improTronControlBoard.thingzListLW.currentItem()))
+
+@Slot()
+def clearThingzList():
+    reply = QMessageBox.question(improTronControlBoard, 'Clear Thingz', 'Are you sure you want clear all Thingz?',
+    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+    if reply == QMessageBox.Yes:
+        improTronControlBoard.thingzListLW.clear()
+
 if __name__ == "__main__":
     loader = QUiLoader()
     app = QApplication(sys.argv)
@@ -164,7 +213,9 @@ if __name__ == "__main__":
     # Connect Score related signals to slots
     improTronControlBoard.colorRightPB.clicked.connect(pickRightTeamColor)
     improTronControlBoard.colorLeftPB.clicked.connect(pickLeftTeamColor)
-    improTronControlBoard.showScorePB.clicked.connect(showScores)
+    improTronControlBoard.showScoreLeftPB.clicked.connect(showScores)
+    improTronControlBoard.showScoreBothPB.clicked.connect(showScores)
+    improTronControlBoard.showScoreRightPB.clicked.connect(showScores)
 
     # Connect Team Name updates
     improTronControlBoard.teamNameLeft.textEdited.connect(showLeftTeam)
@@ -182,6 +233,14 @@ if __name__ == "__main__":
     improTronControlBoard.blackOutPB.clicked.connect(blackout)
     improTronControlBoard.leftFontSize.valueChanged.connect(textFontSize)
     improTronControlBoard.fontComboBoxLeft.currentFontChanged.connect(textFontChanged)
+
+    # Connect Thingz Management
+    improTronControlBoard.addThingPB.clicked.connect(addThingtoList)
+    improTronControlBoard.thingNameTxt.returnPressed.connect(addThingtoList)
+    improTronControlBoard.removeThingPB.clicked.connect(removeThingfromList)
+    improTronControlBoard.clearThingzPB.clicked.connect(clearThingzList)
+    improTronControlBoard.thingzMoveUpPB.clicked.connect(thingzMoveUp)
+    improTronControlBoard.thingzMoveDownPB.clicked.connect(thingzMoveDown)
 
     # Prototype buttons used for experimenting
     improTronControlBoard.resetTimerPB.clicked.connect(showFullScreen)
