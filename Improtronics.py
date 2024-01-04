@@ -1,9 +1,9 @@
 # The display is a container for all the possible features that can be displayed
 # This Python file uses the following encoding: utf-8
 import json
-from PySide6.QtWidgets import QFileDialog, QPushButton, QMainWindow, QLineEdit, QLabel, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFileDialog, QPushButton, QMainWindow, QLineEdit, QLabel, QVBoxLayout, QWidget, QMessageBox, QListWidgetItem
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QDir, QStandardPaths, Slot
+from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt
 from PySide6.QtGui import QPixmap, QImage, QImageReader, QFont
 from screeninfo import get_monitors
 
@@ -58,7 +58,7 @@ class ImproTron(QMainWindow):
             self.improTron.textDisplay.setFont(self.text_font)
 
     # Show Text on the disaply
-    @Slot(str,str,int)
+    @Slot(str)
     def showText(self, text_msg):
         self.improTron.textDisplay.setText(text_msg)
         self.improTron.textDisplay.setStyleSheet(self.labelCSS)
@@ -158,31 +158,6 @@ class HotButton():
         self.control_board.imagePreviewRight.setPixmap(QPixmap.fromImage(newImage.scaled(self.control_board.imagePreviewRight.size())))
         self.display.showImage(newImage)
 
-#Code for returning screen information
-
-class MonitorInfoApp(QWidget):
-    def __init__(self):
-        super(MonitorInfoApp, self).__init__()
-
-        self.init_ui()
-
-    def init_ui(self):
-        layout = QVBoxLayout()
-
-        # Get a list of connected monitors
-        monitors = get_monitors()
-
-        if not monitors:
-            layout.addWidget(QLabel("No monitors found"))
-        else:
-            for i, monitor in enumerate(monitors, 1):
-                monitor_label = QLabel(f"Monitor {i}: {monitor.name}, {monitor.width}x{monitor.height} pixels, Primary{monitor.is_primary}")
-                layout.addWidget(monitor_label)
-
-        self.setLayout(layout)
-        self.setWindowTitle("Monitor Information")
-        self.show()
-
 class HotButtonManager():
     # Instantiate the Hot Buttons via a Hot Button Object that takes care of the signal and slots
     # leveraging the naming convention
@@ -239,4 +214,136 @@ class HotButtonManager():
         # Write the JSON string to a file
         with open(fileName[0], 'w') as json_file:
             json_file.write(json_data)
+
+#Code for returning screen information
+
+class MonitorInfoApp(QWidget):
+    def __init__(self):
+        super(MonitorInfoApp, self).__init__()
+
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+
+        # Get a list of connected monitors
+        monitors = get_monitors()
+
+        if not monitors:
+            layout.addWidget(QLabel("No monitors found"))
+        else:
+            for i, monitor in enumerate(monitors, 1):
+                monitor_label = QLabel(f"Monitor {i}: {monitor.name}, {monitor.width}x{monitor.height} pixels, Primary{monitor.is_primary}")
+                layout.addWidget(monitor_label)
+
+        self.setLayout(layout)
+        self.setWindowTitle("Monitor Information")
+        self.show()
+
+class ThingzWidget(QListWidgetItem):
+    def __init__(self, title, parent=None):
+        super().__init__(title, parent)
+
+        self._title = title
+        self._text = "Needs Substitutes"
+
+    def title(self):
+        return self._title
+
+    def text(self):
+        return self._text
+
+    def thingData(self):
+        return self._title + "\n" + self._text
+
+    def updateSubstitutes(self, substitutesText):
+        self._text = substitutesText
+
+class ThingzListManager(QWidget):
+    def __init__(self, controlBoard, improtron):
+        super().__init__()
+
+        self.controlBoard = controlBoard
+        self.improTron = improtron
+
+        # Connect Thingz Management
+        controlBoard.thingzListLW.itemClicked.connect(self.show_selected_thing)
+        controlBoard.addThingPB.clicked.connect(self.addThingtoList)
+        controlBoard.thingNameTxt.returnPressed.connect(self.addThingtoList)
+        controlBoard.removeThingPB.clicked.connect(self.removeThingfromList)
+        controlBoard.clearThingzPB.clicked.connect(self.clearThingzList)
+        controlBoard.thingzMoveUpPB.clicked.connect(self.thingzMoveUp)
+        controlBoard.thingzMoveDownPB.clicked.connect(self.thingzMoveDown)
+        controlBoard.thingTextEdit.textChanged.connect(self.updateThingsText)
+        controlBoard.showThingLeftPB.clicked.connect(self.showThingLeft)
+        controlBoard.showThingRightPB.clicked.connect(self.showThingLeft)
+        controlBoard.showThingBothPB.clicked.connect(self.showThingLeft)
+
+    @Slot()
+    def showThingLeft(self):
+        self.improTron.showText(self.controlBoard.thingzListLW.currentItem().thingData())
+
+    @Slot()
+    def showThingRight(self):
+        self.improTron.showText(self.controlBoard.thingzListLW.currentItem().thingData())
+
+    @Slot()
+    def showThingBoth(self):
+        pass
+#        showThingLeft()
+#        showThingRight()
+
+    @Slot()
+    def updateThingsText(self):
+        self.controlBoard.thingzListLW.currentItem().updateSubstitutes(self.controlBoard.thingTextEdit.toPlainText())
+
+    @Slot(ThingzWidget)
+    def show_selected_thing(self, thing):
+        # Display selected item's title and text in the editor
+        self.controlBoard.thingFocusLBL.setText(thing.title())
+        self.controlBoard.thingTextEdit.setPlainText(thing.text())
+        self.currentThing = thing
+
+    @Slot()
+    def addThingtoList(self):
+        thingStr = self.controlBoard.thingNameTxt.text()
+        if len(thingStr) > 0:
+            newThing = ThingzWidget(thingStr, self.controlBoard.thingzListLW)
+            newThingFont = newThing.font()
+            newThingFont.setPointSize(12)
+            newThing.setFont(newThingFont)
+            newThing.setFlags(newThing.flags() | Qt.ItemIsEditable)
+            self.controlBoard.thingNameTxt.setText("")
+            self.controlBoard.thingNameTxt.setFocus()
+
+    @Slot()
+    def thingzMoveDown(self):
+        thingRow = self.controlBoard.thingzListLW.currentRow()
+        if thingRow < 0:
+            return
+        thing = self.controlBoard.thingzListLW.takeItem(thingRow)
+        self.controlBoard.thingzListLW.insertItem(thingRow+1,thing)
+        self.controlBoard.thingzListLW.setCurrentRow(thingRow+1)
+
+    @Slot()
+    def thingzMoveUp(self):
+        thingRow = self.controlBoard.thingzListLW.currentRow()
+        if thingRow < 0:
+            return
+        thing = self.controlBoard.thingzListLW.takeItem(thingRow)
+        self.controlBoard.thingzListLW.insertItem(thingRow-1,thing)
+        self.controlBoard.thingzListLW.setCurrentRow(thingRow-1)
+
+    @Slot()
+    def removeThingfromList(self):
+        self.controlBoard.thingzListLW.takeItem(self.controlBoard.thingzListLW.row(self.controlBoard.thingzListLW.currentItem()))
+
+    @Slot()
+    def clearThingzList(self):
+        reply = QMessageBox.question(self.control_board, 'Clear Thingz', 'Are you sure you want clear all Thingz?',
+                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.controlBoard.thingzListLW.clear()
+
+
 

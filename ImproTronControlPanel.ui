@@ -826,7 +826,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPlainTextEdit" name="plainTextEdit"/>
+          <widget class="QPlainTextEdit" name="thingTextEdit"/>
          </item>
         </layout>
        </widget>
@@ -1620,7 +1620,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          </font>
         </property>
         <property name="text">
-         <string>Right team</string>
+         <string>Right Team</string>
         </property>
        </widget>
       </item>

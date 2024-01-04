@@ -4,7 +4,7 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QFont
 from PySide6.QtWidgets import QApplication, QColorDialog, QFileDialog, QFileSystemModel, QListWidgetItem, QMessageBox
 from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt
-from Improtronics import ImproTron, MonitorInfoApp, HotButtonManager
+from Improtronics import ImproTron, MonitorInfoApp, HotButtonManager, ThingzListManager
 #export QT_LOGGING_RULES="qt.pyside.libpyside.warning=true"
 #color: white; background-color: rgb(0, 0, 255)
 @Slot()
@@ -157,46 +157,6 @@ def getImageList():
     model.index(path)
 
 # Slots for Thingz List Management
-@Slot()
-def addThingtoList():
-    thingStr = improTronControlBoard.thingNameTxt.text()
-    if len(thingStr) > 0:
-        newThing = QListWidgetItem(thingStr, improTronControlBoard.thingzListLW)
-        newThingFont = newThing.font()
-        newThingFont.setPointSize(12)
-        newThing.setFont(newThingFont)
-        newThing.setFlags(newThing.flags() | Qt.ItemIsEditable)
-        improTronControlBoard.thingNameTxt.setText("")
-        improTronControlBoard.thingNameTxt.setFocus()
-
-@Slot()
-def thingzMoveDown():
-    thingRow = improTronControlBoard.thingzListLW.currentRow()
-    if thingRow < 0:
-        return
-    thing = improTronControlBoard.thingzListLW.takeItem(thingRow)
-    improTronControlBoard.thingzListLW.insertItem(thingRow+1,thing)
-    improTronControlBoard.thingzListLW.setCurrentRow(thingRow+1)
-
-@Slot()
-def thingzMoveUp():
-    thingRow = improTronControlBoard.thingzListLW.currentRow()
-    if thingRow < 0:
-        return
-    thing = improTronControlBoard.thingzListLW.takeItem(thingRow)
-    improTronControlBoard.thingzListLW.insertItem(thingRow-1,thing)
-    improTronControlBoard.thingzListLW.setCurrentRow(thingRow-1)
-
-@Slot()
-def removeThingfromList():
-    improTronControlBoard.thingzListLW.takeItem(improTronControlBoard.thingzListLW.row(improTronControlBoard.thingzListLW.currentItem()))
-
-@Slot()
-def clearThingzList():
-    reply = QMessageBox.question(improTronControlBoard, 'Clear Thingz', 'Are you sure you want clear all Thingz?',
-    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-    if reply == QMessageBox.Yes:
-        improTronControlBoard.thingzListLW.clear()
 
 if __name__ == "__main__":
     loader = QUiLoader()
@@ -234,20 +194,13 @@ if __name__ == "__main__":
     improTronControlBoard.leftFontSize.valueChanged.connect(textFontSize)
     improTronControlBoard.fontComboBoxLeft.currentFontChanged.connect(textFontChanged)
 
-    # Connect Thingz Management
-    improTronControlBoard.addThingPB.clicked.connect(addThingtoList)
-    improTronControlBoard.thingNameTxt.returnPressed.connect(addThingtoList)
-    improTronControlBoard.removeThingPB.clicked.connect(removeThingfromList)
-    improTronControlBoard.clearThingzPB.clicked.connect(clearThingzList)
-    improTronControlBoard.thingzMoveUpPB.clicked.connect(thingzMoveUp)
-    improTronControlBoard.thingzMoveDownPB.clicked.connect(thingzMoveDown)
-
     # Prototype buttons used for experimenting
     improTronControlBoard.resetTimerPB.clicked.connect(showFullScreen)
     improTronControlBoard.startTimerPB.clicked.connect(showNormal)
     improTronControlBoard.searchImagesPB.clicked.connect(getImageList)
 
     hot_buttonsmanager = HotButtonManager(improTronControlBoard, display)
+    thingz_list_manager = ThingzListManager(improTronControlBoard, display)
 
     #monitor_info_app = MonitorInfoApp()
     #audio_player = AudioPlayer()
