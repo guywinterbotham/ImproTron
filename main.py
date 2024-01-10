@@ -2,9 +2,9 @@
 import sys
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QFont
-from PySide6.QtWidgets import QApplication, QColorDialog, QFileDialog, QFileSystemModel, QListWidgetItem, QMessageBox
+from PySide6.QtWidgets import QApplication, QColorDialog, QFileDialog, QFileSystemModel
 from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt
-from Improtronics import ImproTron, MonitorInfoApp, HotButtonManager, ThingzListManager
+from Improtronics import ImproTron, MonitorInfoApp, HotButtonManager, ThingzListManager, SlideShowManager
 #export QT_LOGGING_RULES="qt.pyside.libpyside.warning=true"
 #color: white; background-color: rgb(0, 0, 255)
 @Slot()
@@ -199,8 +199,9 @@ if __name__ == "__main__":
     improTronControlBoard.startTimerPB.clicked.connect(showNormal)
     improTronControlBoard.searchImagesPB.clicked.connect(getImageList)
 
-    hot_buttonsmanager = HotButtonManager(improTronControlBoard, display)
+    hot_buttons_manager = HotButtonManager(improTronControlBoard, display)
     thingz_list_manager = ThingzListManager(improTronControlBoard, display)
+    slide_show_manager = SlideShowManager(improTronControlBoard, display)
 
     #monitor_info_app = MonitorInfoApp()
     #audio_player = AudioPlayer()

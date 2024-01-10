@@ -1,9 +1,9 @@
 # The display is a container for all the possible features that can be displayed
 # This Python file uses the following encoding: utf-8
 import json
-from PySide6.QtWidgets import QFileDialog, QPushButton, QMainWindow, QLineEdit, QLabel, QVBoxLayout, QWidget, QMessageBox, QListWidgetItem
+from PySide6.QtWidgets import QFileDialog, QPushButton, QMainWindow, QLineEdit, QLabel, QVBoxLayout, QWidget, QMessageBox, QListWidgetItem, QFileSystemModel
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt
+from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt, QItemSelection
 from PySide6.QtGui import QPixmap, QImage, QImageReader, QFont
 from screeninfo import get_monitors
 
@@ -64,7 +64,7 @@ class ImproTron(QMainWindow):
         self.improTron.textDisplay.setStyleSheet(self.labelCSS)
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
-    # Show Text on the disaply
+    # Show an image on the disaply
     @Slot(QImage)
     def showImage(self, arg):
         self.improTron.textDisplay.setPixmap(QPixmap.fromImage(arg.scaled(self.improTron.textDisplay.size())))
@@ -276,8 +276,33 @@ class ThingzListManager(QWidget):
         controlBoard.thingzMoveDownPB.clicked.connect(self.thingzMoveDown)
         controlBoard.thingTextEdit.textChanged.connect(self.updateThingsText)
         controlBoard.showThingLeftPB.clicked.connect(self.showThingLeft)
-        controlBoard.showThingRightPB.clicked.connect(self.showThingLeft)
-        controlBoard.showThingBothPB.clicked.connect(self.showThingLeft)
+        controlBoard.showThingRightPB.clicked.connect(self.showThingRight)
+        controlBoard.showThingBothPB.clicked.connect(self.showThingBoth)
+        controlBoard.showThingzLeftPB.clicked.connect(self.showThingzListLeft)
+        controlBoard.showThingzRightPB.clicked.connect(self.showThingzListRight)
+        controlBoard.showThingzBothPB.clicked.connect(self.showThingzListBoth)
+
+    def listThingz(self):
+        listText = "Empty"
+        if self.controlBoard.thingzListLW.count() > 0:
+            listText = ""
+            for thingRow in range(self.controlBoard.thingzListLW.count()):
+                listText += self.controlBoard.thingzListLW.item(thingRow).title() + "\n"
+
+        return listText
+
+    @Slot()
+    def showThingzListLeft(self):
+        self.improTron.showText(self.listThingz())
+
+    @Slot()
+    def showThingzListRight(self):
+        self.improTron.showText(self.listThingz())
+
+    @Slot()
+    def showThingzListBoth(self):
+        self.showThingzListLeft()
+        self.showThingzListRight()
 
     @Slot()
     def showThingLeft(self):
@@ -289,9 +314,8 @@ class ThingzListManager(QWidget):
 
     @Slot()
     def showThingBoth(self):
-        pass
-#        showThingLeft()
-#        showThingRight()
+        self.showThingLeft()
+        self.showThingRight()
 
     @Slot()
     def updateThingsText(self):
@@ -340,10 +364,166 @@ class ThingzListManager(QWidget):
 
     @Slot()
     def clearThingzList(self):
-        reply = QMessageBox.question(self.control_board, 'Clear Thingz', 'Are you sure you want clear all Thingz?',
+        reply = QMessageBox.question(self.controlBoard, 'Clear Thingz', 'Are you sure you want clear all Thingz?',
                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.controlBoard.thingzListLW.clear()
 
 
+# To Do
+# Make sure list can;t have the same entry added twice
+# Create a slide object like Thing that contails a qFileInfo to carry all the file data but only display the name
+# Have file model filter for all supported image file types
+# implement the show fundtions
+# have the image preview if clicked on from the slide list
+# do a json file file save and load, although the load could be fun without the file info.
+class SlideWidget(QListWidgetItem):
+    def __init__(self, imageFileInfo, parent=None):
+        super().__init__(imageFileInfo.fileName(), parent)
 
+        self._fileInto = imageFileInfo
+        newSlideFont = self.font()
+        newSlideFont.setPointSize(12)
+        self.setFont(newSlideFont)
+
+    def title(self):
+        return self.text()
+
+    def fileInfo(self):
+        return self._fileInto
+
+    def imagePath(self):
+        return self._fileInto.absoluteFilePath()
+
+class SlideShowManager(QWidget):
+    def __init__(self, controlBoard, improtron):
+        super().__init__()
+
+        self.controlBoard = controlBoard
+        self.improTron = improtron
+
+        # Set up the File Tree for navigating to media
+        self.model = QFileSystemModel()
+        self.model.setRootPath(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0])
+
+        self.imageTreeView = controlBoard.slideShowFilesTreeView
+        self.imageTreeView.setModel(self.model)
+        self.imageTreeView.setRootIndex(self.model.index(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]))
+        for i in range(1, self.model.columnCount()):
+            self.imageTreeView.header().hideSection(i)
+        self.imageTreeView.setHeaderHidden(True)
+        #slideList = controlBoard.slideListLW
+
+        # selection changes shall trigger a slot
+        selectionModel = self.imageTreeView.selectionModel()
+        selectionModel.selectionChanged.connect(self.imageSelectedfromDir)
+
+        # Connect Slide Show Management
+        controlBoard.slideListLW.itemClicked.connect(self.previewSelectedSlide)
+        controlBoard.addSlidePB.clicked.connect(self.addSlidetoList)
+        controlBoard.slideMoveUpPB.clicked.connect(self.slideMoveUp)
+        controlBoard.slideMoveDownPB.clicked.connect(self.slideMoveDown)
+        controlBoard.removeSlidePB.clicked.connect(self.removeSlidefromList)
+        controlBoard.clearSlideShowPB.clicked.connect(self.clearSlideShow)
+        controlBoard.loadSlideShowPB.clicked.connect(self.loadSlideShow)
+        controlBoard.saveSlideShowPB.clicked.connect(self.saveSlideShow)
+        controlBoard.showSlideLeftPB.clicked.connect(self.showSlideLeft)
+        controlBoard.showSlideRightPB.clicked.connect(self.showSlideRight)
+        controlBoard.showSlideBothPB.clicked.connect(self.showSlideBoth)
+        #controlBoard.showSlideShowLeftPB.clicked.connect(self.showSlidesLeft)
+        #controlBoard.showSlideShowRightPB.clicked.connect(self.showSlidesRight)
+        #controlBoard.showSlideShowBothPB.clicked.connect(self.showSlidesBoth)
+
+    @Slot(QItemSelection, QItemSelection)
+    def imageSelectedfromDir(self, new_selection, old_selection):
+        # get the text of the selected item
+        index = self.imageTreeView.selectionModel().currentIndex()
+        if not self.model.isDir(index):
+            imageFileInfo = self.model.fileInfo(index)
+            reader = QImageReader(imageFileInfo.absoluteFilePath())
+            reader.setAutoTransform(True)
+            newImage = reader.read()
+
+            # Scale to match the preview
+            self.controlBoard.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.controlBoard.slidePreviewLBL.size())))
+
+    @Slot(SlideWidget)
+    def previewSelectedSlide(self, slide):
+        reader = QImageReader(slide.imagePath())
+        reader.setAutoTransform(True)
+        newImage = reader.read()
+
+        # Scale to match the preview
+        self.controlBoard.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.controlBoard.slidePreviewLBL.size())))
+
+
+    @Slot()
+    def addSlidetoList(self):
+        # get the text of the selected item
+        index = self.imageTreeView.selectionModel().currentIndex()
+        if not self.model.isDir(index):
+            SlideWidget(self.model.fileInfo(index), self.controlBoard.slideListLW)
+
+    @Slot()
+    def slideMoveUp(self):
+        slideRow = self.controlBoard.slideListLW.currentRow()
+        if slideRow < 0:
+            return
+        thing = self.controlBoard.slideListLW.takeItem(slideRow)
+        self.controlBoard.slideListLW.insertItem(slideRow-1,thing)
+        self.controlBoard.slideListLW.setCurrentRow(slideRow-1)
+
+    @Slot()
+    def slideMoveDown(self):
+        slideRow = self.controlBoard.slideListLW.currentRow()
+        if slideRow < 0:
+            return
+        thing = self.controlBoard.slideListLW.takeItem(slideRow)
+        self.controlBoard.slideListLW.insertItem(slideRow+1,thing)
+        self.controlBoard.slideListLW.setCurrentRow(slideRow+1)
+
+    @Slot()
+    def removeSlidefromList(self):
+        self.controlBoard.slideListLW.takeItem(self.controlBoard.slideListLW.row(self.controlBoard.slideListLW.currentItem()))
+
+    @Slot()
+    def loadSlideShow(self):
+        pass
+
+    @Slot()
+    def saveSlideShow(self):
+        pass
+
+    @Slot()
+    def clearSlideShow(self):
+        reply = QMessageBox.question(self.controlBoard, 'Clear Slides', 'Are you sure you want clear all slides?',
+                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.controlBoard.slideListLW.clear()
+
+    @Slot()
+    def showSlideLeft(self):
+        if self.controlBoard.slideListLW.currentItem() != None:
+            reader = QImageReader(self.controlBoard.slideListLW.currentItem().imagePath())
+            reader.setAutoTransform(True)
+            newImage = reader.read()
+
+            self.improTron.showImage(newImage)
+
+    @Slot()
+    def showSlideRight(self):
+        if self.controlBoard.slideListLW.currentItem() != None:
+            reader = QImageReader(self.controlBoard.slideListLW.currentItem().imagePath())
+            reader.setAutoTransform(True)
+            newImage = reader.read()
+
+            self.improTron.showImage(newImage)
+
+    @Slot()
+    def showSlideBoth(self):
+        if self.controlBoard.slideListLW.currentItem() != None:
+            reader = QImageReader(self.controlBoard.slideListLW.currentItem().imagePath())
+            reader.setAutoTransform(True)
+            newImage = reader.read()
+
+            self.improTron.showImage(newImage)
