@@ -3,7 +3,7 @@
 import json
 from PySide6.QtWidgets import QFileDialog, QPushButton, QMainWindow, QLineEdit, QLabel, QVBoxLayout, QWidget, QMessageBox, QListWidgetItem, QFileSystemModel
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt, QItemSelection
+from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt, QItemSelection, QTimer, QFileInfo
 from PySide6.QtGui import QPixmap, QImage, QImageReader, QFont
 from screeninfo import get_monitors
 
@@ -371,12 +371,10 @@ class ThingzListManager(QWidget):
 
 
 # To Do
-# Make sure list can;t have the same entry added twice
-# Create a slide object like Thing that contails a qFileInfo to carry all the file data but only display the name
 # Have file model filter for all supported image file types
-# implement the show fundtions
-# have the image preview if clicked on from the slide list
+# implement the show fwd reverse functions
 # do a json file file save and load, although the load could be fun without the file info.
+# add some try excpet handling around the load for when files have been removed
 class SlideWidget(QListWidgetItem):
     def __init__(self, imageFileInfo, parent=None):
         super().__init__(imageFileInfo.fileName(), parent)
@@ -393,7 +391,7 @@ class SlideWidget(QListWidgetItem):
         return self._fileInto
 
     def imagePath(self):
-        return self._fileInto.absoluteFilePath()
+        return self._fileInto.absoluteFilePath()    
 
 class SlideShowManager(QWidget):
     def __init__(self, controlBoard, improtron):
@@ -433,6 +431,20 @@ class SlideShowManager(QWidget):
         #controlBoard.showSlideShowLeftPB.clicked.connect(self.showSlidesLeft)
         #controlBoard.showSlideShowRightPB.clicked.connect(self.showSlidesRight)
         #controlBoard.showSlideShowBothPB.clicked.connect(self.showSlidesBoth)
+
+        # Slideshow Timer wiring
+        self.slideShowTimer = QTimer()
+        self.secondsSettings = controlBoard.slideShowSecondSB
+        self.paused = False
+        self. currentSlide = 0
+        self.slideShowTimer.timeout.connect(self.nextSlide)
+        controlBoard.slideShowRestartPB.clicked.connect(self.slideShowRestart)
+        controlBoard.slideShowRewindPB.clicked.connect(self.slideShowRewind)
+        controlBoard.slideShowPlayPB.clicked.connect(self.slideShowPlay)
+        controlBoard.slideShowPausePB.clicked.connect(self.slideShowPause)
+        controlBoard.slideShowStopPB.clicked.connect(self.slideShowStop)
+        controlBoard.slideShowForwardPB.clicked.connect(self.slideShowForward)
+        controlBoard.slideShowSkipPB.clicked.connect(self.slideShowSkip)
 
     @Slot(QItemSelection, QItemSelection)
     def imageSelectedfromDir(self, new_selection, old_selection):
@@ -488,11 +500,47 @@ class SlideShowManager(QWidget):
 
     @Slot()
     def loadSlideShow(self):
-        pass
+        if self.controlBoard.slideListLW.count() > 0:
+            reply = QMessageBox.question(self.controlBoard, 'Replace Slides', 'Are you sure you want replace the current slides?',
+                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return
+
+        self.controlBoard.slideListLW.clear()
+
+        dialog = QFileDialog(self.controlBoard)
+        dialog.setDirectory('C:/Users/guywi/AppData/Local/ImproTron')
+        fileName = QFileDialog.getOpenFileName(self.controlBoard, "Load Slideshow",
+                    "C:/Users/guywi/AppData/Local/ImproTron/default_slideshow.json" ,
+                    "Config Files(*.json)")
+
+        # Read the JSON data from the file
+        with open(fileName[0], 'r') as json_file:
+            slideshow_data = json.load(json_file)
+
+        for slide in slideshow_data.items():
+            file = QFileInfo(slide[1])
+            SlideWidget(file, self.controlBoard.slideListLW)
 
     @Slot()
     def saveSlideShow(self):
-        pass
+        dialog = QFileDialog(self.controlBoard)
+        dialog.setDirectory('C:/Users/guywi/AppData/Local/ImproTron')
+        fileName = QFileDialog.getSaveFileName(self.controlBoard, "Save Slide Show",
+                                   "C:/Users/guywi/AppData/Local/ImproTron/default_slideshow.json",
+                                   "Config Files (*.json)")
+        slide_data = {}
+        for slide in range(self.controlBoard.slideListLW.count()):
+            slideName = "slide"+str(slide)
+            slide_data[slideName] = self.controlBoard.slideListLW.item(slide).imagePath()
+
+        # Convert the Python dictionary to a JSON string
+        json_data = json.dumps(slide_data, indent=2)
+
+        # Write the JSON string to a file
+        with open(fileName[0], 'w') as json_file:
+            json_file.write(json_data)
+
 
     @Slot()
     def clearSlideShow(self):
@@ -527,3 +575,53 @@ class SlideShowManager(QWidget):
             newImage = reader.read()
 
             self.improTron.showImage(newImage)
+
+    # Slots for handling the Slide Show Player
+    @Slot()
+    def nextSlide(self):
+        self.currentSlide += 1
+        slideCount = self.controlBoard.slideListLW.count()
+        if slideCount > 0:
+            self.currentSlide = self.currentSlide % slideCount
+            self.controlBoard.slideListLW.setCurrentRow(self.currentSlide)
+            self.showSlideRight()
+        else:
+            self.currentSlide = 0
+
+    @Slot()
+    def slideShowRestart(self):
+        pass
+
+    @Slot()
+    def slideShowRewind(self):
+        pass
+
+    @Slot()
+    def slideShowPlay(self):
+        if not self.paused:
+            self.currentSlide = 0
+        self.paused = False
+        self.slideShowTimer.setInterval(self.secondsSettings.value()*1000)
+        self.controlBoard.slideListLW.setCurrentRow(self.currentSlide)
+        self.showSlideRight()
+        self.slideShowTimer.start()
+
+    @Slot()
+    def slideShowPause(self):
+        self.slideShowTimer.stop()
+        self.paused = True
+
+    @Slot()
+    def slideShowStop(self):
+        self.slideShowTimer.stop()
+        self.paused = False
+        self.currentSlide = 0
+
+    @Slot()
+    def slideShowForward(self):
+        pass
+
+    @Slot()
+    def slideShowSkip(self):
+        pass
+
