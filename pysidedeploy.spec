@@ -1,15 +1,15 @@
 [app]
 # title of your application
-title = ImproTron
+title = pyside_app_demo
 # project directory. the general assumption is that project_dir is the parent directory
 # of input_file
-project_dir = C:\Users\guywi\OneDrive\Documents\git\ImproTron
+project_dir = .
 # source file path
 input_file = main.py
 # directory where exec is stored
-exec_directory = C:\Users\guywi\OneDrive\Documents\git\ImproTron
+exec_directory = .
 # path to .pyproject project file
-project_file = C:\Users\guywi\OneDrive\Documents\git\ImproTron\ImproTron.pyproject
+project_file = ImproTron.pyproject
 
 [python]
 # python path

@@ -1,6 +1,7 @@
 {
     "files": [
         "ImproTron.qrc",
+        "ImproTronControlBoard.py",
         "Improtronics.py",
         "audioPlayer.py",
         "main.py"

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1056</width>
-    <height>686</height>
+    <height>706</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -121,6 +121,527 @@
       </item>
      </layout>
     </item>
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="teamsLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetNoConstraint</enum>
+      </property>
+      <item row="1" column="7">
+       <widget class="QPushButton" name="scanImagesPB">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Scan</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLineEdit" name="teamNameLeft">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Left Team</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="10">
+       <widget class="QLabel" name="teamRightLbl">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Team Name</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="12">
+       <widget class="QLineEdit" name="teamNameRight">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Right Team</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="10">
+       <widget class="QLabel" name="rightScoreLbl">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Score</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="12">
+       <layout class="QHBoxLayout" name="rightScoreHLayout">
+        <item>
+         <widget class="QSpinBox" name="teamScoreRight">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>20</pointsize>
+           </font>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::PlusMinus</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="colorRightPB">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Color ...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="leftScoreLbl">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Score</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <layout class="QHBoxLayout" name="leftScoreHLayout">
+        <item>
+         <widget class="QSpinBox" name="teamScoreLeft">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>20</pointsize>
+           </font>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::PlusMinus</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="colorLeftPB">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="text">
+           <string>Color ...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="teamLeftLbl">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Team Name</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <layout class="QVBoxLayout" name="imageLeftVLayout">
+        <item>
+         <widget class="QCheckBox" name="expandMainCB">
+          <property name="text">
+           <string>Expand</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pasteImageMainPB">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Paste Image</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="loadImageMainPB">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Load Image</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="5" column="7">
+       <widget class="QPushButton" name="blackOutPB">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Blackout</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="10">
+       <layout class="QVBoxLayout" name="imageRightVLayout">
+        <item>
+         <widget class="QCheckBox" name="expandAuxiliaryCB">
+          <property name="text">
+           <string>Expand</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pasteImageAuxiliaryPB">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Paste Image</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="loadImageAuxiliaryPB">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Load Image</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="5" column="12">
+       <widget class="QLabel" name="imagePreviewAuxiliary">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>288</width>
+          <height>162</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>288</width>
+          <height>162</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>288</width>
+          <height>162</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="2">
+       <widget class="QLabel" name="imagePreviewMain">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>288</width>
+          <height>162</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>288</width>
+          <height>162</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>288</width>
+          <height>162</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7">
+       <widget class="QPushButton" name="showScoresAuxiliaryPB">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Show Auxiliary</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4" colspan="2">
+       <widget class="QPushButton" name="showScoresBothPB">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Show Score Both</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QLineEdit" name="lineEdit">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Images in Library</string>
+        </property>
+        <property name="maxLength">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="5">
+       <widget class="QGroupBox" name="timerGB">
+        <property name="title">
+         <string>Countdown Timer</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <item>
+          <layout class="QVBoxLayout" name="timerLayout">
+           <item>
+            <layout class="QVBoxLayout" name="timeVL">
+             <item>
+              <layout class="QHBoxLayout" name="timeLeftHL">
+               <item>
+                <widget class="QLabel" name="timeLeftLabel">
+                 <property name="text">
+                  <string>Time Left</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="hourVL">
+                 <item>
+                  <widget class="QLabel" name="hoursLabel">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>HH</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="hoursLeftSpin"/>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="minuteVL">
+                 <item>
+                  <widget class="QLabel" name="minutesLabel">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>MM</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="minuteLeftSpin"/>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="secondVL">
+                 <item>
+                  <widget class="QLabel" name="secondLabel">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>SS</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="secondsLeftSpin"/>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="turnRedHL">
+               <item>
+                <widget class="QLabel" name="timeRedLabel">
+                 <property name="styleSheet">
+                  <string notr="true">color: rgb(255, 0, 0);
+font: 700 9pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Turn Red </string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="redHoursSpin"/>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="redMinutesSpin"/>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="redSecondsSpin"/>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QPushButton" name="resetTimerPB">
+               <property name="text">
+                <string>Reset</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="timeVisibleCB">
+               <property name="text">
+                <string>Visible</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="startTimerPB">
+               <property name="autoFillBackground">
+                <bool>true</bool>
+               </property>
+               <property name="text">
+                <string>START</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QPushButton" name="showScoresMainPB">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Show Main</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
     <item row="2" column="0">
      <widget class="QTabWidget" name="featureTabs">
       <property name="sizePolicy">
@@ -130,7 +651,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="iconSize">
        <size>
@@ -152,27 +673,6 @@
         <string>Text Display</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="1" column="2">
-         <layout class="QVBoxLayout" name="rightTextVLayout">
-          <item>
-           <widget class="QPlainTextEdit" name="rightTextBox">
-            <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="rightShowText">
-            <property name="text">
-             <string>Show Text</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
         <item row="0" column="0">
          <layout class="QHBoxLayout" name="leftFontHLayout">
           <property name="sizeConstraint">
@@ -189,7 +689,13 @@
            </widget>
           </item>
           <item>
-           <widget class="QFontComboBox" name="fontComboBoxLeft"/>
+           <widget class="QFontComboBox" name="fontComboBoxLeft">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="leftFontSizeLbl">
@@ -203,14 +709,22 @@
           </item>
           <item>
            <widget class="QSpinBox" name="leftFontSize">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="minimum">
              <number>20</number>
             </property>
             <property name="maximum">
-             <number>200</number>
+             <number>300</number>
             </property>
             <property name="singleStep">
              <number>5</number>
+            </property>
+            <property name="value">
+             <number>100</number>
             </property>
            </widget>
           </item>
@@ -228,139 +742,234 @@
           </item>
          </layout>
         </item>
-        <item row="1" column="1">
+        <item row="2" column="1">
          <layout class="QVBoxLayout" name="manageTextLayout">
           <property name="sizeConstraint">
            <enum>QLayout::SetMinimumSize</enum>
           </property>
           <item>
-           <widget class="QGroupBox" name="clearTextGB">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <spacer name="loadTextSP">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
             </property>
-            <property name="minimumSize">
+            <property name="sizeType">
+             <enum>QSizePolicy::Expanding</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>170</width>
-              <height>0</height>
+              <width>20</width>
+              <height>60</height>
              </size>
             </property>
-            <property name="title">
-             <string>Clear Text</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <widget class="QWidget" name="layoutWidget">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>20</y>
-               <width>239</width>
-               <height>91</height>
-              </rect>
-             </property>
-             <layout class="QHBoxLayout" name="clearTextLayout">
-              <item>
-               <widget class="QPushButton" name="clearTextboxLeft">
-                <property name="text">
-                 <string>&lt;-</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="clearTextboxBoth">
-                <property name="text">
-                 <string>&lt;-&gt;</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="clearTextboxRight">
-                <property name="text">
-                 <string>-&gt;</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </widget>
+           </spacer>
           </item>
           <item>
-           <widget class="QGroupBox" name="loadTextGB">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <widget class="QLabel" name="loadTextLBL">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>170</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="title">
+            <property name="text">
              <string>Load Text</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_11">
-             <item>
-              <layout class="QHBoxLayout" name="loadTextLayout">
-               <item>
-                <widget class="QPushButton" name="loadTextboxLeft">
-                 <property name="text">
-                  <string>&lt;-</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="loadTextboxBoth">
-                 <property name="text">
-                  <string>&lt;-&gt;</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="loadTextboxRight">
-                 <property name="text">
-                  <string>-&gt;</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="loadTextLayout">
+            <item>
+             <widget class="QPushButton" name="loadTextboxLeft">
+              <property name="text">
+               <string>&lt;-</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="loadTextboxBoth">
+              <property name="text">
+               <string>&lt;-&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="loadTextboxRight">
+              <property name="text">
+               <string>-&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="clearTextLBL">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Clear Text</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="clearTextLayout">
+            <item>
+             <widget class="QPushButton" name="clearLeftTextPB">
+              <property name="text">
+               <string>&lt;-</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="clearBothTextPB">
+              <property name="text">
+               <string>&lt;-&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="clearRightTextPB">
+              <property name="text">
+               <string>-&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <layout class="QVBoxLayout" name="leftTextVLayout">
           <item>
-           <widget class="QPlainTextEdit" name="leftTextBox">
+           <widget class="QTextEdit" name="leftTextBox">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="verticalScrollBarPolicy">
              <enum>Qt::ScrollBarAlwaysOff</enum>
             </property>
             <property name="horizontalScrollBarPolicy">
              <enum>Qt::ScrollBarAlwaysOff</enum>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="leftShowText">
-            <property name="text">
-             <string>Show Text</string>
+            <property name="acceptRichText">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
+          <item>
+           <layout class="QHBoxLayout" name="leftTextShowHL">
+            <item>
+             <widget class="QPushButton" name="showLeftTextMainPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show on Main</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="showLeftTextAuxiliaryPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show on Auxiliary</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="showLeftTextBothPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show on Both</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
         </item>
-        <item row="0" column="2">
+        <item row="2" column="3">
+         <layout class="QVBoxLayout" name="rightTextVLayout">
+          <item>
+           <widget class="QTextEdit" name="rightTextBox">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="acceptRichText">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="rightTextShowHL">
+            <item>
+             <widget class="QPushButton" name="showRightTextMainPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show on Main</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="showRightTextAuxiliaryPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show on Auxilary</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="showRightTextBothPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show on Both</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="3">
          <layout class="QHBoxLayout" name="rightFontHLayout">
           <item>
            <widget class="QLabel" name="rightFontLbl">
@@ -373,7 +982,13 @@
            </widget>
           </item>
           <item>
-           <widget class="QFontComboBox" name="fontComboBoxRight"/>
+           <widget class="QFontComboBox" name="fontComboBoxRight">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="rightFontSizeLbl">
@@ -387,14 +1002,22 @@
           </item>
           <item>
            <widget class="QSpinBox" name="rightFontSize">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="minimum">
              <number>20</number>
             </property>
             <property name="maximum">
-             <number>200</number>
+             <number>300</number>
             </property>
             <property name="singleStep">
              <number>5</number>
+            </property>
+            <property name="value">
+             <number>100</number>
             </property>
            </widget>
           </item>
@@ -592,9 +1215,9 @@
        <widget class="QWidget" name="verticalLayoutWidget_3">
         <property name="geometry">
          <rect>
-          <x>0</x>
+          <x>20</x>
           <y>100</y>
-          <width>145</width>
+          <width>81</width>
           <height>116</height>
          </rect>
         </property>
@@ -616,7 +1239,11 @@
             </font>
            </property>
            <property name="text">
-            <string>Move Up</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="ImproTronIcons.qrc">
+             <normaloff>:/icons/up</normaloff>:/icons/up</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -657,7 +1284,11 @@
             </font>
            </property>
            <property name="text">
-            <string>Move Down</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="ImproTronIcons.qrc">
+             <normaloff>:/icons/down</normaloff>:/icons/down</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -711,7 +1342,7 @@
         </property>
         <layout class="QHBoxLayout" name="thingzShowHL">
          <item>
-          <widget class="QPushButton" name="showThingzLeftPB">
+          <widget class="QPushButton" name="showThingzMainPB">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
              <horstretch>0</horstretch>
@@ -724,7 +1355,25 @@
             </font>
            </property>
            <property name="text">
-            <string>List Left</string>
+            <string>List Main</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="showThingzAuxiliaryPB">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>List Auxiliary</string>
            </property>
           </widget>
          </item>
@@ -743,24 +1392,6 @@
            </property>
            <property name="text">
             <string>List Both</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="showThingzRightPB">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>List Right</string>
            </property>
           </widget>
          </item>
@@ -929,7 +1560,7 @@
         </property>
         <layout class="QHBoxLayout" name="thingzShowHL_2">
          <item>
-          <widget class="QPushButton" name="showThingLeftPB">
+          <widget class="QPushButton" name="showThingMainPB">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
              <horstretch>0</horstretch>
@@ -942,7 +1573,25 @@
             </font>
            </property>
            <property name="text">
-            <string>Show Left</string>
+            <string>Show Main</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="showThingAuxiliaryPB">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Show Auxiliary</string>
            </property>
           </widget>
          </item>
@@ -961,24 +1610,6 @@
            </property>
            <property name="text">
             <string>Show Both</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="showThingRightPB">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Show Right</string>
            </property>
           </widget>
          </item>
@@ -1092,49 +1723,77 @@
               <item>
                <widget class="QPushButton" name="slideShowRestartPB">
                 <property name="text">
-                 <string>Restart</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/rewind</normaloff>:/icons/rewind</iconset>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="slideShowRewindPB">
                 <property name="text">
-                 <string>Rewind</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/back</normaloff>:/icons/back</iconset>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="slideShowPlayPB">
                 <property name="text">
-                 <string>Play</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/play</normaloff>:/icons/play</iconset>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="slideShowPausePB">
                 <property name="text">
-                 <string>Pause</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="slideShowStopPB">
                 <property name="text">
-                 <string>Stop</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="slideShowForwardPB">
                 <property name="text">
-                 <string>Forward</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/next</normaloff>:/icons/next</iconset>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="slideShowSkipPB">
                 <property name="text">
-                 <string>Skip</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/ffwd</normaloff>:/icons/ffwd</iconset>
                 </property>
                </widget>
               </item>
@@ -1143,7 +1802,7 @@
             <item>
              <layout class="QHBoxLayout" name="slideDisplayControlsHL">
               <item>
-               <widget class="QPushButton" name="showSlideLeftPB">
+               <widget class="QPushButton" name="showSlideMainPB">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -1156,7 +1815,25 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Slide Left</string>
+                 <string>Slide Main</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="showSlideAuxiliaryPB">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Slide Auxiliary</string>
                 </property>
                </widget>
               </item>
@@ -1175,24 +1852,6 @@
                 </property>
                 <property name="text">
                  <string>Slide Both</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="showSlideRightPB">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>12</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Slide Right</string>
                 </property>
                </widget>
               </item>
@@ -1838,35 +2497,84 @@ background-color: rgb(255, 255, 0);</string>
        <attribute name="title">
         <string>Preferences</string>
        </attribute>
-       <widget class="QWidget" name="gridLayoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>1041</width>
-          <height>321</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="preferencesLayout">
-         <item row="1" column="0" colspan="2">
-          <layout class="QHBoxLayout" name="horizontalLayout_7"/>
-         </item>
-         <item row="0" column="1">
-          <widget class="QGroupBox" name="groupBox_2">
-           <property name="title">
-            <string>GroupBox</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QGroupBox" name="groupBox_3">
-           <property name="title">
-            <string>GroupBox</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <layout class="QHBoxLayout" name="preferenceHL">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_2"/>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_3"/>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="ImproTronPositionVL">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_12">
+              <item>
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Unlock and move the Improtrons and control panel to the screen they will inhabit while in use. The control panel will start on the same screen butwill not go into fullscreen mode</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="controlPanelunlockPB">
+              <property name="text">
+               <string>Control Panel</string>
+              </property>
+              <property name="icon">
+               <iconset resource="ImproTronIcons.qrc">
+                <normaloff>:/icons/locked</normaloff>
+                <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="leftImproTronUnlockPB">
+              <property name="text">
+               <string> Left ImproTron</string>
+              </property>
+              <property name="icon">
+               <iconset resource="ImproTronIcons.qrc">
+                <normaloff>:/icons/locked</normaloff>
+                <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="rightImproTronUnlockPB">
+              <property name="text">
+               <string>Unlock Right ImproTron</string>
+              </property>
+              <property name="icon">
+               <iconset resource="ImproTronIcons.qrc">
+                <normaloff>:/icons/locked</normaloff>
+                <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_7"/>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="aboutTab">
        <property name="minimumSize">
@@ -1924,527 +2632,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
       </widget>
      </widget>
     </item>
-    <item row="0" column="0">
-     <layout class="QGridLayout" name="teamsLayout">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetNoConstraint</enum>
-      </property>
-      <item row="1" column="7">
-       <widget class="QPushButton" name="scanImagesPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Scan</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLineEdit" name="teamNameLeft">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Left Team</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="10">
-       <widget class="QLabel" name="teamRightLbl">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Team Name</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="12">
-       <widget class="QLineEdit" name="teamNameRight">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Right Team</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="10">
-       <widget class="QLabel" name="rightScoreLbl">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Score</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="12">
-       <layout class="QHBoxLayout" name="rightScoreHLayout">
-        <item>
-         <widget class="QSpinBox" name="teamScoreRight">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>20</pointsize>
-           </font>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="buttonSymbols">
-           <enum>QAbstractSpinBox::PlusMinus</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="colorRightPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Color ...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="leftScoreLbl">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Score</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <layout class="QHBoxLayout" name="leftScoreHLayout">
-        <item>
-         <widget class="QSpinBox" name="teamScoreLeft">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>20</pointsize>
-           </font>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="buttonSymbols">
-           <enum>QAbstractSpinBox::PlusMinus</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="colorLeftPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="text">
-           <string>Color ...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="teamLeftLbl">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Team Name</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="3">
-       <layout class="QVBoxLayout" name="imageLeftVLayout">
-        <item>
-         <widget class="QCheckBox" name="expandLeftCB">
-          <property name="text">
-           <string>Expand</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pasteImageLeftPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Paste Image</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="loadImageLeftPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Load Image</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="5" column="7">
-       <widget class="QPushButton" name="blackOutPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Blackout</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="10">
-       <layout class="QVBoxLayout" name="imageRightVLayout">
-        <item>
-         <widget class="QCheckBox" name="expandRightCB">
-          <property name="text">
-           <string>Expand</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Paste Image</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="loadImageRightPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Load Image</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="5" column="12">
-       <widget class="QLabel" name="imagePreviewRight">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="QLabel" name="imagePreviewLeft">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="7">
-       <widget class="QPushButton" name="showScoreRightPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Show Right</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4" colspan="2">
-       <widget class="QPushButton" name="showScoreBothPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Show Score Both</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="5">
-       <widget class="QLineEdit" name="lineEdit">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Images in Library</string>
-        </property>
-        <property name="maxLength">
-         <number>50</number>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="5">
-       <widget class="QGroupBox" name="timerGB">
-        <property name="title">
-         <string>Countdown Timer</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_6">
-         <item>
-          <layout class="QVBoxLayout" name="timerLayout">
-           <item>
-            <layout class="QVBoxLayout" name="timeVL">
-             <item>
-              <layout class="QHBoxLayout" name="timeLeftHL">
-               <item>
-                <widget class="QLabel" name="timeLeftLabel">
-                 <property name="text">
-                  <string>Time Left</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="hourVL">
-                 <item>
-                  <widget class="QLabel" name="hoursLabel">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>HH</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="hoursLeftSpin"/>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="minuteVL">
-                 <item>
-                  <widget class="QLabel" name="minutesLabel">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>MM</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="minuteLeftSpin"/>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="secondVL">
-                 <item>
-                  <widget class="QLabel" name="secondLabel">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>SS</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="secondsLeftSpin"/>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="turnRedHL">
-               <item>
-                <widget class="QLabel" name="timeRedLabel">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 0, 0);
-font: 700 9pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>Turn Red </string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="redHoursSpin"/>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="redMinutesSpin"/>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="redSecondsSpin"/>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <item>
-              <widget class="QPushButton" name="resetTimerPB">
-               <property name="text">
-                <string>Reset</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="timeVisibleCB">
-               <property name="text">
-                <string>Visible</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="startTimerPB">
-               <property name="autoFillBackground">
-                <bool>true</bool>
-               </property>
-               <property name="text">
-                <string>START</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QPushButton" name="showScoreLeftPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Show Left</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
    </layout>
   </widget>
  </widget>
@@ -2460,19 +2647,15 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
   <tabstop>hotPB9</tabstop>
   <tabstop>hotPB10</tabstop>
   <tabstop>featureTabs</tabstop>
-  <tabstop>rightTextBox</tabstop>
-  <tabstop>rightShowText</tabstop>
   <tabstop>fontComboBoxLeft</tabstop>
   <tabstop>leftFontSize</tabstop>
   <tabstop>leftTextColorPB</tabstop>
-  <tabstop>clearTextboxLeft</tabstop>
-  <tabstop>clearTextboxBoth</tabstop>
-  <tabstop>clearTextboxRight</tabstop>
+  <tabstop>clearLeftTextPB</tabstop>
+  <tabstop>clearBothTextPB</tabstop>
+  <tabstop>clearRightTextPB</tabstop>
   <tabstop>loadTextboxLeft</tabstop>
   <tabstop>loadTextboxBoth</tabstop>
   <tabstop>loadTextboxRight</tabstop>
-  <tabstop>leftTextBox</tabstop>
-  <tabstop>leftShowText</tabstop>
   <tabstop>fontComboBoxRight</tabstop>
   <tabstop>rightFontSize</tabstop>
   <tabstop>rightTextColorPB</tabstop>
@@ -2485,23 +2668,19 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
   <tabstop>thingzMoveDownPB</tabstop>
   <tabstop>hotPB1</tabstop>
   <tabstop>thingzListLW</tabstop>
-  <tabstop>showThingzLeftPB</tabstop>
-  <tabstop>showThingzBothPB</tabstop>
-  <tabstop>showThingzRightPB</tabstop>
+  <tabstop>showThingzMainPB</tabstop>
+  <tabstop>showThingzAuxiliaryPB</tabstop>
   <tabstop>leftThingTeamRB</tabstop>
   <tabstop>rightThingTeamRB</tabstop>
   <tabstop>thingTextEdit</tabstop>
   <tabstop>addThingPB</tabstop>
   <tabstop>removeThingPB</tabstop>
   <tabstop>clearThingzPB</tabstop>
-  <tabstop>showThingLeftPB</tabstop>
-  <tabstop>showThingBothPB</tabstop>
-  <tabstop>showThingRightPB</tabstop>
+  <tabstop>showThingMainPB</tabstop>
+  <tabstop>showThingAuxiliaryPB</tabstop>
   <tabstop>slideShowFilesTreeView</tabstop>
   <tabstop>addSlidePB</tabstop>
-  <tabstop>showSlideLeftPB</tabstop>
-  <tabstop>showSlideBothPB</tabstop>
-  <tabstop>showSlideRightPB</tabstop>
+  <tabstop>showSlideAuxiliaryPB</tabstop>
   <tabstop>slideListLW</tabstop>
   <tabstop>slideMoveUpPB</tabstop>
   <tabstop>slideMoveDownPB</tabstop>
@@ -2551,15 +2730,15 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
   <tabstop>colorRightPB</tabstop>
   <tabstop>teamScoreLeft</tabstop>
   <tabstop>colorLeftPB</tabstop>
-  <tabstop>expandLeftCB</tabstop>
-  <tabstop>pasteImageLeftPB</tabstop>
-  <tabstop>loadImageLeftPB</tabstop>
+  <tabstop>expandMainCB</tabstop>
+  <tabstop>pasteImageMainPB</tabstop>
+  <tabstop>loadImageMainPB</tabstop>
   <tabstop>blackOutPB</tabstop>
-  <tabstop>expandRightCB</tabstop>
-  <tabstop>pushButton</tabstop>
-  <tabstop>loadImageRightPB</tabstop>
-  <tabstop>showScoreRightPB</tabstop>
-  <tabstop>showScoreBothPB</tabstop>
+  <tabstop>expandAuxiliaryCB</tabstop>
+  <tabstop>pasteImageAuxiliaryPB</tabstop>
+  <tabstop>loadImageAuxiliaryPB</tabstop>
+  <tabstop>showScoresAuxiliaryPB</tabstop>
+  <tabstop>showScoresBothPB</tabstop>
   <tabstop>lineEdit</tabstop>
   <tabstop>hoursLeftSpin</tabstop>
   <tabstop>minuteLeftSpin</tabstop>
@@ -2570,10 +2749,10 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
   <tabstop>resetTimerPB</tabstop>
   <tabstop>timeVisibleCB</tabstop>
   <tabstop>startTimerPB</tabstop>
-  <tabstop>showScoreLeftPB</tabstop>
+  <tabstop>showScoresMainPB</tabstop>
  </tabstops>
  <resources>
-  <include location="ImproTron.qrc"/>
+  <include location="ImproTronIcons.qrc"/>
  </resources>
  <connections/>
 </ui>

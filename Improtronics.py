@@ -3,65 +3,51 @@
 import json
 from PySide6.QtWidgets import QFileDialog, QPushButton, QMainWindow, QLineEdit, QLabel, QVBoxLayout, QWidget, QMessageBox, QListWidgetItem, QFileSystemModel
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt, QItemSelection, QTimer, QFileInfo
+from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt, QItemSelection, QFileInfo
 from PySide6.QtGui import QPixmap, QImage, QImageReader, QFont
 from screeninfo import get_monitors
 
 # Class to handle display on a separate monitor
-class ImproTron(QMainWindow):
-    def __init__(self, parent=None):
+class ImproTron():
+    def __init__(self, name, parent=None):
         super(ImproTron, self).__init__()
-        self.setGeometry(300, 300, 300, 300)
-        self.setWindowTitle("Display 1")
+
         self.loader = QUiLoader()
         self.improTron = self.loader.load("Improtron.ui", None)
-        self.setCentralWidget(self.improTron)
+        self.improTron.textDisplay.setText(name)
+        self.improTron.setGeometry(300, 300, 300, 300)
+        self.improTron.setWindowTitle(name)
+
         # Store some default text formating
-        self.labelCSS = self.improTron.textDisplay.styleSheet()
-        self.text_font = self.improTron.textDisplay.font()
         self.maximize()
 
-    # Colorize the left score display
-    def colorizeLeftScore(self, labelCSS):
-        self.improTron.leftTeamLabel.setStyleSheet(labelCSS)
-        self.improTron.leftScoreLCD.setStyleSheet(labelCSS)
+    # Colorize the Left score display
+    def colorizeLeftScore(self, scoreStyle):
+        self.improTron.leftTeamLabel.setStyleSheet(scoreStyle)
+        self.improTron.leftScoreLCD.setStyleSheet(scoreStyle)
 
-    # Colorize the right score display
-    def colorizeRightScore(self, labelCSS):
-        self.improTron.rightTeamLabel.setStyleSheet(labelCSS)
-        self.improTron.rightScoreLCD.setStyleSheet(labelCSS)
+    # Colorize the Right score display
+    def colorizeRightScore(self, scoreStyle):
+        self.improTron.rightTeamLabel.setStyleSheet(scoreStyle)
+        self.improTron.rightScoreLCD.setStyleSheet(scoreStyle)
 
-    # Colorize the right score display
-    def colorizeTextDisplay(self, labelCSS):
-        self.labelCSS = labelCSS
-        self.improTron.textDisplay.setStyleSheet(self.labelCSS)
+    # Clear the text display and show
+    def clearText(self):
+        self.improTron.textDisplay.clear()
+        self.improTron.setCurrentWidget(self.improTron.displayText)
 
-    # Clear the display to black
+        # Clear the display to black
     def blackout(self):
         self.improTron.textDisplay.setStyleSheet("background:black; color:black")
         self.improTron.textDisplay.setText("blackout")
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
-    # Change the font size for the text
-    @Slot(QFont)
-    def sizeTextFont(self, new_font):
-        size = self.text_font.pointSize()
-        self.text_font = new_font
-        self.text_font.setPointSize(size)
-        self.improTron.textDisplay.setFont(self.text_font)
-
-    # Change the font size for the text
-    @Slot(int)
-    def sizeTextDisplay(self, size):
-        if size > 0:
-            self.text_font.setPointSize(size)
-            self.improTron.textDisplay.setFont(self.text_font)
-
-    # Show Text on the disaply
+    # Show Text on the display
     @Slot(str)
-    def showText(self, text_msg):
+    def showText(self, text_msg, style, font):
+        self.improTron.textDisplay.setFont(font)
+        self.improTron.textDisplay.setStyleSheet(style)
         self.improTron.textDisplay.setText(text_msg)
-        self.improTron.textDisplay.setStyleSheet(self.labelCSS)
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Show an image on the disaply
@@ -70,15 +56,15 @@ class ImproTron(QMainWindow):
         self.improTron.textDisplay.setPixmap(QPixmap.fromImage(arg.scaled(self.improTron.textDisplay.size())))
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
-    # Set the name of the Right Team
-    @Slot(str)
-    def showRightTeam(self, teamName):
-        self.improTron.rightTeamLabel.setText(teamName)
-
     # Set the name of the Left Team
     @Slot(str)
     def showLeftTeam(self, teamName):
         self.improTron.leftTeamLabel.setText(teamName)
+
+    # Set the name of the Right Team
+    @Slot(str)
+    def showrightTeam(self, teamName):
+        self.improTron.rightTeamLabel.setText(teamName)
 
     # Update the scores on the score board
     @Slot(int, int)
@@ -89,33 +75,33 @@ class ImproTron(QMainWindow):
 
     @Slot()
     def maximize(self):
-        self.showFullScreen()
+        self.improTron.showFullScreen()
 
     @Slot()
     def restore(self):
-        self.showNormal()
+        self.improTron.showNormal()
 # End Class ImproTron
 
 
 class HotButton():
-    def __init__(self, button_number, controlBoard, improtron):
+    def __init__(self, button_number, controlBoard):
 
         self.button_number = button_number
         self.text = "Button "+str(button_number)
         self.control_board = controlBoard
-        self.display = improtron
+
         # Take control of the actual button
-        self.hot_button = controlBoard.improtronControlPanel.findChild(QPushButton, "hotPB" +str(button_number))
+        self.hot_button = controlBoard.findWidget(QPushButton, "hotPB" +str(button_number))
         self.hot_button.clicked.connect(self.hotButtonClicked)
 
-        self.hot_button_title = controlBoard.improtronControlPanel.findChild(QLineEdit, "titleHotButton" +str(button_number))
+        self.hot_button_title = controlBoard.findWidget(QLineEdit, "titleHotButton" +str(button_number))
         self.hot_button_title.textChanged.connect(self.hotButtonNameChange)
         self.hot_button_title.setText(self.text)
 
-        self.hot_button_image_file = controlBoard.improtronControlPanel.findChild(QLineEdit, "imageFileTxt" +str(button_number))
+        self.hot_button_image_file = controlBoard.findWidget(QLineEdit, "imageFileTxt" +str(button_number))
         self.hot_button_image_file.setText("C:\\Users\\guywi\\OneDrive\\Pictures\\Roanoke\\PICT0339.JPG")
 
-        self.hot_button_select_file = controlBoard.improtronControlPanel.findChild(QPushButton, "selectPB" +str(button_number))
+        self.hot_button_select_file = controlBoard.findWidget(QPushButton, "selectPB" +str(button_number))
         self.hot_button_select_file.clicked.connect(self.selectImage)
 
     def clear(self):
@@ -149,31 +135,29 @@ class HotButton():
 
     @Slot()
     def hotButtonClicked(self):
-        reader = QImageReader(self.hot_button_image_file.text())
-        reader.setAutoTransform(True)
-        newImage = reader.read()
-
-        # Scale to match the preview
-        self.control_board.imagePreviewLeft.setPixmap(QPixmap.fromImage(newImage.scaled(self.control_board.imagePreviewLeft.size())))
-        self.control_board.imagePreviewRight.setPixmap(QPixmap.fromImage(newImage.scaled(self.control_board.imagePreviewRight.size())))
-        self.display.showImage(newImage)
+        self.control_board.showImageOnMain(self.hot_button_image_file.text())
 
 class HotButtonManager():
     # Instantiate the Hot Buttons via a Hot Button Object that takes care of the signal and slots
     # leveraging the naming convention
-    def __init__(self, controlBoard, improtron):
+    def __init__(self, controlBoard, mainImproton, auxiliaryImproton):
         self.hot_buttons = [] #empty array
         self.number = 10      #number of hotbuttons
         self.file_name = "C:\\Users\\guywi\\AppData\\Local\\ImproTron\\improtron_hotbuttons.json"
         self.control_board = controlBoard
 
         for button in range(self.number):
-            self.hot_buttons.append(HotButton(button+1, controlBoard, improtron))
+            self.hot_buttons.append(HotButton(button+1, controlBoard))
 
         # Set a slot for the clear, load and save buttons
-        controlBoard.hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
-        controlBoard.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
-        controlBoard.hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
+        hotButtonClearPB = controlBoard.findWidget(QPushButton,"hotButtonClearPB")
+        hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
+
+        hotButtonLoadPB = controlBoard.findWidget(QPushButton,"hotButtonLoadPB")
+        hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
+
+        hotButtonSavePB = controlBoard.findWidget(QPushButton,"hotButtonSavePB")
+        hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
 
     @Slot()
     def clearHotButtonsClicked(self):
@@ -182,9 +166,9 @@ class HotButtonManager():
 
     @Slot()
     def loadHotButtonsClicked(self):
-        dialog = QFileDialog(self.control_board)
+        dialog = QFileDialog(self.control_board.ui)
         dialog.setDirectory('C:/Users/guywi/AppData/Local/ImproTron')
-        fileName = QFileDialog.getOpenFileName(self.control_board, "Load Hot Buttons",
+        fileName = QFileDialog.getOpenFileName(self.control_board.ui, "Load Hot Buttons",
                     "C:/Users/guywi/AppData/Local/ImproTron/improtron_hotbuttons.json" ,
                     "Config Files(*.json)")
 
@@ -197,9 +181,10 @@ class HotButtonManager():
 
     @Slot()
     def saveHotButtonsClicked(self):
-        dialog = QFileDialog(self.control_board)
+        #**** Bad encapsulation ****
+        dialog = QFileDialog(self.control_board.ui)
         dialog.setDirectory('C:/Users/guywi/AppData/Local/ImproTron')
-        fileName = QFileDialog.getSaveFileName(self.control_board, "Save Hot Buttons",
+        fileName = QFileDialog.getSaveFileName(self.control_board.ui, "Save Hot Buttons",
                                    "C:/Users/guywi/AppData/Local/ImproTron/improtron_hotbuttons.json",
                                    "Config Files (*.json)")
         button_data = {}
@@ -209,37 +194,11 @@ class HotButtonManager():
         # Convert the Python dictionary to a JSON string
         json_data = json.dumps(button_data, indent=2)
 
-        print('file is', fileName)
-
         # Write the JSON string to a file
         with open(fileName[0], 'w') as json_file:
             json_file.write(json_data)
 
-#Code for returning screen information
-
-class MonitorInfoApp(QWidget):
-    def __init__(self):
-        super(MonitorInfoApp, self).__init__()
-
-        self.init_ui()
-
-    def init_ui(self):
-        layout = QVBoxLayout()
-
-        # Get a list of connected monitors
-        monitors = get_monitors()
-
-        if not monitors:
-            layout.addWidget(QLabel("No monitors found"))
-        else:
-            for i, monitor in enumerate(monitors, 1):
-                monitor_label = QLabel(f"Monitor {i}: {monitor.name}, {monitor.width}x{monitor.height} pixels, Primary{monitor.is_primary}")
-                layout.addWidget(monitor_label)
-
-        self.setLayout(layout)
-        self.setWindowTitle("Monitor Information")
-        self.show()
-
+# Subclass to mantian the additional substitutes information associated with a Thing
 class ThingzWidget(QListWidgetItem):
     def __init__(self, title, parent=None):
         super().__init__(title, parent)
@@ -258,117 +217,6 @@ class ThingzWidget(QListWidgetItem):
 
     def updateSubstitutes(self, substitutesText):
         self._text = substitutesText
-
-class ThingzListManager(QWidget):
-    def __init__(self, controlBoard, improtron):
-        super().__init__()
-
-        self.controlBoard = controlBoard
-        self.improTron = improtron
-
-        # Connect Thingz Management
-        controlBoard.thingzListLW.itemClicked.connect(self.show_selected_thing)
-        controlBoard.addThingPB.clicked.connect(self.addThingtoList)
-        controlBoard.thingNameTxt.returnPressed.connect(self.addThingtoList)
-        controlBoard.removeThingPB.clicked.connect(self.removeThingfromList)
-        controlBoard.clearThingzPB.clicked.connect(self.clearThingzList)
-        controlBoard.thingzMoveUpPB.clicked.connect(self.thingzMoveUp)
-        controlBoard.thingzMoveDownPB.clicked.connect(self.thingzMoveDown)
-        controlBoard.thingTextEdit.textChanged.connect(self.updateThingsText)
-        controlBoard.showThingLeftPB.clicked.connect(self.showThingLeft)
-        controlBoard.showThingRightPB.clicked.connect(self.showThingRight)
-        controlBoard.showThingBothPB.clicked.connect(self.showThingBoth)
-        controlBoard.showThingzLeftPB.clicked.connect(self.showThingzListLeft)
-        controlBoard.showThingzRightPB.clicked.connect(self.showThingzListRight)
-        controlBoard.showThingzBothPB.clicked.connect(self.showThingzListBoth)
-
-    def listThingz(self):
-        listText = "Empty"
-        if self.controlBoard.thingzListLW.count() > 0:
-            listText = ""
-            for thingRow in range(self.controlBoard.thingzListLW.count()):
-                listText += self.controlBoard.thingzListLW.item(thingRow).title() + "\n"
-
-        return listText
-
-    @Slot()
-    def showThingzListLeft(self):
-        self.improTron.showText(self.listThingz())
-
-    @Slot()
-    def showThingzListRight(self):
-        self.improTron.showText(self.listThingz())
-
-    @Slot()
-    def showThingzListBoth(self):
-        self.showThingzListLeft()
-        self.showThingzListRight()
-
-    @Slot()
-    def showThingLeft(self):
-        self.improTron.showText(self.controlBoard.thingzListLW.currentItem().thingData())
-
-    @Slot()
-    def showThingRight(self):
-        self.improTron.showText(self.controlBoard.thingzListLW.currentItem().thingData())
-
-    @Slot()
-    def showThingBoth(self):
-        self.showThingLeft()
-        self.showThingRight()
-
-    @Slot()
-    def updateThingsText(self):
-        self.controlBoard.thingzListLW.currentItem().updateSubstitutes(self.controlBoard.thingTextEdit.toPlainText())
-
-    @Slot(ThingzWidget)
-    def show_selected_thing(self, thing):
-        # Display selected item's title and text in the editor
-        self.controlBoard.thingFocusLBL.setText(thing.title())
-        self.controlBoard.thingTextEdit.setPlainText(thing.text())
-        self.currentThing = thing
-
-    @Slot()
-    def addThingtoList(self):
-        thingStr = self.controlBoard.thingNameTxt.text()
-        if len(thingStr) > 0:
-            newThing = ThingzWidget(thingStr, self.controlBoard.thingzListLW)
-            newThingFont = newThing.font()
-            newThingFont.setPointSize(12)
-            newThing.setFont(newThingFont)
-            newThing.setFlags(newThing.flags() | Qt.ItemIsEditable)
-            self.controlBoard.thingNameTxt.setText("")
-            self.controlBoard.thingNameTxt.setFocus()
-
-    @Slot()
-    def thingzMoveDown(self):
-        thingRow = self.controlBoard.thingzListLW.currentRow()
-        if thingRow < 0:
-            return
-        thing = self.controlBoard.thingzListLW.takeItem(thingRow)
-        self.controlBoard.thingzListLW.insertItem(thingRow+1,thing)
-        self.controlBoard.thingzListLW.setCurrentRow(thingRow+1)
-
-    @Slot()
-    def thingzMoveUp(self):
-        thingRow = self.controlBoard.thingzListLW.currentRow()
-        if thingRow < 0:
-            return
-        thing = self.controlBoard.thingzListLW.takeItem(thingRow)
-        self.controlBoard.thingzListLW.insertItem(thingRow-1,thing)
-        self.controlBoard.thingzListLW.setCurrentRow(thingRow-1)
-
-    @Slot()
-    def removeThingfromList(self):
-        self.controlBoard.thingzListLW.takeItem(self.controlBoard.thingzListLW.row(self.controlBoard.thingzListLW.currentItem()))
-
-    @Slot()
-    def clearThingzList(self):
-        reply = QMessageBox.question(self.controlBoard, 'Clear Thingz', 'Are you sure you want clear all Thingz?',
-                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            self.controlBoard.thingzListLW.clear()
-
 
 # To Do
 # Have file model filter for all supported image file types
@@ -392,236 +240,4 @@ class SlideWidget(QListWidgetItem):
 
     def imagePath(self):
         return self._fileInto.absoluteFilePath()    
-
-class SlideShowManager(QWidget):
-    def __init__(self, controlBoard, improtron):
-        super().__init__()
-
-        self.controlBoard = controlBoard
-        self.improTron = improtron
-
-        # Set up the File Tree for navigating to media
-        self.model = QFileSystemModel()
-        self.model.setRootPath(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0])
-
-        self.imageTreeView = controlBoard.slideShowFilesTreeView
-        self.imageTreeView.setModel(self.model)
-        self.imageTreeView.setRootIndex(self.model.index(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]))
-        for i in range(1, self.model.columnCount()):
-            self.imageTreeView.header().hideSection(i)
-        self.imageTreeView.setHeaderHidden(True)
-        #slideList = controlBoard.slideListLW
-
-        # selection changes shall trigger a slot
-        selectionModel = self.imageTreeView.selectionModel()
-        selectionModel.selectionChanged.connect(self.imageSelectedfromDir)
-
-        # Connect Slide Show Management
-        controlBoard.slideListLW.itemClicked.connect(self.previewSelectedSlide)
-        controlBoard.addSlidePB.clicked.connect(self.addSlidetoList)
-        controlBoard.slideMoveUpPB.clicked.connect(self.slideMoveUp)
-        controlBoard.slideMoveDownPB.clicked.connect(self.slideMoveDown)
-        controlBoard.removeSlidePB.clicked.connect(self.removeSlidefromList)
-        controlBoard.clearSlideShowPB.clicked.connect(self.clearSlideShow)
-        controlBoard.loadSlideShowPB.clicked.connect(self.loadSlideShow)
-        controlBoard.saveSlideShowPB.clicked.connect(self.saveSlideShow)
-        controlBoard.showSlideLeftPB.clicked.connect(self.showSlideLeft)
-        controlBoard.showSlideRightPB.clicked.connect(self.showSlideRight)
-        controlBoard.showSlideBothPB.clicked.connect(self.showSlideBoth)
-        #controlBoard.showSlideShowLeftPB.clicked.connect(self.showSlidesLeft)
-        #controlBoard.showSlideShowRightPB.clicked.connect(self.showSlidesRight)
-        #controlBoard.showSlideShowBothPB.clicked.connect(self.showSlidesBoth)
-
-        # Slideshow Timer wiring
-        self.slideShowTimer = QTimer()
-        self.secondsSettings = controlBoard.slideShowSecondSB
-        self.paused = False
-        self. currentSlide = 0
-        self.slideShowTimer.timeout.connect(self.nextSlide)
-        controlBoard.slideShowRestartPB.clicked.connect(self.slideShowRestart)
-        controlBoard.slideShowRewindPB.clicked.connect(self.slideShowRewind)
-        controlBoard.slideShowPlayPB.clicked.connect(self.slideShowPlay)
-        controlBoard.slideShowPausePB.clicked.connect(self.slideShowPause)
-        controlBoard.slideShowStopPB.clicked.connect(self.slideShowStop)
-        controlBoard.slideShowForwardPB.clicked.connect(self.slideShowForward)
-        controlBoard.slideShowSkipPB.clicked.connect(self.slideShowSkip)
-
-    @Slot(QItemSelection, QItemSelection)
-    def imageSelectedfromDir(self, new_selection, old_selection):
-        # get the text of the selected item
-        index = self.imageTreeView.selectionModel().currentIndex()
-        if not self.model.isDir(index):
-            imageFileInfo = self.model.fileInfo(index)
-            reader = QImageReader(imageFileInfo.absoluteFilePath())
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-
-            # Scale to match the preview
-            self.controlBoard.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.controlBoard.slidePreviewLBL.size())))
-
-    @Slot(SlideWidget)
-    def previewSelectedSlide(self, slide):
-        reader = QImageReader(slide.imagePath())
-        reader.setAutoTransform(True)
-        newImage = reader.read()
-
-        # Scale to match the preview
-        self.controlBoard.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.controlBoard.slidePreviewLBL.size())))
-
-
-    @Slot()
-    def addSlidetoList(self):
-        # get the text of the selected item
-        index = self.imageTreeView.selectionModel().currentIndex()
-        if not self.model.isDir(index):
-            SlideWidget(self.model.fileInfo(index), self.controlBoard.slideListLW)
-
-    @Slot()
-    def slideMoveUp(self):
-        slideRow = self.controlBoard.slideListLW.currentRow()
-        if slideRow < 0:
-            return
-        thing = self.controlBoard.slideListLW.takeItem(slideRow)
-        self.controlBoard.slideListLW.insertItem(slideRow-1,thing)
-        self.controlBoard.slideListLW.setCurrentRow(slideRow-1)
-
-    @Slot()
-    def slideMoveDown(self):
-        slideRow = self.controlBoard.slideListLW.currentRow()
-        if slideRow < 0:
-            return
-        thing = self.controlBoard.slideListLW.takeItem(slideRow)
-        self.controlBoard.slideListLW.insertItem(slideRow+1,thing)
-        self.controlBoard.slideListLW.setCurrentRow(slideRow+1)
-
-    @Slot()
-    def removeSlidefromList(self):
-        self.controlBoard.slideListLW.takeItem(self.controlBoard.slideListLW.row(self.controlBoard.slideListLW.currentItem()))
-
-    @Slot()
-    def loadSlideShow(self):
-        if self.controlBoard.slideListLW.count() > 0:
-            reply = QMessageBox.question(self.controlBoard, 'Replace Slides', 'Are you sure you want replace the current slides?',
-                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-            if reply == QMessageBox.No:
-                return
-
-        self.controlBoard.slideListLW.clear()
-
-        dialog = QFileDialog(self.controlBoard)
-        dialog.setDirectory('C:/Users/guywi/AppData/Local/ImproTron')
-        fileName = QFileDialog.getOpenFileName(self.controlBoard, "Load Slideshow",
-                    "C:/Users/guywi/AppData/Local/ImproTron/default_slideshow.json" ,
-                    "Config Files(*.json)")
-
-        # Read the JSON data from the file
-        with open(fileName[0], 'r') as json_file:
-            slideshow_data = json.load(json_file)
-
-        for slide in slideshow_data.items():
-            file = QFileInfo(slide[1])
-            SlideWidget(file, self.controlBoard.slideListLW)
-
-    @Slot()
-    def saveSlideShow(self):
-        dialog = QFileDialog(self.controlBoard)
-        dialog.setDirectory('C:/Users/guywi/AppData/Local/ImproTron')
-        fileName = QFileDialog.getSaveFileName(self.controlBoard, "Save Slide Show",
-                                   "C:/Users/guywi/AppData/Local/ImproTron/default_slideshow.json",
-                                   "Config Files (*.json)")
-        slide_data = {}
-        for slide in range(self.controlBoard.slideListLW.count()):
-            slideName = "slide"+str(slide)
-            slide_data[slideName] = self.controlBoard.slideListLW.item(slide).imagePath()
-
-        # Convert the Python dictionary to a JSON string
-        json_data = json.dumps(slide_data, indent=2)
-
-        # Write the JSON string to a file
-        with open(fileName[0], 'w') as json_file:
-            json_file.write(json_data)
-
-
-    @Slot()
-    def clearSlideShow(self):
-        reply = QMessageBox.question(self.controlBoard, 'Clear Slides', 'Are you sure you want clear all slides?',
-                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            self.controlBoard.slideListLW.clear()
-
-    @Slot()
-    def showSlideLeft(self):
-        if self.controlBoard.slideListLW.currentItem() != None:
-            reader = QImageReader(self.controlBoard.slideListLW.currentItem().imagePath())
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-
-            self.improTron.showImage(newImage)
-
-    @Slot()
-    def showSlideRight(self):
-        if self.controlBoard.slideListLW.currentItem() != None:
-            reader = QImageReader(self.controlBoard.slideListLW.currentItem().imagePath())
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-
-            self.improTron.showImage(newImage)
-
-    @Slot()
-    def showSlideBoth(self):
-        if self.controlBoard.slideListLW.currentItem() != None:
-            reader = QImageReader(self.controlBoard.slideListLW.currentItem().imagePath())
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-
-            self.improTron.showImage(newImage)
-
-    # Slots for handling the Slide Show Player
-    @Slot()
-    def nextSlide(self):
-        self.currentSlide += 1
-        slideCount = self.controlBoard.slideListLW.count()
-        if slideCount > 0:
-            self.currentSlide = self.currentSlide % slideCount
-            self.controlBoard.slideListLW.setCurrentRow(self.currentSlide)
-            self.showSlideRight()
-        else:
-            self.currentSlide = 0
-
-    @Slot()
-    def slideShowRestart(self):
-        pass
-
-    @Slot()
-    def slideShowRewind(self):
-        pass
-
-    @Slot()
-    def slideShowPlay(self):
-        if not self.paused:
-            self.currentSlide = 0
-        self.paused = False
-        self.slideShowTimer.setInterval(self.secondsSettings.value()*1000)
-        self.controlBoard.slideListLW.setCurrentRow(self.currentSlide)
-        self.showSlideRight()
-        self.slideShowTimer.start()
-
-    @Slot()
-    def slideShowPause(self):
-        self.slideShowTimer.stop()
-        self.paused = True
-
-    @Slot()
-    def slideShowStop(self):
-        self.slideShowTimer.stop()
-        self.paused = False
-        self.currentSlide = 0
-
-    @Slot()
-    def slideShowForward(self):
-        pass
-
-    @Slot()
-    def slideShowSkip(self):
-        pass
 
