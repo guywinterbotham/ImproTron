@@ -1,9 +1,9 @@
 # This Python file uses the following encoding: utf-8
 import json
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QImageReader, QPixmap, QFont
+from PySide6.QtGui import QImageReader, QPixmap, QFont, QMovie, QColor
 from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox
-from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo
+from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice
 from Improtronics import ThingzWidget, SlideWidget
 import ImproTronIcons
 
@@ -21,6 +21,12 @@ class ImproTronControlBoard():
 
         self.ui.imageSearchList.setModel(self.model)
         self.ui.imageSearchList.setRootIndex(self.model.index(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]))
+
+        # Colors for Thingz list
+        self.rightTeamBackground = QColor(Qt.white)
+        self.rightTeamFont = QColor(Qt.black)
+        self.leftTeamBackground = QColor(Qt.white)
+        self.leftTeamFont = QColor(Qt.black)
 
         # Connect Score related signals to slots
         self.ui.colorRightPB.clicked.connect(self.pickRightTeamColor)
@@ -43,6 +49,9 @@ class ImproTronControlBoard():
         self.ui.clearLeftTextPB.clicked.connect(self.clearLeftText)
         self.ui.clearRightTextPB.clicked.connect(self.clearRightText)
         self.ui.clearBothTextPB.clicked.connect(self.clearBothText)
+        self.ui.loadTextboxBothPB.clicked.connect(self.loadTextboxBoth)
+        self.ui.loadTextboxLeftPB.clicked.connect(self.loadTextboxLeft)
+        self.ui.loadTextboxRightPB.clicked.connect(self.loadTextboxRight)
         self.ui.loadImageMainPB.clicked.connect(self.getImageFileMain)
         self.ui.loadImageAuxiliaryPB.clicked.connect(self.getImageFileAuxiliary)
 
@@ -57,13 +66,16 @@ class ImproTronControlBoard():
         self.ui.searchImagesPB.clicked.connect(self.getImageList)
 
         # Connect Thingz Management
-        self.ui.thingzListLW.itemClicked.connect(self.show_selected_thing)
+        self.ui.thingzListLW.itemClicked.connect(self.showSelectedThing)
+        self.ui.thingzListLW.itemChanged.connect(self.titleEdited)
         self.ui.addThingPB.clicked.connect(self.addThingtoList)
         self.ui.thingNameTxt.returnPressed.connect(self.addThingtoList)
         self.ui.removeThingPB.clicked.connect(self.removeThingfromList)
         self.ui.clearThingzPB.clicked.connect(self.clearThingzList)
         self.ui.thingzMoveUpPB.clicked.connect(self.thingzMoveUp)
         self.ui.thingzMoveDownPB.clicked.connect(self.thingzMoveDown)
+        self.ui.leftThingTeamRB.clicked.connect(self.leftThingTeam)
+        self.ui.rightThingTeamRB.clicked.connect(self.rightThingTeam)
         self.ui.thingTextEdit.textChanged.connect(self.updateThingsText)
         self.ui.showThingMainPB.clicked.connect(self.showThingMain)
         self.ui.showThingAuxiliaryPB.clicked.connect(self.showThingAuxiliary)
@@ -142,41 +154,59 @@ class ImproTronControlBoard():
         self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewMain.size())))
         self.mainDisplay.showImage(newImage)
 
+    def getTextFile(self):
+        dialog = QFileDialog(self.ui)
+        locations = QStandardPaths.standardLocations(QStandardPaths.AppDataLocation)
+        directory = locations[-1] if locations else QDir.currentPath()
+        dialog.setDirectory(directory)
+        fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", "" , "Text File (*.txt)")
+        if fileName[0] != None:
+            file = QFile(fileName[0])
+            if not file.open(QIODevice.ReadOnly | QIODevice.Text):
+                return
+            text = ""
+            linecount = 0
+
+            # To avoid reading in large files which couldn't be displayed anyway,
+            # limit the lines to something reasonable
+            while (linecount < 10) and (not file.atEnd()):
+                text += file.readLine()
+                linecount += 1
+            return text
+
     @Slot()
     def pickLeftTeamColor(self):
         color_chooser = QColorDialog(self.ui)
-        colorSelected = color_chooser.getColor(title = 'Pick Left Team Color')
-        if (colorSelected.red()*0.299 + colorSelected.green()*0.587 + colorSelected.blue()*0.114) < 186:
-            buttonCSS = f"QPushButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QPushButton {{color:white}}"
-            radioButtonCSS = f"QRadioButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QRadioButton {{color:white}}"
-            labelCSS = f"QLabel {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QLabel {{color:white}}"
+        self.leftTeamBackground = color_chooser.getColor(title = 'Pick Left Team Color')
+        styleSheet = f"background: rgb({self.leftTeamBackground.red()},{self.leftTeamBackground.green()},{self.leftTeamBackground.blue()}); color:"
+        if (self.leftTeamBackground.red()*0.299 + self.leftTeamBackground.green()*0.587 + self.leftTeamBackground.blue()*0.114) < 186:
+            styleSheet += "white"
+            self.leftTeamFont = QColor(Qt.white)
         else:
-            buttonCSS = f"QPushButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QPushButton {{color:black}}"
-            radioButtonCSS = f"QRadioButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QRadioButton {{color:black}}"
-            labelCSS = f"QLabel {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QLabel {{color:black}}"
+            styleSheet += "black"
+            self.leftTeamFont = QColor(Qt.black)
 
-        self.ui.colorLeftPB.setStyleSheet(buttonCSS)
-        self.ui.leftThingTeamRB.setStyleSheet(radioButtonCSS)
-        self.mainDisplay.colorizeLeftScore(labelCSS)
-        self.auxiliaryDisplay.colorizeLeftScore(labelCSS)
+        self.ui.colorLeftPB.setStyleSheet(styleSheet)
+        self.ui.leftThingTeamRB.setStyleSheet(styleSheet)
+        self.mainDisplay.colorizeLeftScore(styleSheet)
+        self.auxiliaryDisplay.colorizeLeftScore(styleSheet)
 
     @Slot()
     def pickRightTeamColor(self):
         color_chooser = QColorDialog(self.ui)
-        colorSelected = color_chooser.getColor(title = 'Pick Right Team Color')
-        if (colorSelected.red()*0.299 + colorSelected.green()*0.587 + colorSelected.blue()*0.114) < 186:
-            buttonCSS = f"QPushButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QPushButton {{color:white}}"
-            radioButtonCSS = f"QRadioButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QRadioButton {{color:white}}"
-            labelCSS = f"QLabel {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QLabel {{color:white}}"
+        self.rightTeamBackground = color_chooser.getColor(title = 'Pick Right Team Color')
+        styleSheet = f"background: rgb({self.rightTeamBackground.red()},{self.rightTeamBackground.green()},{self.rightTeamBackground.blue()}); color:"
+        if (self.rightTeamBackground.red()*0.299 + self.rightTeamBackground.green()*0.587 + self.rightTeamBackground.blue()*0.114) < 186:
+            styleSheet += "white"
+            self.rightTeamFont = QColor(Qt.white)
         else:
-            buttonCSS = f"QPushButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QPushButton {{color:black}}"
-            radioButtonCSS = f"QRadioButton {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QRadioButton {{color:black}}"
-            labelCSS = f"QLabel {{background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()})}} QLabel {{color:black}}"
+            styleSheet += "black"
+            self.rightTeamFont = QColor(Qt.black)
 
-        self.ui.colorRightPB.setStyleSheet(buttonCSS)
-        self.ui.rightThingTeamRB.setStyleSheet(radioButtonCSS)
-        self.mainDisplay.colorizeRightScore(labelCSS)
-        self.auxiliaryDisplay.colorizeRightScore(labelCSS)
+        self.ui.colorRightPB.setStyleSheet(styleSheet)
+        self.ui.rightThingTeamRB.setStyleSheet(styleSheet)
+        self.mainDisplay.colorizeRightScore(styleSheet)
+        self.auxiliaryDisplay.colorizeRightScore(styleSheet)
 
     @Slot()
     def pickLeftTextColor(self):
@@ -194,7 +224,8 @@ class ImproTronControlBoard():
     @Slot()
     def pickRightTextColor(self):
         color_chooser = QColorDialog(self.ui)
-        colorSelected = color_chooser.getColor(title = 'Pick Right Team Color')
+        self.center(color_chooser)
+        colorSelected = color_chooser.getColor(title = 'Pick Right Text Box Color')
         styleSheet = f"background: rgb({colorSelected.red()},{colorSelected.green()},{colorSelected.blue()}); color:"
         if (colorSelected.red()*0.299 + colorSelected.green()*0.587 + colorSelected.blue()*0.114) < 186:
             styleSheet += "white"
@@ -214,14 +245,26 @@ class ImproTronControlBoard():
         locations = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
         directory = locations[-1] if locations else QDir.currentPath()
         dialog.setDirectory(directory)
-        fileName = QFileDialog.getOpenFileName(self.ui, "Open Image", "" , "Image Files (*.png *.jpg *.bmp)")
-        reader = QImageReader(fileName[0])
-        reader.setAutoTransform(True)
-        newImage = reader.read()
+        fileName = QFileDialog.getOpenFileName(self.ui, "Open Media", "" , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
+        if not(fileName[0] == None):
+            mediaInfo = QFileInfo(fileName[0])
+            if mediaInfo.completeSuffix().lower() == 'gif':
+                movie = QMovie(fileName[0])
+                if movie.isValid():
+                    print("Wait what?")
+                    movie.setSpeed(100)
+                    movie.setScaledSize(self.ui.imagePreviewMain.size())
+                    self.ui.imagePreviewMain.setMovie(movie)
+                    movie.start()
+                    self.mainDisplay.showMovie(fileName[0])
+            else:
+                reader = QImageReader(fileName[0])
+                reader.setAutoTransform(True)
+                newImage = reader.read()
 
-        # Scale to match the preview
-        self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewMain.size())))
-        self.mainDisplay.showImage(newImage)
+                # Scale to match the preview
+                self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewMain.size())))
+                self.mainDisplay.showImage(newImage)
 
     @Slot()
     def getImageFileAuxiliary(self):
@@ -229,14 +272,44 @@ class ImproTronControlBoard():
         locations = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
         directory = locations[-1] if locations else QDir.currentPath()
         dialog.setDirectory(directory)
-        fileName = QFileDialog.getOpenFileName(self.ui, "Open Image", "" , "Image Files (*.png *.jpg *.bmp)")
-        reader = QImageReader(fileName[0])
-        reader.setAutoTransform(True)
-        newImage = reader.read()
+        fileName = QFileDialog.getOpenFileName(self.ui, "Open Media", "" , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
+        if not(fileName[0] == None):
+            mediaInfo = QFileInfo(fileName[0])
+            if mediaInfo.completeSuffix().lower() == 'gif':
+                movie = QMovie(fileName[0])
+                if movie.isValid():
+                    print("Wait what?")
+                    movie.setSpeed(100)
+                    movie.setScaledSize(self.ui.imagePreviewAuxiliary.size())
+                    self.ui.imagePreviewAuxiliary.setMovie(movie)
+                    movie.start()
+                    self.auxiliaryDisplay.showMovie(fileName[0])
+            else:
+                reader = QImageReader(fileName[0])
+                reader.setAutoTransform(True)
+                newImage = reader.read()
 
-        # Scale to match the preview
-        self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewAuxiliary.size())))
-        self.auxiliaryDisplay.showImage(newImage)
+                # Scale to match the preview
+                self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewAuxiliary.size())))
+                self.auxiliaryDisplay.showImage(newImage)
+    @Slot()
+    def loadTextboxLeft(self):
+        textToLoad = self.getTextFile()
+        if len(textToLoad) > 0:
+            self.ui.leftTextBox.setText(textToLoad)
+
+    @Slot()
+    def loadTextboxRight(self):
+        textToLoad = self.getTextFile()
+        if len(textToLoad) > 0:
+            self.ui.rightTextBox.setText(textToLoad)
+
+    @Slot()
+    def loadTextboxBoth(self):
+        textToLoad = self.getTextFile()
+        if len(textToLoad) > 0:
+            self.ui.leftTextBox.setText(textToLoad)
+            self.ui.rightTextBox.setText(textToLoad)
 
     @Slot()
     def showScoresMain(self):
@@ -285,6 +358,7 @@ class ImproTronControlBoard():
         font = self.ui.fontComboBoxRight.currentFont()
         font.setPointSize(self.ui.rightFontSize.value())
         self.mainDisplay.showText(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
+        print(self.ui.rightTextColorPB.styleSheet())
 
     @Slot()
     def showRightTextAuxiliary(self):
@@ -322,14 +396,15 @@ class ImproTronControlBoard():
     def getImageList(self):
         path = QFileDialog.getExistingDirectory(self.ui, "Select Image Directory")
         self.model.index(path)
-        def listThingz(self):
-            listText = "Empty"
-            if self.ui.thingzListLW.count() > 0:
-                listText = ""
-                for thingRow in range(self.ui.thingzListLW.count()):
-                    listText += self.ui.thingzListLW.item(thingRow).title() + "\n"
 
-            return listText
+    def listThingz(self):
+        listText = "Empty"
+        if self.ui.thingzListLW.count() > 0:
+            listText = ""
+            for thingRow in range(self.ui.thingzListLW.count()):
+                listText += self.ui.thingzListLW.item(thingRow).text() + "\n"
+
+        return listText
 
     # Things Tab Management
     @Slot()
@@ -347,11 +422,29 @@ class ImproTronControlBoard():
 
     @Slot()
     def showThingMain(self):
-        self.mainDisplay.showText(self.ui.thingzListLW.currentItem().thingData())
+        currentThing = self.ui.thingzListLW.currentItem()
+        if currentThing != None:
+            thingColor = currentThing.background().color()
+            styleSheet = f"background: rgb({thingColor.red()},{thingColor.green()},{thingColor.blue()}); color:"
+            if (thingColor.red()*0.299 + thingColor.green()*0.587 + thingColor.blue()*0.114) < 186:
+                styleSheet += "white"
+            else:
+                styleSheet += "black"
+            print(styleSheet)
+            self.mainDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), styleSheet)
 
     @Slot()
     def showThingAuxiliary(self):
-        self.auxiliaryDisplay.showText(self.ui.thingzListLW.currentItem().thingData())
+        currentThing = self.ui.thingzListLW.currentItem()
+        if currentThing != None:
+            thingColor = currentThing.background().color()
+            styleSheet = f"background: rgb({thingColor.red()},{thingColor.green()},{thingColor.blue()}); color:"
+            if (thingColor.red()*0.299 + thingColor.green()*0.587 + thingColor.blue()*0.114) < 186:
+                styleSheet += "white"
+            else:
+                styleSheet += "black"
+
+            self.auxiliaryDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), styleSheet)
 
     @Slot()
     def showThingBoth(self):
@@ -360,24 +453,75 @@ class ImproTronControlBoard():
 
     @Slot()
     def updateThingsText(self):
-        self.ui.thingzListLW.currentItem().updateSubstitutes(self.ui.thingTextEdit.toPlainText())
+        currentThing = self.ui.thingzListLW.currentItem()
+        if currentThing != None:
+            self.ui.thingzListLW.currentItem().updateSubstitutes(self.ui.thingTextEdit.toPlainText())
+
+    @Slot()
+    def rightThingTeam(self):
+        currentThing = self.ui.thingzListLW.currentItem()
+        if currentThing != None:
+            if currentThing.isLeftSideTeam():
+                currentThing.setForeground(self.rightTeamFont)
+                currentThing.setBackground(self.rightTeamBackground)
+            else:
+                currentThing.setForeground(self.leftTeamFont)
+                currentThing.setBackground(self.leftTeamBackground)
+
+        currentThing.toggleTeam()
+
+    @Slot()
+    def leftThingTeam(self):
+        currentThing = self.ui.thingzListLW.currentItem()
+        if currentThing != None:
+            if currentThing.isLeftSideTeam():
+                currentThing.setForeground(self.rightTeamFont)
+                currentThing.setBackground(self.rightTeamBackground)
+            else:
+                currentThing.setForeground(self.leftTeamFont)
+                currentThing.setBackground(self.leftTeamBackground)
+
+            currentThing.toggleTeam()
 
     @Slot(ThingzWidget)
-    def show_selected_thing(self, thing):
+    def showSelectedThing(self, thing):
         # Display selected item's title and text in the editor
-        self.ui.thingFocusLBL.setText(thing.title())
-        self.ui.thingTextEdit.setPlainText(thing.text())
-        self.currentThing = thing
+        self.ui.thingFocusLBL.setText(thing.text())
+        self.ui.thingTextEdit.setPlainText(thing.substitutes())
+        if thing.isLeftSideTeam():
+            self.ui.leftThingTeamRB.setChecked(True)
+        else:
+            self.ui.rightThingTeamRB.setChecked(True)
+
+    @Slot(ThingzWidget)
+    def titleEdited(self, thing):
+        # Display selected item's title and text in the editor
+        self.ui.thingFocusLBL.setText(thing.text())
+        self.ui.thingTextEdit.setPlainText(thing.substitutes())
 
     @Slot()
     def addThingtoList(self):
         thingStr = self.ui.thingNameTxt.text()
         if len(thingStr) > 0:
-            newThing = ThingzWidget(thingStr, self.ui.thingzListLW)
+
+            # Determine which team is being entered from the radio buttons
+            # and color the thing appropriately
+            if self.ui.leftThingTeamRB.isChecked():
+                newThing = ThingzWidget(thingStr, True, self.ui.thingzListLW)
+                newThing.setForeground(self.leftTeamFont)
+                newThing.setBackground(self.leftTeamBackground)
+                self.ui.rightThingTeamRB.setChecked(True)
+            else:
+                newThing = ThingzWidget(thingStr, False, self.ui.thingzListLW)
+                newThing.setForeground(self.rightTeamFont)
+                newThing.setBackground(self.rightTeamBackground)
+                self.ui.leftThingTeamRB.setChecked(True)
+
             newThingFont = newThing.font()
             newThingFont.setPointSize(12)
             newThing.setFont(newThingFont)
             newThing.setFlags(newThing.flags() | Qt.ItemIsEditable)
+
             self.ui.thingNameTxt.setText("")
             self.ui.thingNameTxt.setFocus()
 
@@ -403,7 +547,7 @@ class ImproTronControlBoard():
     def removeThingfromList(self):
         self.ui.thingzListLW.takeItem(self.ui.thingzListLW.row(self.ui.thingzListLW.currentItem()))
         if self.ui.thingzListLW.currentItem() != None:
-            self.show_selected_thing(self.ui.thingzListLW.currentItem())
+            self.showSelectedThing(self.ui.thingzListLW.currentItem())
 
     @Slot()
     def clearThingzList(self):
@@ -411,6 +555,7 @@ class ImproTronControlBoard():
                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.ui.thingzListLW.clear()
+            self.ui.leftThingTeamRB.setChecked(True)
 
     # Slideshow Management
     @Slot(QItemSelection, QItemSelection)

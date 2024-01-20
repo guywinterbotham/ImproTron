@@ -11,5 +11,8 @@
         <file alias="up">icons/up.png</file>
         <file alias="unlocked">icons/unlocked.png</file>
         <file alias="locked">icons/lock.png</file>
+        <file alias="left">icons/left.png</file>
+        <file alias="right">icons/right.png</file>
+        <file alias="both">icons/both.png</file>
     </qresource>
 </RCC>

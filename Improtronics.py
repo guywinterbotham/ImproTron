@@ -1,11 +1,10 @@
 # The display is a container for all the possible features that can be displayed
 # This Python file uses the following encoding: utf-8
 import json
-from PySide6.QtWidgets import QFileDialog, QPushButton, QMainWindow, QLineEdit, QLabel, QVBoxLayout, QWidget, QMessageBox, QListWidgetItem, QFileSystemModel
+from PySide6.QtWidgets import QFileDialog, QPushButton, QLineEdit, QListWidgetItem
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt, QItemSelection, QFileInfo
-from PySide6.QtGui import QPixmap, QImage, QImageReader, QFont
-from screeninfo import get_monitors
+from PySide6.QtCore import QDir, QStandardPaths, Slot
+from PySide6.QtGui import QPixmap, QImage, QMovie, QBrush
 
 # Class to handle display on a separate monitor
 class ImproTron():
@@ -44,9 +43,13 @@ class ImproTron():
 
     # Show Text on the display
     @Slot(str)
-    def showText(self, text_msg, style, font):
-        self.improTron.textDisplay.setFont(font)
-        self.improTron.textDisplay.setStyleSheet(style)
+    def showText(self, text_msg, style=None, font=None):
+        if font != None:
+            self.improTron.textDisplay.setFont(font)
+
+        if style != None:
+            self.improTron.textDisplay.setStyleSheet(style)
+
         self.improTron.textDisplay.setText(text_msg)
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
@@ -54,6 +57,16 @@ class ImproTron():
     @Slot(QImage)
     def showImage(self, arg):
         self.improTron.textDisplay.setPixmap(QPixmap.fromImage(arg.scaled(self.improTron.textDisplay.size())))
+        self.improTron.setCurrentWidget(self.improTron.displayText)
+
+    # Show an movie on the disaply
+    @Slot(str)
+    def showMovie(self, arg):
+        movie = QMovie(arg)
+        movie.setSpeed(100)
+        movie.setScaledSize(self.improTron.textDisplay.size())
+        self.improTron.textDisplay.setMovie(movie)
+        movie.start()
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Set the name of the Left Team
@@ -200,23 +213,26 @@ class HotButtonManager():
 
 # Subclass to mantian the additional substitutes information associated with a Thing
 class ThingzWidget(QListWidgetItem):
-    def __init__(self, title, parent=None):
+    def __init__(self, title, isLeftSideTeam, parent=None):
         super().__init__(title, parent)
 
-        self._title = title
-        self._text = "Needs Substitutes"
+        self._substitutes = ""
+        self._isLeftSideTeam = isLeftSideTeam
 
-    def title(self):
-        return self._title
-
-    def text(self):
-        return self._text
+    def substitutes(self):
+        return self._substitutes
 
     def thingData(self):
-        return self._title + "\n" + self._text
+        return self.text() + "\n" + self._substitutes
 
     def updateSubstitutes(self, substitutesText):
-        self._text = substitutesText
+        self._substitutes = substitutesText
+
+    def isLeftSideTeam(self):
+        return self._isLeftSideTeam
+
+    def toggleTeam(self):
+        self._isLeftSideTeam = not self._isLeftSideTeam
 
 # To Do
 # Have file model filter for all supported image file types
