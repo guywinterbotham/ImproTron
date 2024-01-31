@@ -22,6 +22,4 @@ if __name__ == "__main__":
 
     hot_buttons_manager = HotButtonManager(improTronControlBoard, displayMain, displayAuxiliary)
 
-    #audio_player = AudioPlayer()
-
     sys.exit(app.exec())

@@ -3,6 +3,7 @@
         "ImproTron.qrc",
         "ImproTronControlBoard.py",
         "Improtronics.py",
+        "MediaFileDatabase.py",
         "audioPlayer.py",
         "main.py"
     ]

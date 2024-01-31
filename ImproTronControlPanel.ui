@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>1056</width>
-    <height>706</height>
+    <height>728</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -46,1160 +46,101 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
-     <layout class="QHBoxLayout" name="hotButtonHLayout">
+   <layout class="QVBoxLayout" name="improTronUnknownVL">
+    <item>
+     <layout class="QVBoxLayout" name="improTronVL">
       <item>
-       <widget class="QPushButton" name="hotPB1">
-        <property name="text">
-         <string>Hot Button 1</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="hotPB2">
-        <property name="text">
-         <string>Hot Button 2</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="hotPB3">
-        <property name="text">
-         <string>Hot Button 3</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="hotPB4">
-        <property name="text">
-         <string>Hot Button 4</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="hotPB5">
-        <property name="text">
-         <string>Hot Button 5</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="hotPB6">
-        <property name="text">
-         <string>Hot Button 6</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="hotPB7">
-        <property name="text">
-         <string>Hot Button 7</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="hotPB8">
-        <property name="text">
-         <string>Hot Button 8</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="hotPB9">
-        <property name="text">
-         <string>Hot Button 9</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="hotPB10">
-        <property name="text">
-         <string>Hot Button 10</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="0" column="0">
-     <layout class="QGridLayout" name="teamsLayout">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetNoConstraint</enum>
-      </property>
-      <item row="1" column="7">
-       <widget class="QPushButton" name="scanImagesPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Scan</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLineEdit" name="teamNameLeft">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Left Team</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="10">
-       <widget class="QLabel" name="teamRightLbl">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Team Name</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="12">
-       <widget class="QLineEdit" name="teamNameRight">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Right Team</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="10">
-       <widget class="QLabel" name="rightScoreLbl">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Score</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="12">
-       <layout class="QHBoxLayout" name="rightScoreHLayout">
+       <layout class="QHBoxLayout" name="teamsAndPreviewHL">
         <item>
-         <widget class="QSpinBox" name="teamScoreRight">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>20</pointsize>
-           </font>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="buttonSymbols">
-           <enum>QAbstractSpinBox::PlusMinus</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="colorRightPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Color ...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="leftScoreLbl">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Score</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <layout class="QHBoxLayout" name="leftScoreHLayout">
-        <item>
-         <widget class="QSpinBox" name="teamScoreLeft">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>20</pointsize>
-           </font>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="buttonSymbols">
-           <enum>QAbstractSpinBox::PlusMinus</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="colorLeftPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="text">
-           <string>Color ...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="teamLeftLbl">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Team Name</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="3">
-       <layout class="QVBoxLayout" name="imageLeftVLayout">
-        <item>
-         <widget class="QCheckBox" name="expandMainCB">
-          <property name="text">
-           <string>Expand</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pasteImageMainPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Paste Media</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="loadImageMainPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Load Media</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="5" column="7">
-       <widget class="QPushButton" name="blackOutPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Blackout</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="10">
-       <layout class="QVBoxLayout" name="imageRightVLayout">
-        <item>
-         <widget class="QCheckBox" name="expandAuxiliaryCB">
-          <property name="text">
-           <string>Expand</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pasteImageAuxiliaryPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Paste Media</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="loadImageAuxiliaryPB">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Load Media</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="5" column="12">
-       <widget class="QLabel" name="imagePreviewAuxiliary">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="QLabel" name="imagePreviewMain">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>288</width>
-          <height>162</height>
-         </size>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="7">
-       <widget class="QPushButton" name="showScoresAuxiliaryPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Show Auxiliary</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4" colspan="2">
-       <widget class="QPushButton" name="showScoresBothPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Show Score Both</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="5">
-       <widget class="QLineEdit" name="lineEdit">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Images in Library</string>
-        </property>
-        <property name="maxLength">
-         <number>50</number>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="5">
-       <widget class="QGroupBox" name="timerGB">
-        <property name="title">
-         <string>Countdown Timer</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_6">
-         <item>
-          <layout class="QVBoxLayout" name="timerLayout">
-           <item>
-            <layout class="QVBoxLayout" name="timeVL">
-             <item>
-              <layout class="QHBoxLayout" name="timeLeftHL">
-               <item>
-                <widget class="QLabel" name="timeLeftLabel">
-                 <property name="text">
-                  <string>Time Left</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="hourVL">
-                 <item>
-                  <widget class="QLabel" name="hoursLabel">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>HH</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="hoursLeftSpin"/>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="minuteVL">
-                 <item>
-                  <widget class="QLabel" name="minutesLabel">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>MM</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="minuteLeftSpin"/>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="secondVL">
-                 <item>
-                  <widget class="QLabel" name="secondLabel">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>SS</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="secondsLeftSpin"/>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="turnRedHL">
-               <item>
-                <widget class="QLabel" name="timeRedLabel">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 0, 0);
-font: 700 9pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>Turn Red </string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="redHoursSpin"/>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="redMinutesSpin"/>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="redSecondsSpin"/>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <item>
-              <widget class="QPushButton" name="resetTimerPB">
-               <property name="text">
-                <string>Reset</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="timeVisibleCB">
-               <property name="text">
-                <string>Visible</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="startTimerPB">
-               <property name="autoFillBackground">
-                <bool>true</bool>
-               </property>
-               <property name="text">
-                <string>START</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QPushButton" name="showScoresMainPB">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Show Main</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="2" column="0">
-     <widget class="QTabWidget" name="featureTabs">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="currentIndex">
-       <number>2</number>
-      </property>
-      <property name="iconSize">
-       <size>
-        <width>20</width>
-        <height>20</height>
-       </size>
-      </property>
-      <property name="usesScrollButtons">
-       <bool>false</bool>
-      </property>
-      <widget class="QWidget" name="textDisplayTab">
-       <property name="minimumSize">
-        <size>
-         <width>675</width>
-         <height>0</height>
-        </size>
-       </property>
-       <attribute name="title">
-        <string>Text Display</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <layout class="QHBoxLayout" name="leftFontHLayout">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetDefaultConstraint</enum>
-          </property>
+         <layout class="QVBoxLayout" name="teamLeftVL">
           <item>
-           <widget class="QLabel" name="leftFontLbl">
-            <property name="text">
-             <string>Font:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFontComboBox" name="fontComboBoxLeft">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="leftFontSizeLbl">
-            <property name="text">
-             <string>Size:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="leftFontSize">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="minimum">
-             <number>20</number>
-            </property>
-            <property name="maximum">
-             <number>300</number>
-            </property>
-            <property name="singleStep">
-             <number>5</number>
-            </property>
-            <property name="value">
-             <number>100</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="leftTextColorPB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Color ...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="2" column="1">
-         <layout class="QVBoxLayout" name="manageTextLayout">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetMinimumSize</enum>
-          </property>
-          <item>
-           <spacer name="loadTextSP">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>60</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="loadTextLBL">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Load Text</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="loadTextLayout">
+           <layout class="QHBoxLayout" name="leftTeamHL">
             <item>
-             <widget class="QPushButton" name="loadTextboxLeftPB">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
+             <widget class="QLabel" name="teamLeftLbl">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
               </property>
               <property name="text">
-               <string/>
+               <string>Team Name</string>
               </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/left</normaloff>:/icons/left</iconset>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="loadTextboxBothPB">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
+             <widget class="QLineEdit" name="teamNameLeft">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
               </property>
               <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/both</normaloff>:/icons/both</iconset>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="loadTextboxRightPB">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/right</normaloff>:/icons/right</iconset>
+               <string>Left Team</string>
               </property>
              </widget>
             </item>
            </layout>
           </item>
           <item>
-           <widget class="QLabel" name="clearTextLBL">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Clear Text</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="clearTextLayout">
+           <layout class="QHBoxLayout" name="leftScoreHLayout">
             <item>
-             <widget class="QPushButton" name="clearLeftTextPB">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
+             <widget class="QLabel" name="leftScoreLbl">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
               </property>
               <property name="text">
-               <string/>
+               <string>Score</string>
               </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/left</normaloff>:/icons/left</iconset>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="clearBothTextPB">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
+             <widget class="QSpinBox" name="teamScoreLeft">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
-              <property name="text">
-               <string/>
+              <property name="font">
+               <font>
+                <pointsize>20</pointsize>
+               </font>
               </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/both</normaloff>:/icons/both</iconset>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::PlusMinus</enum>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="clearRightTextPB">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
+             <widget class="QPushButton" name="colorLeftPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
               </property>
               <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/right</normaloff>:/icons/right</iconset>
+               <string>Color ...</string>
               </property>
              </widget>
             </item>
            </layout>
           </item>
-         </layout>
-        </item>
-        <item row="2" column="0">
-         <layout class="QVBoxLayout" name="leftTextVLayout">
           <item>
-           <widget class="QTextEdit" name="leftTextBox">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="acceptRichText">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="leftTextShowHL">
-            <item>
-             <widget class="QPushButton" name="showLeftTextMainPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Show on Main</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="showLeftTextAuxiliaryPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Show on Auxiliary</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="showLeftTextBothPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Show on Both</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-        <item row="2" column="3">
-         <layout class="QVBoxLayout" name="rightTextVLayout">
-          <item>
-           <widget class="QTextEdit" name="rightTextBox">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="acceptRichText">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="rightTextShowHL">
-            <item>
-             <widget class="QPushButton" name="showRightTextMainPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Show on Main</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="showRightTextAuxiliaryPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Show on Auxilary</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="showRightTextBothPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Show on Both</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="3">
-         <layout class="QHBoxLayout" name="rightFontHLayout">
-          <item>
-           <widget class="QLabel" name="rightFontLbl">
-            <property name="text">
-             <string>Font:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFontComboBox" name="fontComboBoxRight">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="rightFontSizeLbl">
-            <property name="text">
-             <string>Size:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="rightFontSize">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="minimum">
-             <number>20</number>
-            </property>
-            <property name="maximum">
-             <number>300</number>
-            </property>
-            <property name="singleStep">
-             <number>5</number>
-            </property>
-            <property name="value">
-             <number>100</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="rightTextColorPB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Color ...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="imageSearchTab">
-       <property name="minimumSize">
-        <size>
-         <width>675</width>
-         <height>0</height>
-        </size>
-       </property>
-       <attribute name="title">
-        <string>Image Search</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_8">
-          <item>
-           <widget class="QLabel" name="imageSearchPrompt">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>500</width>
-              <height>40</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Search for text in the filenames in the Image Search Library (see Preferences)</string>
-            </property>
-            <property name="scaledContents">
-             <bool>false</bool>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="imageSearchNames"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="searchImagesPB">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Search</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="1" rowspan="2">
-         <layout class="QVBoxLayout" name="verticalLayout_9">
-          <item>
-           <widget class="QLabel" name="imagePreviewLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>1000</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Image Preview:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignHCenter|Qt::AlignTop</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFrame" name="imageSearchPreview">
+           <widget class="QLabel" name="imagePreviewMain">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -1208,147 +149,381 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>480</width>
-              <height>270</height>
+              <width>288</width>
+              <height>162</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>288</width>
+              <height>162</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>288</width>
+              <height>162</height>
              </size>
             </property>
             <property name="frameShape">
-             <enum>QFrame::WinPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Plain</enum>
-            </property>
-            <property name="lineWidth">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="2">
-         <layout class="QVBoxLayout" name="verticalLayout_11">
-          <item>
-           <widget class="QPushButton" name="imageSearchShowPB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
+             <enum>QFrame::Box</enum>
             </property>
             <property name="text">
-             <string>Show</string>
+             <string/>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="imageSearchAddSSPB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Add to Slideshow</string>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
          </layout>
         </item>
-        <item row="1" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_10">
-          <item>
-           <widget class="QListView" name="imageSearchList"/>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="thingzTab">
-       <property name="minimumSize">
-        <size>
-         <width>1032</width>
-         <height>0</height>
-        </size>
-       </property>
-       <attribute name="title">
-        <string>Thingz 5/6</string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_10">
         <item>
-         <layout class="QHBoxLayout" name="thingzHL">
+         <layout class="QVBoxLayout" name="teamCentralVL">
           <item>
-           <layout class="QVBoxLayout" name="thingzListVL">
+           <layout class="QHBoxLayout" name="scoreShowHL">
             <item>
-             <widget class="QLabel" name="thingNameLBL">
-              <property name="text">
-               <string>Name of Thing to Add:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="thingNameTxt">
+             <widget class="QPushButton" name="showScoresMainPB">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
                </font>
               </property>
+              <property name="text">
+               <string>Show Main</string>
+              </property>
              </widget>
             </item>
             <item>
-             <widget class="QListWidget" name="thingzListLW"/>
+             <widget class="QPushButton" name="showScoresBothPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show Score Both</string>
+              </property>
+             </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="thingzShowHL">
+             <widget class="QPushButton" name="showScoresAuxiliaryPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show Auxiliary</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="quickAddLBL">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Quick Add and Show</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::NoTextInteraction</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_13">
+            <item>
+             <widget class="QPushButton" name="add50PB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>5-0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="add32PB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>3-2</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="add23PB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>2-3</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="add05PB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>0-5</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="blackOutHL">
+            <item>
+             <widget class="QPushButton" name="blackoutMainPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Blackout Main</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="blackoutAuxPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Blackout Aux</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="blackoutBothPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Blackout Both</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="mediaAndTImerControlHL">
+            <item>
+             <layout class="QVBoxLayout" name="imageLeftVLayout">
               <item>
-               <widget class="QPushButton" name="showThingzMainPB">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>12</pointsize>
-                 </font>
-                </property>
+               <widget class="QCheckBox" name="expandMainCB">
                 <property name="text">
-                 <string>List Main</string>
+                 <string>Expand</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="showThingzAuxiliaryPB">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
+               <widget class="QPushButton" name="pasteImageMainPB">
                 <property name="font">
                  <font>
                   <pointsize>12</pointsize>
                  </font>
                 </property>
                 <property name="text">
-                 <string>List Auxiliary</string>
+                 <string>Paste Media</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="showThingzBothPB">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
+               <widget class="QPushButton" name="loadImageMainPB">
                 <property name="font">
                  <font>
                   <pointsize>12</pointsize>
                  </font>
                 </property>
                 <property name="text">
-                 <string>List Both</string>
+                 <string>Load Media</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="timerGB">
+              <property name="title">
+               <string>Countdown Timer</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <item>
+                <layout class="QVBoxLayout" name="timerLayout">
+                 <item>
+                  <layout class="QVBoxLayout" name="timeVL">
+                   <item>
+                    <layout class="QHBoxLayout" name="timeLeftHL">
+                     <item>
+                      <widget class="QLabel" name="timeLeftLBL">
+                       <property name="font">
+                        <font>
+                         <pointsize>12</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Time:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QTimeEdit" name="countDownTimer">
+                       <property name="font">
+                        <font>
+                         <pointsize>12</pointsize>
+                        </font>
+                       </property>
+                       <property name="displayFormat">
+                        <string>hh:mm:ss</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="turnRedHL">
+                     <item>
+                      <widget class="QLabel" name="timeRedLBL">
+                       <property name="font">
+                        <font>
+                         <family>Segoe UI</family>
+                         <pointsize>12</pointsize>
+                         <italic>false</italic>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">color: rgb(255, 0, 0);
+font: 700 12pt &quot;Segoe UI&quot;;</string>
+                       </property>
+                       <property name="text">
+                        <string>Turn Red:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QTimeEdit" name="timeRedTimer">
+                       <property name="font">
+                        <font>
+                         <pointsize>12</pointsize>
+                        </font>
+                       </property>
+                       <property name="displayFormat">
+                        <string>hh:mm:ss</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="timerControlsHL">
+                   <item>
+                    <widget class="QPushButton" name="startTimerPB">
+                     <property name="autoFillBackground">
+                      <bool>true</bool>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="ImproTronIcons.qrc">
+                       <normaloff>:/icons/play</normaloff>:/icons/play</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="resetTimerPB">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="ImproTronIcons.qrc">
+                       <normaloff>:/icons/redo</normaloff>:/icons/redo</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pauseTimerPB">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="ImproTronIcons.qrc">
+                       <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="timerVisibleMainCB">
+                     <property name="text">
+                      <string>Main</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="imageRightVLayout">
+              <item>
+               <widget class="QCheckBox" name="expandAuxiliaryCB">
+                <property name="text">
+                 <string>Expand</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pasteImageAuxiliaryPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Paste Media</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="loadImageAuxiliaryPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Load Media</string>
                 </property>
                </widget>
               </item>
@@ -1356,27 +531,320 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
             </item>
            </layout>
           </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="teamRightVL">
           <item>
-           <layout class="QVBoxLayout" name="thingzEditVL">
+           <layout class="QHBoxLayout" name="horizontalLayout_11">
             <item>
-             <widget class="QPushButton" name="addThingPB">
+             <widget class="QLabel" name="teamRightLbl">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>Add</string>
+               <string>Team Name</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
              </widget>
             </item>
             <item>
-             <spacer name="thingManagerSP">
+             <widget class="QLineEdit" name="teamNameRight">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Right Team</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="rightScoreHLayout">
+            <item>
+             <widget class="QLabel" name="rightScoreLbl">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Score</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="teamScoreRight">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>20</pointsize>
+               </font>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::PlusMinus</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="colorRightPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Color ...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="imagePreviewAuxiliary">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>288</width>
+              <height>162</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>288</width>
+              <height>162</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>288</width>
+              <height>162</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="hotButtonHL">
+        <item>
+         <widget class="QPushButton" name="hotPB1">
+          <property name="text">
+           <string>Hot Button 1</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hotPB2">
+          <property name="text">
+           <string>Hot Button 2</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hotPB3">
+          <property name="text">
+           <string>Hot Button 3</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hotPB4">
+          <property name="text">
+           <string>Hot Button 4</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hotPB5">
+          <property name="text">
+           <string>Hot Button 5</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hotPB6">
+          <property name="text">
+           <string>Hot Button 6</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hotPB7">
+          <property name="text">
+           <string>Hot Button 7</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hotPB8">
+          <property name="text">
+           <string>Hot Button 8</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hotPB9">
+          <property name="text">
+           <string>Hot Button 9</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="hotPB10">
+          <property name="text">
+           <string>Hot Button 10</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="featureTabs">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="usesScrollButtons">
+         <bool>false</bool>
+        </property>
+        <widget class="QWidget" name="textDisplayTab">
+         <property name="minimumSize">
+          <size>
+           <width>675</width>
+           <height>0</height>
+          </size>
+         </property>
+         <attribute name="title">
+          <string>Text Display</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="leftFontHLayout">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QLabel" name="leftFontLbl">
+              <property name="text">
+               <string>Font:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFontComboBox" name="fontComboBoxLeft">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="leftFontSizeLbl">
+              <property name="text">
+               <string>Size:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="leftFontSize">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="minimum">
+               <number>20</number>
+              </property>
+              <property name="maximum">
+               <number>300</number>
+              </property>
+              <property name="singleStep">
+               <number>5</number>
+              </property>
+              <property name="value">
+               <number>100</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="leftTextColorPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Color ...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="1">
+           <layout class="QVBoxLayout" name="manageTextLayout">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMinimumSize</enum>
+            </property>
+            <item>
+             <spacer name="loadTextSP">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Maximum</enum>
+               <enum>QSizePolicy::Expanding</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -1387,143 +855,14 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="thingzMoveUpPB">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
+             <widget class="QLabel" name="loadTextLBL">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>Move Up</string>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>30</width>
-                <height>30</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="thingzMoveDownPB">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Move Down</string>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>30</width>
-                <height>30</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="removeThingPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Remove Thing</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="clearThingzPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Clear Thingz</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="thingEditorVL">
-            <item>
-             <widget class="QGroupBox" name="thingTeamGB">
-              <property name="title">
-               <string>Thing Color Toggle</string>
-              </property>
-              <property name="checkable">
-               <bool>false</bool>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout">
-               <item>
-                <layout class="QHBoxLayout" name="thingzColorsHL">
-                 <item>
-                  <widget class="QRadioButton" name="leftThingTeamRB">
-                   <property name="font">
-                    <font>
-                     <pointsize>12</pointsize>
-                    </font>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <property name="text">
-                    <string>Left Team</string>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="rightThingTeamRB">
-                   <property name="font">
-                    <font>
-                     <pointsize>12</pointsize>
-                    </font>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <property name="text">
-                    <string>Right Team</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="thingFocusLBL">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="frameShape">
-               <enum>QFrame::Box</enum>
-              </property>
-              <property name="text">
-               <string/>
+               <string>Load Text</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -1531,18 +870,554 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
              </widget>
             </item>
             <item>
-             <widget class="QPlainTextEdit" name="thingTextEdit"/>
+             <layout class="QHBoxLayout" name="loadTextLayout">
+              <item>
+               <widget class="QPushButton" name="loadTextboxLeftPB">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/left</normaloff>:/icons/left</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="loadTextboxBothPB">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/both</normaloff>:/icons/both</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="loadTextboxRightPB">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/right</normaloff>:/icons/right</iconset>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="thingzShowHL_2">
+             <widget class="QLabel" name="clearTextLBL">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Clear Text</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="clearTextLayout">
               <item>
-               <widget class="QPushButton" name="showThingMainPB">
+               <widget class="QPushButton" name="clearLeftTextPB">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/left</normaloff>:/icons/left</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="clearBothTextPB">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/both</normaloff>:/icons/both</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="clearRightTextPB">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/right</normaloff>:/icons/right</iconset>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <layout class="QVBoxLayout" name="leftTextVLayout">
+            <item>
+             <widget class="QTextEdit" name="leftTextBox">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="verticalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="horizontalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="acceptRichText">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="leftTextShowHL">
+              <item>
+               <widget class="QPushButton" name="showLeftTextMainPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Show on Main</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="showLeftTextAuxiliaryPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Show on Auxiliary</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="showLeftTextBothPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Show on Both</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="3">
+           <layout class="QVBoxLayout" name="rightTextVLayout">
+            <item>
+             <widget class="QTextEdit" name="rightTextBox">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="verticalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="horizontalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="acceptRichText">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="rightTextShowHL">
+              <item>
+               <widget class="QPushButton" name="showRightTextMainPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Show on Main</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="showRightTextAuxiliaryPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Show on Auxilary</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="showRightTextBothPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Show on Both</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="3">
+           <layout class="QHBoxLayout" name="rightFontHLayout">
+            <item>
+             <widget class="QLabel" name="rightFontLbl">
+              <property name="text">
+               <string>Font:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFontComboBox" name="fontComboBoxRight">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="rightFontSizeLbl">
+              <property name="text">
+               <string>Size:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="rightFontSize">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="minimum">
+               <number>20</number>
+              </property>
+              <property name="maximum">
+               <number>300</number>
+              </property>
+              <property name="singleStep">
+               <number>5</number>
+              </property>
+              <property name="value">
+               <number>100</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="rightTextColorPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Color ...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="mediaSearchTab">
+         <property name="minimumSize">
+          <size>
+           <width>675</width>
+           <height>0</height>
+          </size>
+         </property>
+         <attribute name="title">
+          <string>Image Search</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <layout class="QHBoxLayout" name="mediaSearchHL">
+            <item>
+             <layout class="QVBoxLayout" name="searchMediaVL">
+              <item>
+               <widget class="QLabel" name="mediaSearchLBL">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>500</width>
+                  <height>40</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Search for text in the filenames in the Image Search Library (see Preferences)</string>
+                </property>
+                <property name="scaledContents">
+                 <bool>false</bool>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="mediaSearchTagsLE"/>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="sizeConstraint">
+                 <enum>QLayout::SetDefaultConstraint</enum>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="searchMediaPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Search</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="MediaFilesLBL">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Media Fies:</string>
+                  </property>
+                  <property name="indent">
+                   <number>16</number>
+                  </property>
+                  <property name="textInteractionFlags">
+                   <set>Qt::NoTextInteraction</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="mediaFilesCountLBL">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="margin">
+                   <number>0</number>
+                  </property>
+                  <property name="indent">
+                   <number>8</number>
+                  </property>
+                  <property name="textInteractionFlags">
+                   <set>Qt::NoTextInteraction</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="scanMediaPB">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Scan</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QListWidget" name="mediaSearchResultsLW"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="mediaPreviewVL">
+              <item>
+               <layout class="QHBoxLayout" name="mediaFileNameHL">
+                <item>
+                 <widget class="QLabel" name="mediaPreviewLBL">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>50</width>
+                    <height>24</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>75</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Image:</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignHCenter|Qt::AlignTop</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="mediaFileNameLBL">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="textInteractionFlags">
+                   <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QLabel" name="mediaSearchPreviewLBL">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>400</width>
+                  <height>300</height>
+                 </size>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::Box</enum>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="imageSearchButtonsVL">
+              <item>
+               <widget class="QPushButton" name="searchToMainShowPB">
                 <property name="font">
                  <font>
                   <pointsize>12</pointsize>
@@ -1554,13 +1429,7 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="showThingAuxiliaryPB">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
+               <widget class="QPushButton" name="searchToAuxShowPB">
                 <property name="font">
                  <font>
                   <pointsize>12</pointsize>
@@ -1572,9 +1441,164 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="showThingBothPB">
+               <widget class="QPushButton" name="searchtoSlideShowPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Add to Slideshow</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="imageSearchVS">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="thingzTab">
+         <property name="minimumSize">
+          <size>
+           <width>1032</width>
+           <height>0</height>
+          </size>
+         </property>
+         <attribute name="title">
+          <string>Thingz 5/6</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <layout class="QHBoxLayout" name="thingzHL">
+            <item>
+             <layout class="QVBoxLayout" name="thingzListVL">
+              <item>
+               <widget class="QLabel" name="thingNameLBL">
+                <property name="text">
+                 <string>Name of Thing to Add:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="thingNameTxt">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QListWidget" name="thingzListLW"/>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="thingzShowHL">
+                <item>
+                 <widget class="QPushButton" name="showThingzMainPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>List Main</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="showThingzAuxiliaryPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>List Auxiliary</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="showThingzBothPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>List Both</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="thingzEditVL">
+              <item>
+               <widget class="QPushButton" name="addThingPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Add</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="thingManagerSP">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Maximum</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>60</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="thingzMoveUpPB">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1585,7 +1609,551 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Show Both</string>
+                 <string>Move Up</string>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>30</width>
+                  <height>30</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="thingzMoveDownPB">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Move Down</string>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>30</width>
+                  <height>30</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="removeThingPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Remove Thing</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="clearThingzPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Clear Thingz</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="thingEditorVL">
+              <item>
+               <widget class="QGroupBox" name="thingTeamGB">
+                <property name="title">
+                 <string>Thing Color Toggle</string>
+                </property>
+                <property name="checkable">
+                 <bool>false</bool>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout">
+                 <item>
+                  <layout class="QHBoxLayout" name="thingzColorsHL">
+                   <item>
+                    <widget class="QRadioButton" name="leftThingTeamRB">
+                     <property name="font">
+                      <font>
+                       <pointsize>12</pointsize>
+                      </font>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true"/>
+                     </property>
+                     <property name="text">
+                      <string>Left Team</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="rightThingTeamRB">
+                     <property name="font">
+                      <font>
+                       <pointsize>12</pointsize>
+                      </font>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true"/>
+                     </property>
+                     <property name="text">
+                      <string>Right Team</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="thingFocusLBL">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::Box</enum>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPlainTextEdit" name="thingTextEdit"/>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="thingzShowHL_2">
+                <item>
+                 <widget class="QPushButton" name="showThingMainPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Show Main</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="showThingAuxiliaryPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Show Auxiliary</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="showThingBothPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Show Both</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="slideShowTab">
+         <property name="minimumSize">
+          <size>
+           <width>675</width>
+           <height>0</height>
+          </size>
+         </property>
+         <attribute name="title">
+          <string>Slide Show</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <layout class="QHBoxLayout" name="slideShowHL">
+            <item>
+             <layout class="QVBoxLayout" name="ssFileTreeVL">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetDefaultConstraint</enum>
+              </property>
+              <item>
+               <widget class="QTreeView" name="slideShowFilesTreeView">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>300</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="ssListFilesVL">
+              <item>
+               <layout class="QHBoxLayout" name="slidePreviewHL">
+                <item>
+                 <widget class="QLabel" name="slidePreviewLBL">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>288</width>
+                    <height>216</height>
+                   </size>
+                  </property>
+                  <property name="frameShape">
+                   <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="textInteractionFlags">
+                   <set>Qt::NoTextInteraction</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="addSlidePB">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Add to List</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <item>
+                 <widget class="QLabel" name="slideShowSecondLBL">
+                  <property name="text">
+                   <string>Seconds</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="slideShowSecondSB">
+                  <property name="buttonSymbols">
+                   <enum>QAbstractSpinBox::PlusMinus</enum>
+                  </property>
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>25</number>
+                  </property>
+                  <property name="value">
+                   <number>10</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="slideShowRestartPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="ImproTronIcons.qrc">
+                    <normaloff>:/icons/rewind</normaloff>:/icons/rewind</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="slideShowRewindPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="ImproTronIcons.qrc">
+                    <normaloff>:/icons/back</normaloff>:/icons/back</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="slideShowPlayPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="ImproTronIcons.qrc">
+                    <normaloff>:/icons/play</normaloff>:/icons/play</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="slideShowPausePB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="ImproTronIcons.qrc">
+                    <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="slideShowStopPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="ImproTronIcons.qrc">
+                    <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="slideShowForwardPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="ImproTronIcons.qrc">
+                    <normaloff>:/icons/next</normaloff>:/icons/next</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="slideShowSkipPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="ImproTronIcons.qrc">
+                    <normaloff>:/icons/ffwd</normaloff>:/icons/ffwd</iconset>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="slideDisplayControlsHL">
+                <item>
+                 <widget class="QPushButton" name="showSlideMainPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Slide Main</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="showSlideAuxiliaryPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Slide Auxiliary</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="showSlideBothPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Slide Both</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <widget class="QListWidget" name="slideListLW">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="slideListControlsVL">
+              <item>
+               <widget class="QPushButton" name="slideMoveUpPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Move Up</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="slideMoveDownPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Move Down</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="removeSlidePB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Remove</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="whammyPB">
+                <property name="font">
+                 <font>
+                  <family>Segoe UI</family>
+                  <pointsize>9</pointsize>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color: rgb(0, 0, 255);
+font: 700 9pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 0);</string>
+                </property>
+                <property name="text">
+                 <string>WHAMMY!</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="clearSlideShowPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Clear List</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="loadSlideShowPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Load List</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="saveSlideShowPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Save List</string>
                 </property>
                </widget>
               </item>
@@ -1594,338 +2162,47 @@ font: 700 9pt &quot;Segoe UI&quot;;</string>
            </layout>
           </item>
          </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="slideShowTab">
-       <property name="minimumSize">
-        <size>
-         <width>675</width>
-         <height>0</height>
-        </size>
-       </property>
-       <attribute name="title">
-        <string>Slide Show</string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
-        <item>
-         <layout class="QHBoxLayout" name="slideShowHL">
+        </widget>
+        <widget class="QWidget" name="hotButtonsTab">
+         <property name="minimumSize">
+          <size>
+           <width>675</width>
+           <height>0</height>
+          </size>
+         </property>
+         <attribute name="title">
+          <string>Hot Buttons</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <layout class="QVBoxLayout" name="ssFileTreeVL">
-            <property name="sizeConstraint">
-             <enum>QLayout::SetDefaultConstraint</enum>
-            </property>
+           <layout class="QVBoxLayout" name="hotButtonPBsVL">
             <item>
-             <widget class="QTreeView" name="slideShowFilesTreeView">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
               </property>
-              <property name="maximumSize">
+              <property name="sizeHint" stdset="0">
                <size>
-                <width>300</width>
-                <height>16777215</height>
+                <width>20</width>
+                <height>40</height>
                </size>
               </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="ssListFilesVL">
-            <item>
-             <layout class="QHBoxLayout" name="slidePreviewHL">
-              <item>
-               <widget class="QLabel" name="slidePreviewLBL">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>288</width>
-                  <height>216</height>
-                 </size>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::Box</enum>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="textInteractionFlags">
-                 <set>Qt::NoTextInteraction</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="addSlidePB">
-                <property name="font">
-                 <font>
-                  <pointsize>12</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Add to List</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             </spacer>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_6">
-              <item>
-               <widget class="QLabel" name="slideShowSecondLBL">
-                <property name="text">
-                 <string>Seconds</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="slideShowSecondSB">
-                <property name="buttonSymbols">
-                 <enum>QAbstractSpinBox::PlusMinus</enum>
-                </property>
-                <property name="minimum">
-                 <number>1</number>
-                </property>
-                <property name="maximum">
-                 <number>25</number>
-                </property>
-                <property name="value">
-                 <number>10</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="slideShowRestartPB">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/rewind</normaloff>:/icons/rewind</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="slideShowRewindPB">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/back</normaloff>:/icons/back</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="slideShowPlayPB">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/play</normaloff>:/icons/play</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="slideShowPausePB">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="slideShowStopPB">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="slideShowForwardPB">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/next</normaloff>:/icons/next</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="slideShowSkipPB">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/ffwd</normaloff>:/icons/ffwd</iconset>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="slideDisplayControlsHL">
-              <item>
-               <widget class="QPushButton" name="showSlideMainPB">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>12</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Slide Main</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="showSlideAuxiliaryPB">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>12</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Slide Auxiliary</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="showSlideBothPB">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>12</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Slide Both</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <item>
-             <widget class="QListWidget" name="slideListLW">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="slideListControlsVL">
-            <item>
-             <widget class="QPushButton" name="slideMoveUpPB">
+             <widget class="QPushButton" name="hotButtonClearPB">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>Move Up</string>
+               <string>Clear All</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="slideMoveDownPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Move Down</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="removeSlidePB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Remove</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="whammyPB">
-              <property name="font">
-               <font>
-                <family>Segoe UI</family>
-                <pointsize>9</pointsize>
-                <italic>false</italic>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">color: rgb(0, 0, 255);
-font: 700 9pt &quot;Segoe UI&quot;;
-background-color: rgb(255, 255, 0);</string>
-              </property>
-              <property name="text">
-               <string>WHAMMY!</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="clearSlideShowPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Clear List</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="loadSlideShowPB">
+             <widget class="QPushButton" name="hotButtonLoadPB">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -1937,7 +2214,7 @@ background-color: rgb(255, 255, 0);</string>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="saveSlideShowPB">
+             <widget class="QPushButton" name="hotButtonSavePB">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -1950,642 +2227,544 @@ background-color: rgb(255, 255, 0);</string>
             </item>
            </layout>
           </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="hotButtonsTab">
-       <property name="minimumSize">
-        <size>
-         <width>675</width>
-         <height>0</height>
-        </size>
-       </property>
-       <attribute name="title">
-        <string>Hot Buttons</string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <layout class="QVBoxLayout" name="hotButtonPBsVL">
           <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="hotButtonClearPB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Clear All</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="hotButtonLoadPB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Load List</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="hotButtonSavePB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Save List</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="hotButtonVL">
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonConfigHLayout">
+           <layout class="QVBoxLayout" name="hotButtonVL">
             <item>
-             <widget class="QLabel" name="hotButtonConfigTitleLBL">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>140</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Title</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="hotButtonConfigFillerLBL">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="hotButtonConfigImageLBL">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>600</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Image File</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL1">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl1">
-              <property name="text">
-               <string>Button  1</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="titleHotButton1">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt1">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB1">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL2">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl2">
-              <property name="text">
-               <string>Button  2</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="titleHotButton2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt2">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB2">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL3">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl3">
-              <property name="text">
-               <string>Button  3</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="titleHotButton3">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt3">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB3">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL4">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl4">
-              <property name="text">
-               <string>Button  4</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="titleHotButton4">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt4">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB4">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL5">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl5">
-              <property name="text">
-               <string>Button  5</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="titleHotButton5">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt5">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB5">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL6">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl6">
-              <property name="text">
-               <string>Button  6</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="titleHotButton6">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt6">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB6">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL7">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl7">
-              <property name="text">
-               <string>Button  7</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="titleHotButton7">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt7">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB7">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL8">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl8">
-              <property name="text">
-               <string>Button  8</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="titleHotButton8">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt8">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB8">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL9">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl9">
-              <property name="text">
-               <string>Button  9</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="titleHotButton9">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt9">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB9">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hotButtonHL10">
-            <item>
-             <widget class="QLabel" name="hotButtonLbl10">
-              <property name="text">
-               <string>Button 10</string>
-              </property>
-             </widget>
-            </item>
-            <item alignment="Qt::AlignLeft">
-             <widget class="QLineEdit" name="titleHotButton10">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maxLength">
-               <number>15</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="imageFileTxt10">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="selectPB10">
-              <property name="text">
-               <string>Select ...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="preferencesTab">
-       <property name="minimumSize">
-        <size>
-         <width>675</width>
-         <height>0</height>
-        </size>
-       </property>
-       <attribute name="title">
-        <string>Preferences</string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_8">
-        <item>
-         <layout class="QHBoxLayout" name="preferenceHL">
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_2"/>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_3"/>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="ImproTronPositionVL">
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_12">
+             <layout class="QHBoxLayout" name="hotButtonConfigHLayout">
               <item>
-               <widget class="QLabel" name="label">
-                <property name="text">
-                 <string>Unlock and move the Improtrons and control panel to the screen they will inhabit while in use. The control panel will start on the same screen butwill not go into fullscreen mode</string>
+               <widget class="QLabel" name="hotButtonConfigTitleLBL">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
+                <property name="minimumSize">
+                 <size>
+                  <width>140</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Title</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="hotButtonConfigFillerLBL">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="hotButtonConfigImageLBL">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>600</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Image File</string>
                 </property>
                </widget>
               </item>
              </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="controlPanelunlockPB">
-              <property name="text">
-               <string>Control Panel</string>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/locked</normaloff>
-                <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
+             <layout class="QHBoxLayout" name="hotButtonHL1">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl1">
+                <property name="text">
+                 <string>Button  1</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="titleHotButton1">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt1">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB1">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="leftImproTronUnlockPB">
-              <property name="text">
-               <string> Left ImproTron</string>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/locked</normaloff>
-                <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
+             <layout class="QHBoxLayout" name="hotButtonHL2">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl2">
+                <property name="text">
+                 <string>Button  2</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="titleHotButton2">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt2">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB2">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="rightImproTronUnlockPB">
-              <property name="text">
-               <string>Unlock Right ImproTron</string>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/locked</normaloff>
-                <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
+             <layout class="QHBoxLayout" name="hotButtonHL3">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl3">
+                <property name="text">
+                 <string>Button  3</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="titleHotButton3">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt3">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB3">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_7"/>
+             <layout class="QHBoxLayout" name="hotButtonHL4">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl4">
+                <property name="text">
+                 <string>Button  4</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="titleHotButton4">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt4">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB4">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="hotButtonHL5">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl5">
+                <property name="text">
+                 <string>Button  5</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="titleHotButton5">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt5">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB5">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="hotButtonHL6">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl6">
+                <property name="text">
+                 <string>Button  6</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="titleHotButton6">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt6">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB6">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="hotButtonHL7">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl7">
+                <property name="text">
+                 <string>Button  7</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="titleHotButton7">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt7">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB7">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="hotButtonHL8">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl8">
+                <property name="text">
+                 <string>Button  8</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="titleHotButton8">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt8">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB8">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="hotButtonHL9">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl9">
+                <property name="text">
+                 <string>Button  9</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="titleHotButton9">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt9">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB9">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="hotButtonHL10">
+              <item>
+               <widget class="QLabel" name="hotButtonLbl10">
+                <property name="text">
+                 <string>Button 10</string>
+                </property>
+               </widget>
+              </item>
+              <item alignment="Qt::AlignLeft">
+               <widget class="QLineEdit" name="titleHotButton10">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="imageFileTxt10">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectPB10">
+                <property name="text">
+                 <string>Select ...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
          </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="aboutTab">
-       <property name="minimumSize">
-        <size>
-         <width>675</width>
-         <height>0</height>
-        </size>
-       </property>
-       <attribute name="title">
-        <string>About ImproTron</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_13">
-        <item>
-         <layout class="QHBoxLayout" name="aboutTextHL">
+        </widget>
+        <widget class="QWidget" name="preferencesTab">
+         <property name="minimumSize">
+          <size>
+           <width>675</width>
+           <height>0</height>
+          </size>
+         </property>
+         <attribute name="title">
+          <string>Preferences</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
-           <widget class="QTextBrowser" name="aboutText">
-            <property name="acceptDrops">
-             <bool>false</bool>
-            </property>
-            <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="sizeAdjustPolicy">
-             <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
-            </property>
-            <property name="html">
-             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+           <layout class="QHBoxLayout" name="preferenceHL">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_2"/>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_3"/>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="ImproTronPositionVL">
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_12">
+                <item>
+                 <widget class="QLabel" name="label">
+                  <property name="text">
+                   <string>Unlock and move the Improtrons and control panel to the screen they will inhabit while in use.</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QPushButton" name="improtronUnlockPB">
+                <property name="text">
+                 <string>Set Screen Locations</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="ImproTronIcons.qrc">
+                  <normaloff>:/icons/locked</normaloff>
+                  <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_7"/>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="aboutTab">
+         <property name="minimumSize">
+          <size>
+           <width>675</width>
+           <height>0</height>
+          </size>
+         </property>
+         <attribute name="title">
+          <string>About ImproTron</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_13">
+          <item>
+           <layout class="QHBoxLayout" name="aboutTextHL">
+            <item>
+             <widget class="QTextBrowser" name="aboutText">
+              <property name="acceptDrops">
+               <bool>false</bool>
+              </property>
+              <property name="verticalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="horizontalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="sizeAdjustPolicy">
+               <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+              </property>
+              <property name="html">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 hr { height: 1px; border-width: 0; }
@@ -2598,20 +2777,51 @@ li.checked::marker { content: &quot;\2612&quot;; }
 &lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;@Improtronics LLC&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:18pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;This program may only be used if you can figure out how to work it!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="acceptRichText">
-             <bool>false</bool>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::NoTextInteraction</set>
-            </property>
-           </widget>
+              </property>
+              <property name="acceptRichText">
+               <bool>false</bool>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::NoTextInteraction</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="restoreScreenPB">
+              <property name="text">
+               <string>Restore</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="showFullScreenPB">
+              <property name="text">
+               <string>Show Full</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="closeButtonPB">
+              <property name="text">
+               <string>Close</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
-        </item>
-       </layout>
-      </widget>
-     </widget>
+        </widget>
+        <widget class="QWidget" name="tab_3">
+         <attribute name="title">
+          <string>Page</string>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -2640,11 +2850,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>fontComboBoxRight</tabstop>
   <tabstop>rightFontSize</tabstop>
   <tabstop>rightTextColorPB</tabstop>
-  <tabstop>imageSearchNames</tabstop>
-  <tabstop>searchImagesPB</tabstop>
-  <tabstop>imageSearchShowPB</tabstop>
-  <tabstop>imageSearchAddSSPB</tabstop>
-  <tabstop>imageSearchList</tabstop>
+  <tabstop>searchToMainShowPB</tabstop>
+  <tabstop>searchtoSlideShowPB</tabstop>
   <tabstop>hotPB1</tabstop>
   <tabstop>thingzListLW</tabstop>
   <tabstop>showThingzMainPB</tabstop>
@@ -2701,32 +2908,20 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>hotButtonLoadPB</tabstop>
   <tabstop>hotButtonSavePB</tabstop>
   <tabstop>aboutText</tabstop>
-  <tabstop>scanImagesPB</tabstop>
   <tabstop>hotPB2</tabstop>
   <tabstop>teamNameRight</tabstop>
   <tabstop>teamScoreRight</tabstop>
   <tabstop>colorRightPB</tabstop>
   <tabstop>teamScoreLeft</tabstop>
   <tabstop>colorLeftPB</tabstop>
-  <tabstop>expandMainCB</tabstop>
   <tabstop>pasteImageMainPB</tabstop>
   <tabstop>loadImageMainPB</tabstop>
-  <tabstop>blackOutPB</tabstop>
+  <tabstop>blackoutBothPB</tabstop>
   <tabstop>expandAuxiliaryCB</tabstop>
   <tabstop>pasteImageAuxiliaryPB</tabstop>
   <tabstop>loadImageAuxiliaryPB</tabstop>
   <tabstop>showScoresAuxiliaryPB</tabstop>
   <tabstop>showScoresBothPB</tabstop>
-  <tabstop>lineEdit</tabstop>
-  <tabstop>hoursLeftSpin</tabstop>
-  <tabstop>minuteLeftSpin</tabstop>
-  <tabstop>secondsLeftSpin</tabstop>
-  <tabstop>redHoursSpin</tabstop>
-  <tabstop>redMinutesSpin</tabstop>
-  <tabstop>redSecondsSpin</tabstop>
-  <tabstop>resetTimerPB</tabstop>
-  <tabstop>timeVisibleCB</tabstop>
-  <tabstop>startTimerPB</tabstop>
   <tabstop>showScoresMainPB</tabstop>
  </tabstops>
  <resources>

@@ -1,6 +1,6 @@
 [app]
 # title of your application
-title = pyside_app_demo
+title = ImproTron
 # project directory. the general assumption is that project_dir is the parent directory
 # of input_file
 project_dir = .
@@ -41,7 +41,7 @@ extra_args = --quiet --noinclude-qt-translations=True
 # build mode
 # possible options = [release, debug]
 # release creates an aab, while debug creates an apk
-mode = debug
+mode = release
 # contrains path to pyside6 and shiboken6 recipe dir
 recipe_dir = 
 # path to extra qt android jars to be loaded by the application

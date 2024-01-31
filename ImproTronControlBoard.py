@@ -1,14 +1,15 @@
 # This Python file uses the following encoding: utf-8
-import json
+import json, re
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QImageReader, QPixmap, QFont, QMovie, QColor
-from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox
-from PySide6.QtCore import QDir, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice
+from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor
+from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication
+from PySide6.QtCore import QObject, QDir, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice
 from Improtronics import ThingzWidget, SlideWidget
+from MediaFileDatabase import MediaFileDatabase
 import ImproTronIcons
 
 
-class ImproTronControlBoard():
+class ImproTronControlBoard(QObject):
     def __init__(self, mainImprotron, auxiliaryImprotron, parent=None):
 
         self.mainDisplay = mainImprotron
@@ -19,8 +20,7 @@ class ImproTronControlBoard():
         self.model = QFileSystemModel()
         self.model.setRootPath(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0])
 
-        self.ui.imageSearchList.setModel(self.model)
-        self.ui.imageSearchList.setRootIndex(self.model.index(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]))
+        self.mediaFileDatabase = MediaFileDatabase()
 
         # Colors for Thingz list
         self.rightTeamBackground = QColor(Qt.white)
@@ -58,12 +58,15 @@ class ImproTronControlBoard():
         # Connect Show Text Config elements
         self.ui.rightTextColorPB.clicked.connect(self.pickRightTextColor)
         self.ui.leftTextColorPB.clicked.connect(self.pickLeftTextColor)
-        self.ui.blackOutPB.clicked.connect(self.blackout)
+        self.ui.blackoutMainPB.clicked.connect(self.blackoutMain)
+        self.ui.blackoutAuxPB.clicked.connect(self.blackoutAux)
+        self.ui.blackoutBothPB.clicked.connect(self.blackoutBoth)
 
-        # Prototype buttons used for experimenting
-        self.ui.resetTimerPB.clicked.connect(self.showFullScreen)
-        self.ui.startTimerPB.clicked.connect(self.showNormal)
-        self.ui.searchImagesPB.clicked.connect(self.getImageList)
+        # Countdown timer controls
+        self.ui.startTimerPB.clicked.connect(self.startTimer)
+        self.ui.resetTimerPB.clicked.connect(self.resetTimer)
+        self.ui.pauseTimerPB.clicked.connect(self.pauseTimerPB)
+        self.ui.timerVisibleMainCB.stateChanged.connect(self.timerVisibleMain)
 
         # Connect Thingz Management
         self.ui.thingzListLW.itemClicked.connect(self.showSelectedThing)
@@ -92,7 +95,7 @@ class ImproTronControlBoard():
             self.imageTreeView.header().hideSection(i)
         self.imageTreeView.setHeaderHidden(True)
 
-        # selection changes will trigger a slot
+        # Selection changes will trigger a slot
         selectionModel = self.imageTreeView.selectionModel()
         selectionModel.selectionChanged.connect(self.imageSelectedfromDir)
 
@@ -124,7 +127,23 @@ class ImproTronControlBoard():
         self.ui.slideShowForwardPB.clicked.connect(self.slideShowForward)
         self.ui.slideShowSkipPB.clicked.connect(self.slideShowSkip)
 
+        # Image Search Connections
+        self.ui.searchMediaPB.clicked.connect(self.searchMedia)
+        self.ui.mediaSearchTagsLE.returnPressed.connect(self.searchMedia)
+        self.ui.mediaSearchResultsLW.itemClicked.connect(self.previewSelectedMedia)
+
+        self.ui.mediaSearchResultsLW.itemDoubleClicked.connect(self.showMediaPreviewMain)
+        self.ui.searchToMainShowPB.clicked.connect(self.searchToMainShow)
+        self.ui.searchToAuxShowPB.clicked.connect(self.searchToAuxShow)
+        self.ui.searchtoSlideShowPB.clicked.connect(self.searchtoSlideShow)
+
+        # Window Management events
+        # Quit Button
+        self.ui.closeButtonPB.clicked.connect(self.shutdown)
+        self.ui.improtronUnlockPB.clicked.connect(self.improtronUnlock)
+
         self.ui.setWindowFlags(
+            Qt.Window |
             Qt.WindowMinimizeButtonHint |
             Qt.WindowMaximizeButtonHint |
             Qt.WindowCloseButtonHint |
@@ -133,14 +152,26 @@ class ImproTronControlBoard():
             )
         self.ui.show()
 
+    def shutdown(self):
+        QApplication.closeAllWindows()
+
+#    def eventFilter(self, obj, event):
+#        if obj is self.ui and event.type() == QtCore.QEvent.Close:
+#            self.mainDisplay.close()
+#            self.auxiliaryDisplay.close()
+#            self.quit_app()
+#            event.ignore()
+#            return True
+#        return super(Manager, self).eventFilter(obj, event)
+
     def center(self, dialog):
-            qr = self.ui.window().frameGeometry()
-            #cp = appMain.MainWindow.geometry(self).center()
-            #qr.moveCenter(cp)
-            #self.move(qr.center())
-            x = (qr.width() - dialog.width()) / 2
-            y = (qr.height() - dialog.height()) / 2
-            dialog.move(x,y)
+        qr = self.ui.window().frameGeometry()
+        #cp = appMain.MainWindow.geometry(self).center()
+        #qr.moveCenter(cp)
+        #self.move(qr.center())
+        x = (qr.width() - dialog.width()) / 2
+        y = (qr.height() - dialog.height()) / 2
+        dialog.move(x,y)
 
     def findWidget(self, type, widgetName):
         return self.ui.findChild(type, widgetName)
@@ -173,6 +204,7 @@ class ImproTronControlBoard():
                 text += file.readLine()
                 linecount += 1
             return text
+
 
     @Slot()
     def pickLeftTeamColor(self):
@@ -235,8 +267,16 @@ class ImproTronControlBoard():
         self.ui.rightTextColorPB.setStyleSheet(styleSheet)
 
     @Slot()
-    def blackout(self):
+    def blackoutBoth(self):
         self.mainDisplay.blackout()
+        self.auxiliaryDisplay.blackout()
+
+    @Slot()
+    def blackoutMain(self):
+        self.mainDisplay.blackout()
+
+    @Slot()
+    def blackoutAux(self):
         self.auxiliaryDisplay.blackout()
 
     @Slot()
@@ -384,14 +424,17 @@ class ImproTronControlBoard():
         self.clearLeftText()
         self.clearRightText()
 
+    # Unlock the Improtron Displays so they can be moved. Lock them to maximize
+    # on th screen they subsequently reside on.
     @Slot()
-    def showFullScreen(self):
-        self.mainDisplay.maximize()
 
-    @Slot()
-    def showNormal(self):
-        self.mainDisplay.restore()
-
+    def improtronUnlock(self):
+        if self.ui.improtronUnlockPB.isChecked():
+            self.mainDisplay.restore()
+            self.auxiliaryDisplay.restore()
+        else:
+            self.mainDisplay.maximize()
+            self.auxiliaryDisplay.maximize()
     @Slot()
     def getImageList(self):
         path = QFileDialog.getExistingDirectory(self.ui, "Select Image Directory")
@@ -627,12 +670,13 @@ class ImproTronControlBoard():
                     "Config Files(*.json)")
 
         # Read the JSON data from the file
-        with open(fileName[0], 'r') as json_file:
-            slideshow_data = json.load(json_file)
+        if fileName[0] != None:
+            with open(fileName[0], 'r') as json_file:
+                slideshow_data = json.load(json_file)
 
-        for slide in slideshow_data.items():
-            file = QFileInfo(slide[1])
-            SlideWidget(file, self.ui.slideListLW)
+            for slide in slideshow_data.items():
+                file = QFileInfo(slide[1])
+                SlideWidget(file, self.ui.slideListLW)
 
     @Slot()
     def saveSlideShow(self):
@@ -655,7 +699,7 @@ class ImproTronControlBoard():
 
     @Slot()
     def clearSlideShow(self):
-        reply = QMessageBox.question(self.controlBoard, 'Clear Slides', 'Are you sure you want clear all slides?',
+        reply = QMessageBox.question(self.ui, 'Clear Slides', 'Are you sure you want clear all slides?',
                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.ui.slideListLW.clear()
@@ -750,3 +794,76 @@ class ImproTronControlBoard():
             self.currentSlide = slideCount-1
             self.ui.slideListLW.setCurrentRow(self.currentSlide)
             self.showSlideMain()
+
+    # Countdown timer controls
+    @Slot()
+    def startTimer(self):
+        self.mainDisplay.timerStart(self.ui.countDownTimer.time(), self.ui.timeRedTimer.time())
+
+    @Slot()
+    def resetTimer(self):
+        self.mainDisplay.timerReset(self.ui.countDownTimer.time(), self.ui.timeRedTimer.time())
+
+    @Slot()
+    def pauseTimerPB(self):
+        self.mainDisplay.timerPause()
+
+    @Slot()
+    def timerVisibleMain(self):
+        self.mainDisplay.timerVisible(self.ui.timerVisibleMainCB.isChecked())
+
+    # Media Seach Slots
+    @Slot()
+    def searchMedia(self):
+        self.ui.mediaSearchResultsLW.clear()
+        self.ui.mediaSearchPreviewLBL.clear()
+        self.ui.mediaFileNameLBL.clear()
+        tags = re.split('[_+-.\s+]{1}', self.ui.mediaSearchTagsLE.text())
+        foundMedia = self.mediaFileDatabase.searchFiles(tags)
+        for media in foundMedia:
+            SlideWidget(QFileInfo(media), self.ui.mediaSearchResultsLW)
+
+    @Slot(SlideWidget)
+    def previewSelectedMedia(self, slide):
+        reader = QImageReader(slide.imagePath())
+        reader.setAutoTransform(True)
+        newImage = reader.read()
+
+        # Scale to match the preview
+        self.ui.mediaSearchPreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.mediaSearchPreviewLBL.size())))
+
+        # Show the file name for reference
+        self.ui.mediaFileNameLBL.setText(slide.imagePath())
+
+    @Slot(SlideWidget)
+    def showMediaPreviewMain(self, slide):
+
+        reader = QImageReader(slide.imagePath())
+        reader.setAutoTransform(True)
+        newImage = reader.read()
+
+        self.mainDisplay.showImage(newImage)
+
+    @Slot()
+    def searchToMainShow(self):
+        if self.ui.mediaSearchResultsLW.currentItem() != None:
+            reader = QImageReader(self.ui.mediaSearchResultsLW.currentItem().imagePath())
+            reader.setAutoTransform(True)
+            newImage = reader.read()
+
+            self.mainDisplay.showImage(newImage)
+
+
+    @Slot()
+    def searchToAuxShow(self):
+        if self.ui.mediaSearchResultsLW.currentItem() != None:
+            reader = QImageReader(self.ui.mediaSearchResultsLW.currentItem().imagePath())
+            reader.setAutoTransform(True)
+            newImage = reader.read()
+
+            self.auxiliaryDisplay.showImage(newImage)
+
+    @Slot()
+    def searchtoSlideShow(self):
+        if self.ui.mediaSearchResultsLW.currentItem() != None:
+            SlideWidget(QFileInfo(self.ui.mediaSearchResultsLW.currentItem().imagePath()), self.ui.slideListLW)

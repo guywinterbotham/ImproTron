@@ -3,8 +3,8 @@
 import json
 from PySide6.QtWidgets import QFileDialog, QPushButton, QLineEdit, QListWidgetItem
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QDir, QStandardPaths, Slot
-from PySide6.QtGui import QPixmap, QImage, QMovie, QBrush
+from PySide6.QtCore import QDir, QStandardPaths, Slot, QTimer, QTime, Qt
+from PySide6.QtGui import QPixmap, QMovie
 
 # Class to handle display on a separate monitor
 class ImproTron():
@@ -16,9 +16,74 @@ class ImproTron():
         self.improTron.textDisplay.setText(name)
         self.improTron.setGeometry(300, 300, 300, 300)
         self.improTron.setWindowTitle(name)
+        self.x = 0
+        self.y = 0
 
         # Store some default text formating
         self.maximize()
+
+        # Countdown Timer
+        self.countdownTimer = QTimer()
+        self.countdownTimer.timeout.connect(self.countdown)
+
+        self.countdownTime = QTime(0,0,0)
+        self.startingTime = QTime(0,0,0)
+        self.redTime = QTime(0,0,0)
+        self.timerVisible(False)
+        self.improTron.countdownLCD.display("00:00:00")
+
+    def shutdown(self):
+        self.improtron.close()
+
+    # Functions for the Countdown Timer
+    def timerVisible(self, visible = False):
+        self.improTron.countdownLCD.setVisible(visible)
+
+    def timerStart(self, time, redTime):
+        if not self.countdownTimer.isActive():
+            self.countdownTime.setHMS(time.hour(), time.minute(), time.second())
+            self.startingTime.setHMS(time.hour(), time.minute(), time.second())
+            self.redTime.setHMS(redTime.hour(), redTime.minute(), redTime.second())
+            self.improTron.countdownLCD.setStyleSheet("background:black; color: white")
+
+            self.countdownTimer.start(1000)
+
+    def timerPause(self):
+        if self.countdownTimer.isActive():
+            self.countdownTimer.stop()
+        else:
+            self.countdownTimer.start(1000)
+
+
+    def timerReset(self, time, redTime):
+        if self.countdownTimer.isActive():
+            self.countdownTime.setHMS(time.hour(), time.minute(), time.second())
+            self.startingTime.setHMS(time.hour(), time.minute(), time.second())
+            self.redTime.setHMS(redTime.hour(), redTime.minute(), redTime.second())
+            self.improTron.countdownLCD.setStyleSheet("background:black; color: white")
+
+    @Slot()
+    def countdown(self):
+        self.countdownTime = self.countdownTime.addSecs(-1)
+        text = self.countdownTime.toString("hh:mm:ss")
+
+        # Blinking effect
+        if (self.countdownTime.second() % 2) == 0:
+            text = text.replace(":", " ")
+
+        # Alert time - something is close to happening
+        if self.countdownTime <= self.redTime:
+            self.improTron.countdownLCD.setStyleSheet("background:black; color: red")
+
+        # Timeout - when countime rolls over and goes to midnight then
+        # it has timed out. However the default comparison logic will see the rolled
+        # over time as greater than zero time. SO detect the rollover instead.
+        if self.countdownTime > self.startingTime:
+            self.countdownTimer.stop()
+            return
+
+        self.improTron.countdownLCD.display(text)
+
 
     # Colorize the Left score display
     def colorizeLeftScore(self, scoreStyle):
@@ -42,7 +107,6 @@ class ImproTron():
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Show Text on the display
-    @Slot(str)
     def showText(self, text_msg, style=None, font=None):
         if font != None:
             self.improTron.textDisplay.setFont(font)
@@ -54,15 +118,13 @@ class ImproTron():
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Show an image on the disaply
-    @Slot(QImage)
     def showImage(self, arg):
         self.improTron.textDisplay.setPixmap(QPixmap.fromImage(arg.scaled(self.improTron.textDisplay.size())))
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Show an movie on the disaply
-    @Slot(str)
-    def showMovie(self, arg):
-        movie = QMovie(arg)
+    def showMovie(self, movieFile):
+        movie = QMovie(movieFile)
         movie.setSpeed(100)
         movie.setScaledSize(self.improTron.textDisplay.size())
         self.improTron.textDisplay.setMovie(movie)
@@ -70,28 +132,30 @@ class ImproTron():
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Set the name of the Left Team
-    @Slot(str)
     def showLeftTeam(self, teamName):
         self.improTron.leftTeamLabel.setText(teamName)
 
     # Set the name of the Right Team
-    @Slot(str)
-    def showrightTeam(self, teamName):
+    def showRightTeam(self, teamName):
         self.improTron.rightTeamLabel.setText(teamName)
 
     # Update the scores on the score board
-    @Slot(int, int)
     def updateScores(self, argLeft, argRight):
         self.improTron.leftScoreLCD.setText(str(argLeft))
         self.improTron.rightScoreLCD.setText(str(argRight))
         self.improTron.setCurrentWidget(self.improTron.displayScore)
 
-    @Slot()
+    # Maximize on the screen where the improtron was moved to
     def maximize(self):
-        self.improTron.showFullScreen()
+        flags = Qt.Window | Qt.FramelessWindowHint
+        self.improTron.setWindowFlags(flags)
+        self.improTron.showMaximized()
 
-    @Slot()
+    # Return to a know size to facilitate movement
     def restore(self):
+        flags = Qt.Window
+        self.improTron.setWindowFlags(flags)
+        self.improTron.setGeometry(300, 300, 300, 300)
         self.improTron.showNormal()
 # End Class ImproTron
 
@@ -211,7 +275,7 @@ class HotButtonManager():
         with open(fileName[0], 'w') as json_file:
             json_file.write(json_data)
 
-# Subclass to mantian the additional substitutes information associated with a Thing
+# Subclass to maintain the additional substitutes information associated with a Thing
 class ThingzWidget(QListWidgetItem):
     def __init__(self, title, isLeftSideTeam, parent=None):
         super().__init__(title, parent)
@@ -223,7 +287,7 @@ class ThingzWidget(QListWidgetItem):
         return self._substitutes
 
     def thingData(self):
-        return self.text() + "\n" + self._substitutes
+        return self.text() + "\n\n" + self._substitutes
 
     def updateSubstitutes(self, substitutesText):
         self._substitutes = substitutesText
