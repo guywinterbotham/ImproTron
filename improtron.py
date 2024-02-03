@@ -8,9 +8,8 @@ from ImproTronControlBoard import ImproTronControlBoard
 
 # Commands to use in the build process
 # venv\Scripts\activate.bet
-# venv\Scripts\pyside6-deploy main.py
+# venv\Scripts\pyside6-deploy -c ImproTron.spec
 # venv\Scripts\pyside6-rcc -g python ImproTronIcons.qrc > ImproTronIcons.py
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

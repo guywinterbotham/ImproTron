@@ -4,7 +4,7 @@ import json
 from PySide6.QtWidgets import QFileDialog, QPushButton, QLineEdit, QListWidgetItem
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QDir, QStandardPaths, Slot, QTimer, QTime, Qt
-from PySide6.QtGui import QPixmap, QMovie
+from PySide6.QtGui import QPixmap, QMovie, QGuiApplication
 
 # Class to handle display on a separate monitor
 class ImproTron():
@@ -18,6 +18,7 @@ class ImproTron():
         self.improTron.setWindowTitle(name)
         self.x = 0
         self.y = 0
+        self.media = QPixmap()
 
         # Store some default text formating
         self.maximize()
@@ -107,20 +108,46 @@ class ImproTron():
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Show Text on the display
-    def showText(self, text_msg, style=None, font=None):
+    def showText(self, text_msg, style=None, autoScale = False, font=None):
         if font != None:
             self.improTron.textDisplay.setFont(font)
 
         if style != None:
             self.improTron.textDisplay.setStyleSheet(style)
 
+        # Figure out if the height of the text is going to bee too big and autoscale if needed
+        fontMetrics = self.improTron.textDisplay.fontMetrics()
+        textHeight = fontMetrics.size(Qt.TextExpandTabs,text_msg).height()
+        textBoxHeight = self.improTron.textDisplay.rect().height()
+        if (textHeight >= textBoxHeight) or autoScale:
+            textBoxFont = self.improTron.textDisplay.font()
+            newSize = max(1, int(textBoxFont.pointSize()*textBoxHeight/textHeight))
+            textBoxFont.setPointSize(newSize)
+            self.improTron.textDisplay.setFont(textBoxFont)
+
         self.improTron.textDisplay.setText(text_msg)
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Show an image on the disaply
-    def showImage(self, arg):
-        self.improTron.textDisplay.setPixmap(QPixmap.fromImage(arg.scaled(self.improTron.textDisplay.size())))
+    def showImage(self, fileName, stretch = True):
+        if self.media.load(fileName):
+            if stretch:
+                self.improTron.textDisplay.setPixmap(self.media.scaled(self.improTron.textDisplay.size()))
+            else:
+                self.improTron.textDisplay.setPixmap(self.media.scaledToHeight(self.improTron.textDisplay.size().height()))
+
         self.improTron.setCurrentWidget(self.improTron.displayText)
+
+    # Show an image on the from the clipboard
+    def pasteImage(self, stretch = True):
+        pixmap = QGuiApplication.clipboard().pixmap()
+        if pixmap != None:
+            if stretch:
+                self.improTron.textDisplay.setPixmap(pixmap.scaled(self.improTron.textDisplay.size()))
+            else:
+                self.improTron.textDisplay.setPixmap(pixmap.scaledToHeight(self.improTron.textDisplay.size().height()))
+
+            self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Show an movie on the disaply
     def showMovie(self, movieFile):

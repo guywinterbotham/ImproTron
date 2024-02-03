@@ -15,5 +15,6 @@
         <file alias="right">icons/right.png</file>
         <file alias="both">icons/both.png</file>
         <file alias="redo">icons/redo.png</file>
+        <file alias="about">icons/about.txt</file>
     </qresource>
 </RCC>

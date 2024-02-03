@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1056</width>
-    <height>728</height>
+    <height>710</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -123,17 +123,26 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="colorLeftPB">
+             <widget class="QPushButton" name="add50PB">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
                </font>
               </property>
-              <property name="styleSheet">
-               <string notr="true"/>
+              <property name="text">
+               <string>5-0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="add32PB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
               </property>
               <property name="text">
-               <string>Color ...</string>
+               <string>3-2</string>
               </property>
              </widget>
             </item>
@@ -142,7 +151,7 @@
           <item>
            <widget class="QLabel" name="imagePreviewMain">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -164,6 +173,10 @@
               <width>288</width>
               <height>162</height>
              </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(0, 0, 0);</string>
             </property>
             <property name="frameShape">
              <enum>QFrame::Box</enum>
@@ -190,7 +203,19 @@
                </font>
               </property>
               <property name="text">
-               <string>Show Main</string>
+               <string>Show Score Main</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="showScoresAuxiliaryPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show Score Aux</string>
               </property>
              </widget>
             </item>
@@ -203,88 +228,6 @@
               </property>
               <property name="text">
                <string>Show Score Both</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="showScoresAuxiliaryPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Show Auxiliary</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QLabel" name="quickAddLBL">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Quick Add and Show</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::NoTextInteraction</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_13">
-            <item>
-             <widget class="QPushButton" name="add50PB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>5-0</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="add32PB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>3-2</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="add23PB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>2-3</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="add05PB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>0-5</string>
               </property>
              </widget>
             </item>
@@ -335,9 +278,35 @@
             <item>
              <layout class="QVBoxLayout" name="imageLeftVLayout">
               <item>
-               <widget class="QCheckBox" name="expandMainCB">
+               <widget class="QLabel" name="mainPreviewLBL">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
                 <property name="text">
-                 <string>Expand</string>
+                 <string>Main Preview</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="stretchMainCB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Stretch</string>
                 </property>
                </widget>
               </item>
@@ -349,7 +318,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Paste Media</string>
+                 <string>Paste Image</string>
                 </property>
                </widget>
               </item>
@@ -369,10 +338,15 @@
             </item>
             <item>
              <widget class="QGroupBox" name="timerGB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
               <property name="title">
                <string>Countdown Timer</string>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_6">
+              <layout class="QVBoxLayout" name="countDownVL">
                <item>
                 <layout class="QVBoxLayout" name="timerLayout">
                  <item>
@@ -393,6 +367,12 @@
                      </item>
                      <item>
                       <widget class="QTimeEdit" name="countDownTimer">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
                        <property name="font">
                         <font>
                          <pointsize>12</pointsize>
@@ -414,12 +394,12 @@
                          <family>Segoe UI</family>
                          <pointsize>12</pointsize>
                          <italic>false</italic>
-                         <bold>true</bold>
+                         <bold>false</bold>
                         </font>
                        </property>
                        <property name="styleSheet">
                         <string notr="true">color: rgb(255, 0, 0);
-font: 700 12pt &quot;Segoe UI&quot;;</string>
+font: 12pt &quot;Segoe UI&quot;;</string>
                        </property>
                        <property name="text">
                         <string>Turn Red:</string>
@@ -428,6 +408,12 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
                      </item>
                      <item>
                       <widget class="QTimeEdit" name="timeRedTimer">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
                        <property name="font">
                         <font>
                          <pointsize>12</pointsize>
@@ -483,7 +469,7 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
                    <item>
                     <widget class="QCheckBox" name="timerVisibleMainCB">
                      <property name="text">
-                      <string>Main</string>
+                      <string>Show</string>
                      </property>
                     </widget>
                    </item>
@@ -497,9 +483,35 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
             <item>
              <layout class="QVBoxLayout" name="imageRightVLayout">
               <item>
-               <widget class="QCheckBox" name="expandAuxiliaryCB">
+               <widget class="QLabel" name="auxPreviewLBL">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
                 <property name="text">
-                 <string>Expand</string>
+                 <string>Aux Preview</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="stretchAuxCB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Stretch</string>
                 </property>
                </widget>
               </item>
@@ -511,7 +523,7 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Paste Media</string>
+                 <string>Paste Image</string>
                 </property>
                </widget>
               </item>
@@ -605,14 +617,26 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="colorRightPB">
+             <widget class="QPushButton" name="add23PB">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>Color ...</string>
+               <string>2-3</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="add05PB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>0-5</string>
               </property>
              </widget>
             </item>
@@ -621,7 +645,7 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
           <item>
            <widget class="QLabel" name="imagePreviewAuxiliary">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -643,6 +667,10 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
               <width>288</width>
               <height>162</height>
              </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(0, 0, 0);</string>
             </property>
             <property name="frameShape">
              <enum>QFrame::Box</enum>
@@ -1223,7 +1251,7 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Search for text in the filenames in the Image Search Library (see Preferences)</string>
+                 <string>Search for tags in the filenames in the Image Search Library</string>
                 </property>
                 <property name="scaledContents">
                  <bool>false</bool>
@@ -1272,6 +1300,34 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
                  </widget>
                 </item>
                 <item>
+                 <spacer name="horizontalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Minimum</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="allTagsCB">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>All Tags</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="QLabel" name="MediaFilesLBL">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -1298,10 +1354,16 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
                 <item>
                  <widget class="QLabel" name="mediaFilesCountLBL">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>80</width>
+                    <height>0</height>
+                   </size>
                   </property>
                   <property name="font">
                    <font>
@@ -1310,6 +1372,9 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
                   </property>
                   <property name="text">
                    <string/>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                   </property>
                   <property name="margin">
                    <number>0</number>
@@ -1323,14 +1388,14 @@ font: 700 12pt &quot;Segoe UI&quot;;</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="scanMediaPB">
+                 <widget class="QPushButton" name="setMediaLibraryPB">
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
                    </font>
                   </property>
                   <property name="text">
-                   <string>Scan</string>
+                   <string>Set Library</string>
                   </property>
                  </widget>
                 </item>
@@ -2687,56 +2752,132 @@ background-color: rgb(255, 255, 0);</string>
          <attribute name="title">
           <string>Preferences</string>
          </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
-          <item>
-           <layout class="QHBoxLayout" name="preferenceHL">
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_2"/>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_3"/>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="ImproTronPositionVL">
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_12">
-                <item>
-                 <widget class="QLabel" name="label">
-                  <property name="text">
-                   <string>Unlock and move the Improtrons and control panel to the screen they will inhabit while in use.</string>
-                  </property>
-                  <property name="wordWrap">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <widget class="QPushButton" name="improtronUnlockPB">
-                <property name="text">
-                 <string>Set Screen Locations</string>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/locked</normaloff>
-                  <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
-                </property>
-                <property name="checkable">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_7"/>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-         </layout>
+         <widget class="QPushButton" name="colorLeftPB">
+          <property name="geometry">
+           <rect>
+            <x>60</x>
+            <y>110</y>
+            <width>122</width>
+            <height>29</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="text">
+           <string>Left Team Color ...</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="colorRightPB">
+          <property name="geometry">
+           <rect>
+            <x>60</x>
+            <y>150</y>
+            <width>122</width>
+            <height>29</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Right Team Color ...</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="closeButtonPB">
+          <property name="geometry">
+           <rect>
+            <x>60</x>
+            <y>200</y>
+            <width>75</width>
+            <height>25</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Close</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="aboutPB">
+          <property name="geometry">
+           <rect>
+            <x>70</x>
+            <y>250</y>
+            <width>75</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>About</string>
+          </property>
+         </widget>
+         <widget class="QWidget" name="layoutWidget">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>301</width>
+            <height>79</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="preferenceHL">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_2"/>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_3"/>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="ImproTronPositionVL">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_12">
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>Unlock and move the Improtrons and control panel to the screen they will inhabit while in use.</string>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QPushButton" name="improtronUnlockPB">
+               <property name="text">
+                <string>Set Screen Locations</string>
+               </property>
+               <property name="icon">
+                <iconset resource="ImproTronIcons.qrc">
+                 <normaloff>:/icons/locked</normaloff>
+                 <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_7"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
         </widget>
-        <widget class="QWidget" name="aboutTab">
+        <widget class="QWidget" name="soundFXTab">
          <property name="minimumSize">
           <size>
            <width>675</width>
@@ -2744,79 +2885,12 @@ background-color: rgb(255, 255, 0);</string>
           </size>
          </property>
          <attribute name="title">
-          <string>About ImproTron</string>
+          <string>SoundFX</string>
          </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_13">
-          <item>
-           <layout class="QHBoxLayout" name="aboutTextHL">
-            <item>
-             <widget class="QTextBrowser" name="aboutText">
-              <property name="acceptDrops">
-               <bool>false</bool>
-              </property>
-              <property name="verticalScrollBarPolicy">
-               <enum>Qt::ScrollBarAlwaysOff</enum>
-              </property>
-              <property name="horizontalScrollBarPolicy">
-               <enum>Qt::ScrollBarAlwaysOff</enum>
-              </property>
-              <property name="sizeAdjustPolicy">
-               <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
-              </property>
-              <property name="html">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-hr { height: 1px; border-width: 0; }
-li.unchecked::marker { content: &quot;\2610&quot;; }
-li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;ImproTron Multi Monitor&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Version 0.0.1 Release June, 2023&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;by Improv Jester&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;@Improtronics LLC&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:18pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;This program may only be used if you can figure out how to work it!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="acceptRichText">
-               <bool>false</bool>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::NoTextInteraction</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="restoreScreenPB">
-              <property name="text">
-               <string>Restore</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="showFullScreenPB">
-              <property name="text">
-               <string>Show Full</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="closeButtonPB">
-              <property name="text">
-               <string>Close</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
         </widget>
-        <widget class="QWidget" name="tab_3">
+        <widget class="QWidget" name="lightsTab">
          <attribute name="title">
-          <string>Page</string>
+          <string>Lighting</string>
          </attribute>
         </widget>
        </widget>
@@ -2907,20 +2981,16 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>hotButtonClearPB</tabstop>
   <tabstop>hotButtonLoadPB</tabstop>
   <tabstop>hotButtonSavePB</tabstop>
-  <tabstop>aboutText</tabstop>
   <tabstop>hotPB2</tabstop>
   <tabstop>teamNameRight</tabstop>
   <tabstop>teamScoreRight</tabstop>
-  <tabstop>colorRightPB</tabstop>
   <tabstop>teamScoreLeft</tabstop>
-  <tabstop>colorLeftPB</tabstop>
   <tabstop>pasteImageMainPB</tabstop>
   <tabstop>loadImageMainPB</tabstop>
   <tabstop>blackoutBothPB</tabstop>
-  <tabstop>expandAuxiliaryCB</tabstop>
+  <tabstop>stretchAuxCB</tabstop>
   <tabstop>pasteImageAuxiliaryPB</tabstop>
   <tabstop>loadImageAuxiliaryPB</tabstop>
-  <tabstop>showScoresAuxiliaryPB</tabstop>
   <tabstop>showScoresBothPB</tabstop>
   <tabstop>showScoresMainPB</tabstop>
  </tabstops>
