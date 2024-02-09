@@ -4,7 +4,7 @@ import sys
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication
 from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication
-from PySide6.QtCore import QObject, QDir,QDirIterator, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl
+from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 from Improtronics import ThingzWidget, SlideWidget
@@ -24,15 +24,13 @@ class ImproTronControlBoard(QObject):
         self.model.setRootPath(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0])
 
         self.mediaFileDatabase = MediaFileDatabase()
-        setDir = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]
-        mediaDir = QDirIterator(setDir, {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}, QDir.Files, QDirIterator.Subdirectories)
-        mediaCount = self.mediaFileDatabase.indexMedia(mediaDir)
+        self.mediaDir = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]
+        mediaCount = self.mediaFileDatabase.indexMedia(self.mediaDir)
         self.ui.mediaFilesCountLBL.setText(str(mediaCount))
 
-        setDir = QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0]
-        soundsDir = QDirIterator(setDir, {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}, QDir.Files, QDirIterator.Subdirectories)
-        soundCount = self.mediaFileDatabase.indexMedia(soundsDir)
-        self.ui.mediaFilesCountLBL.setText(str(soundCount))
+        self.soundDir = QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0]
+        soundCount = self.mediaFileDatabase.indexSounds(self.soundDir)
+        self.ui.soundFilesCountLBL.setText(str(soundCount))
 
         self.sound = QMediaPlayer()
         self.audioOutput = QAudioOutput()
@@ -40,8 +38,8 @@ class ImproTronControlBoard(QObject):
         self.audioOutput.setVolume(50)
 
         # Location for all slide shows sounds queues, hotbutton lists etc
-        self.configFiles = QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0]+"/ImproTron"
-        print(self.configFiles)
+        self.configDir = QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0]+"/ImproTron"
+
         # Colors for Thingz list
         self.rightTeamBackground = QColor(Qt.white)
         self.rightTeamColor = QColor(Qt.black)
@@ -191,7 +189,6 @@ class ImproTronControlBoard(QObject):
         # Preferences Wiring
         self.ui.aboutPB.clicked.connect(self.about)
 
-
         # Preferences
         self.ui.improtronUnlockPB.clicked.connect(self.improtronUnlock)
 
@@ -217,23 +214,75 @@ class ImproTronControlBoard(QObject):
         self.ui.removeEventFilter(self)
         QApplication.quit()
 
+    def getConfigDir(self):
+        return self.configDir
+
+    def getMediaDir(self):
+        return self.mediaDir
+
+    def getMusicDir(self):
+        return self.soundDir
+
     def findWidget(self, type, widgetName):
         return self.ui.findChild(type, widgetName)
 
-    def showImageOnMain(self, imageFile):
-        pixmap = QPixmap()
-        if pixmap.load(imageFile):
-            if self.ui.stretchMainCB.isChecked():
-                self.ui.imagePreviewMain.setPixmap(pixmap.scaled(self.ui.imagePreviewMain.size()))
-            else:
-                self.ui.imagePreviewMain.setPixmap(pixmap.scaledToHeight(self.ui.imagePreviewMain.size().height()))
+    def selectImageFile(self):
+        selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Media", self.mediaDir , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
+        if selectedFileName != None:
+            return selectedFileName[0]
 
-            self.mainDisplay.showImage(imageFile, self.ui.stretchMainCB.isChecked())
+        return None
+
+    def showMediaOnMain(self, fileName):
+        if fileName != None:
+            if QFileInfo.exists(fileName):
+                mediaInfo = QFileInfo(fileName)
+                if mediaInfo.suffix().lower() == 'gif':
+                    movie = QMovie(fileName)
+                    if movie.isValid():
+                        movie.setSpeed(100)
+                        movie.setScaledSize(self.ui.imagePreviewMain.size())
+                        self.ui.imagePreviewMain.setMovie(movie)
+                        movie.start()
+                        self.mainDisplay.showMovie(fileName)
+                else:
+                    reader = QImageReader(fileName)
+                    reader.setAutoTransform(True)
+                    newImage = reader.read()
+                    if newImage:
+                        if self.ui.stretchMainCB.isChecked():
+                            self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewMain.size())))
+                        else:
+                            self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewMain.size().height())))
+
+                    self.mainDisplay.showImage(fileName, self.ui.stretchMainCB.isChecked())
+
+    def showMediaOnAux(self, fileName):
+        if fileName != None:
+            if QFileInfo.exists(fileName):
+                mediaInfo = QFileInfo(fileName)
+                if mediaInfo.suffix().lower() == 'gif':
+                    movie = QMovie(fileName)
+                    if movie.isValid():
+                        movie.setSpeed(100)
+                        movie.setScaledSize(self.ui.imagePreviewAuxiliary.size())
+                        self.ui.imagePreviewAuxiliary.setMovie(movie)
+                        movie.start()
+                        self.auxiliaryDisplay.showMovie(fileName)
+                else:
+                    reader = QImageReader(fileName)
+                    reader.setAutoTransform(True)
+                    newImage = reader.read()
+                    if newImage:
+                        if self.ui.stretchAuxCB.isChecked():
+                            self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewAuxiliary.size())))
+                        else:
+                            self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewAuxiliary.size().height())))
+
+                        self.auxiliaryDisplay.showImage(fileName, self.ui.stretchAuxCB.isChecked())
 
     def getTextFile(self):
-        dialog = QFileDialog(self.ui)
-
-        fileName = dialog.getOpenFileName(self.ui, "Open Text File", self.configFiles , "Text File (*.txt)")
+        fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self.configFiles , "Text File (*.txt)")
         if fileName[0] != None:
             file = QFile(fileName[0])
             if not file.open(QIODevice.ReadOnly | QIODevice.Text):
@@ -348,59 +397,11 @@ class ImproTronControlBoard(QObject):
 
     @Slot()
     def getImageFileMain(self):
-        dialog = QFileDialog(self.ui)
-        locations = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
-        directory = locations[-1] if locations else QDir.currentPath()
-        dialog.setDirectory(directory)
-
-        fileName = dialog.getOpenFileName(self.ui, "Open Media", "" , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
-        if fileName[0] != None:
-            mediaInfo = QFileInfo(fileName[0])
-            if mediaInfo.suffix().lower() == 'gif':
-                movie = QMovie(fileName[0])
-                if movie.isValid():
-                    movie.setSpeed(100)
-                    movie.setScaledSize(self.ui.imagePreviewMain.size())
-                    self.ui.imagePreviewMain.setMovie(movie)
-                    movie.start()
-                    self.mainDisplay.showMovie(fileName[0])
-            else:
-                pixmap = QPixmap()
-                if pixmap.load(fileName[0]):
-                    if self.ui.stretchMainCB.isChecked():
-                        self.ui.imagePreviewMain.setPixmap(pixmap.scaled(self.ui.imagePreviewMain.size()))
-                    else:
-                        self.ui.imagePreviewMain.setPixmap(pixmap.scaledToHeight(self.ui.imagePreviewMain.size().height()))
-
-                    self.mainDisplay.showImage(fileName[0], self.ui.stretchMainCB.isChecked())
+        self.showMediaOnMain(self.selectImageFile())
 
     @Slot()
     def getImageFileAuxiliary(self):
-        dialog = QFileDialog(self.ui)
-        locations = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
-        directory = locations[-1] if locations else QDir.currentPath()
-        dialog.setDirectory(directory)
-
-        fileName = dialog.getOpenFileName(self.ui, "Open Media", "" , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
-        if fileName[0] != None:
-            mediaInfo = QFileInfo(fileName[0])
-            if mediaInfo.suffix().lower() == 'gif':
-                movie = QMovie(fileName[0])
-                if movie.isValid():
-                    movie.setSpeed(100)
-                    movie.setScaledSize(self.ui.imagePreviewAuxiliary.size())
-                    self.ui.imagePreviewAuxiliary.setMovie(movie)
-                    movie.start()
-                    self.auxiliaryDisplay.showMovie(fileName[0])
-            else:
-                pixmap = QPixmap()
-                if pixmap.load(fileName[0]):
-                    if self.ui.stretchAuxCB.isChecked():
-                        self.ui.imagePreviewAuxiliary.setPixmap(pixmap.scaled(self.ui.imagePreviewAuxiliary.size()))
-                    else:
-                        self.ui.imagePreviewAuxiliary.setPixmap(pixmap.scaledToHeight(self.ui.imagePreviewAuxiliary.size().height()))
-
-                    self.auxiliaryDisplay.showImage(fileName[0], self.ui.stretchAuxCB.isChecked())
+        self.showMediaOnAux(self.selectImageFile())
 
     @Slot()
     def loadTextboxLeft(self):
@@ -735,9 +736,8 @@ class ImproTronControlBoard(QObject):
 
         self.ui.slideListLW.clear()
 
-        dialog = QFileDialog()
-        fileName = dialog.getOpenFileName(self.ui, "Load Slideshow",
-                                    self.configFiles,
+        fileName = QFileDialog.getOpenFileName(self.ui, "Load Slideshow",
+                                    self.configDir,
                                     "Slide Shows (*.ssh)")
 
         # Read the JSON data from the file
@@ -751,9 +751,8 @@ class ImproTronControlBoard(QObject):
 
     @Slot()
     def saveSlideShow(self):
-        dialog = QFileDialog(self.ui)
-        fileName = dialog.getSaveFileName(self.ui, "Save Slide Show",
-                                   self.configFiles,
+        fileName = QFileDialog.getSaveFileName(self.ui, "Save Slide Show",
+                                   self.configDir,
                                    "Slide Shows (*.ssh)")
         slide_data = {}
         for slide in range(self.ui.slideListLW.count()):
@@ -777,18 +776,18 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def showSlideMain(self):
         if self.ui.slideListLW.currentItem() != None:
-            self.mainDisplay.showImage(self.ui.slideListLW.currentItem().imagePath(), self.ui.stretchMainCB.isChecked())
+            self.showMediaOnMain(self.ui.slideListLW.currentItem().imagePath())
 
     @Slot()
     def showSlideAuxiliary(self):
         if self.ui.slideListLW.currentItem() != None:
-            self.auxiliaryDisplay.showImage(self.ui.slideListLW.currentItem().imagePath(), self.ui.stretchMainCB.isChecked())
+            self.showMediaOnAux(self.ui.slideListLW.currentItem().imagePath())
 
     @Slot()
     def showSlideBoth(self):
         if self.ui.slideListLW.currentItem() != None:
-            self.mainDisplay.showImage(self.ui.slideListLW.currentItem().imagePath(), self.ui.stretchMainCB.isChecked())
-            self.auxiliaryDisplay.showImage(self.ui.slideListLW.currentItem().imagePath(), self.ui.stretchMainCB.isChecked())
+            self.showMediaOnMain(self.ui.slideListLW.currentItem().imagePath())
+            self.showMediaOnAux(self.ui.slideListLW.currentItem().imagePath())
 
     # Slots for handling the Slide Show Player
     @Slot()
@@ -883,11 +882,11 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def setMediaLibrary(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
-                "Select the Image Library location",
-                "", QFileDialog.ShowDirsOnly)
+                "Select the Media Library location",
+                self.mediaDir, QFileDialog.ShowDirsOnly)
         if setDir:
-            mediaDir = QDirIterator(setDir, {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}, QDir.Files, QDirIterator.Subdirectories)
-            mediaCount = self.mediaFileDatabase.indexMedia(mediaDir)
+            self.mediaDir = setDir
+            mediaCount = self.mediaFileDatabase.indexMedia(self.mediaDir)
             self.ui.mediaFilesCountLBL.setText(str(mediaCount))
 
     @Slot(SlideWidget)
@@ -910,28 +909,18 @@ class ImproTronControlBoard(QObject):
 
     @Slot(SlideWidget)
     def showMediaPreviewMain(self, slide):
-        mediaInfo = slide.fileInfo()
-        if mediaInfo.suffix().lower() == 'gif':
-            self.mainDisplay.showMovie(slide.imagePath())
-        else:
-            self.mainDisplay.showImage(slide.imagePath(), self.ui.stretchMainCB.isChecked())
+        self.showMediaOnMain(slide.imagePath())
 
     @Slot()
     def searchToMainShow(self):
         if self.ui.mediaSearchResultsLW.currentItem() != None:
             slide = self.ui.mediaSearchResultsLW.currentItem()
-            if slide.fileInfo().suffix().lower() == 'gif':
-                self.mainDisplay.showMovie(slide.imagePath())
-            else:
-                self.mainDisplay.showImage(slide.imagePath(), self.ui.stretchMainCB.isChecked())
+            self.showMediaOnMain(slide.imagePath())
     @Slot()
     def searchToAuxShow(self):
         if self.ui.mediaSearchResultsLW.currentItem() != None:
             slide = self.ui.mediaSearchResultsLW.currentItem()
-            if slide.fileInfo().suffix().lower() == 'gif':
-                self.auxiliaryDisplay.showMovie(slide.imagePath())
-            else:
-                self.auxiliaryDisplay.showImage(slide.imagePath(), self.ui.stretchMainCB.isChecked())
+            self.showMediaOnAux(slide.imagePath())
 
     @Slot()
     def searchtoSlideShow(self):
@@ -950,10 +939,10 @@ class ImproTronControlBoard(QObject):
     def setSoundLibrary(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
                 "Select the Sound Library location",
-                "", QFileDialog.ShowDirsOnly)
+                self.soundDir, QFileDialog.ShowDirsOnly)
         if setDir:
-            soundDir = QDirIterator(setDir, {"*.alac", "*.aac","*.mp3", "*.ac3", "*.wav", "*.flac"}, QDir.Files, QDirIterator.Subdirectories)
-            soundsCount = self.mediaFileDatabase.indexSounds(soundDir)
+            self.soundDir = setDir
+            soundsCount = self.mediaFileDatabase.indexSounds(self.soundDir)
             self.ui.soundFilesCountLBL.setText(str(soundsCount))
 
     @Slot()
@@ -991,8 +980,7 @@ class ImproTronControlBoard(QObject):
 
         self.ui.slideListLW.clear()
 
-        dialog = QFileDialog()
-        fileName = dialog.getOpenFileName(self.ui, "Load Sound Queue",
+        fileName = QFileDialog.getOpenFileName(self.ui, "Load Sound Queue",
                                 self.configFiles,
                                 "Sound Queue Files(*.sfx)")
 
@@ -1007,8 +995,7 @@ class ImproTronControlBoard(QObject):
 
     @Slot()
     def saveSoundQueue(self):
-        dialog = QFileDialog(self.ui)
-        fileName = dialog.getSaveFileName(self.ui, "Save Sound Queue",
+        fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
                                    self.configFiles,
                                    "Sound Queue Files(*.sfx)")
         sound_data = {}

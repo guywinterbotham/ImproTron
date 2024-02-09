@@ -1,6 +1,8 @@
 # This Python file uses the following encoding: utf-8
 from tinydb import TinyDB, Query
 from tinydb.storages import MemoryStorage
+from PySide6.QtCore import QDir, QDirIterator
+
 import re
 
 class MediaFileDatabase():
@@ -9,11 +11,13 @@ class MediaFileDatabase():
         self.mediaTable = self.db.table('media')
         self.soundsTable = self.db.table('sounds')
 
-    def indexMedia(self, media):
+    def indexMedia(self, mediaPath):
         mediaCount = 0
+        mediaDirIter = QDirIterator(mediaPath, {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}, QDir.Files, QDirIterator.Subdirectories)
+
         self.mediaTable.truncate()
-        while media.hasNext():
-            mediaFile = media.nextFileInfo()
+        while mediaDirIter.hasNext():
+            mediaFile = mediaDirIter.nextFileInfo()
             mediaCount += 1
             # Add parts of the file name as tags
             baseFileName = mediaFile.completeBaseName()
@@ -32,11 +36,13 @@ class MediaFileDatabase():
             result = self.mediaTable.search(imageQuery.tags.any(tagList))
         return [entry['mediaName'] for entry in result]
 
-    def indexSounds(self, sounds):
+    def indexSounds(self, soundsPath):
         soundsCount = 0
+        soundsDirIter = QDirIterator(soundsPath, {"*.alac", "*.aac","*.mp3", "*.ac3", "*.wav", "*.flac"}, QDir.Files, QDirIterator.Subdirectories)
+
         self.soundsTable.truncate()
-        while sounds.hasNext():
-            soundsFile = sounds.nextFileInfo()
+        while soundsDirIter.hasNext():
+            soundsFile = soundsDirIter.nextFileInfo()
             soundsCount += 1
             # Add parts of the file name as tags
             baseFileName = soundsFile.completeBaseName()
