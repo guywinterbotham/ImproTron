@@ -17,7 +17,7 @@ python_path = C:\Users\guywi\OneDrive\Documents\git\ImproTron\venv\Scripts\pytho
 # python packages to install
 # ordered-set = increase compile time performance of nuitka packaging
 # zstandard = provides final executable size optimization
-packages = nuitka==1.5.4,ordered_set,zstandard
+packages = nuitka==2.0,ordered_set,zstandard
 # buildozer = for deploying Android application
 android_packages = buildozer==1.5.0,cython==0.29.33
 
@@ -35,7 +35,7 @@ wheel_shiboken =
 [nuitka]
 # (str) specify any extra nuitka arguments
 # eg = extra_args = --show-modules --follow-stdlib
-extra_args = --quiet --disable-console --windows-icon-from-ico=./icons/yesand.png --noinclude-qt-translations=True
+extra_args = --quiet --disable-console --windows-icon-from-ico=./icons/yesand.png --noinclude-qt-translations
 
 [buildozer]
 # build mode

@@ -52,12 +52,12 @@
      <number>0</number>
     </property>
     <item>
-     <layout class="QVBoxLayout" name="textDisplayLayout" stretch="0,0">
+     <layout class="QVBoxLayout" name="textDisplayLayout" stretch="0,1">
       <property name="spacing">
        <number>0</number>
       </property>
       <property name="sizeConstraint">
-       <enum>QLayout::SetNoConstraint</enum>
+       <enum>QLayout::SetDefaultConstraint</enum>
       </property>
       <property name="leftMargin">
        <number>0</number>
@@ -74,7 +74,7 @@
       <item>
        <widget class="QLabel" name="textDisplay">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -128,6 +128,12 @@ background-color: rgb(0, 0, 0);</string>
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>200</height>
+         </size>
         </property>
         <property name="maximumSize">
          <size>

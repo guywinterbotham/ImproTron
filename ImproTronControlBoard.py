@@ -1,9 +1,12 @@
 # This Python file uses the following encoding: utf-8
 import json
+import sys
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication
 from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication
-from PySide6.QtCore import QObject, QDir,QDirIterator, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QPoint
+from PySide6.QtCore import QObject, QDir,QDirIterator, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+
 from Improtronics import ThingzWidget, SlideWidget
 from MediaFileDatabase import MediaFileDatabase
 import ImproTronIcons
@@ -11,22 +14,34 @@ import ImproTronIcons
 
 class ImproTronControlBoard(QObject):
     def __init__(self, mainImprotron, auxiliaryImprotron, parent=None):
-        super(QObject,self).__init__()
+        super(ImproTronControlBoard,self).__init__()
         self.mainDisplay = mainImprotron
         self.auxiliaryDisplay = auxiliaryImprotron
         loader = QUiLoader()
         self.ui = loader.load("ImproTronControlPanel.ui")
-        #self.installEventFilter(self)
 
         self.model = QFileSystemModel()
         self.model.setRootPath(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0])
 
         self.mediaFileDatabase = MediaFileDatabase()
-        pictureDir = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]
-        mediaDir = QDirIterator(pictureDir, {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}, QDir.Files, QDirIterator.Subdirectories)
+        setDir = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]
+        mediaDir = QDirIterator(setDir, {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}, QDir.Files, QDirIterator.Subdirectories)
         mediaCount = self.mediaFileDatabase.indexMedia(mediaDir)
         self.ui.mediaFilesCountLBL.setText(str(mediaCount))
 
+        setDir = QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0]
+        soundsDir = QDirIterator(setDir, {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}, QDir.Files, QDirIterator.Subdirectories)
+        soundCount = self.mediaFileDatabase.indexMedia(soundsDir)
+        self.ui.mediaFilesCountLBL.setText(str(soundCount))
+
+        self.sound = QMediaPlayer()
+        self.audioOutput = QAudioOutput()
+        self.sound.setAudioOutput(self.audioOutput)
+        self.audioOutput.setVolume(50)
+
+        # Location for all slide shows sounds queues, hotbutton lists etc
+        self.configFiles = QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0]+"/ImproTron"
+        print(self.configFiles)
         # Colors for Thingz list
         self.rightTeamBackground = QColor(Qt.white)
         self.rightTeamColor = QColor(Qt.black)
@@ -151,13 +166,33 @@ class ImproTronControlBoard(QObject):
         self.ui.searchToAuxShowPB.clicked.connect(self.searchToAuxShow)
         self.ui.searchtoSlideShowPB.clicked.connect(self.searchtoSlideShow)
 
+        # Sound Search Connections
+        self.ui.searchSoundsPB.clicked.connect(self.searchSounds)
+        self.ui.soundSearchTagsLE.returnPressed.connect(self.searchSounds)
+        self.ui.setSoundLibraryPB.clicked.connect(self.setSoundLibrary)
+
+        self.ui.soundBackPB.clicked.connect(self.soundBack)
+        self.ui.soundPlayPB.clicked.connect(self.soundPlay)
+        self.ui.soundPausePB.clicked.connect(self.soundPause)
+        self.ui.soundStopPB.clicked.connect(self.soundStop)
+        self.ui.soundLoopPB.clicked.connect(self.soundLoop)
+        self.ui.soundVolumeSL.valueChanged.connect(self.audioOutput.setVolume)
+        self.sound.errorOccurred.connect(self.playerError)
+
+        self.ui.loadSoundQueuePB.clicked.connect(self.loadSoundQueue)
+        self.ui.saveSoundQueuePB.clicked.connect(self.saveSoundQueue)
+        self.ui.clearSoundQueuePB.clicked.connect(self.clearSoundQueue)
+
+        self.ui.soundMoveUpPB.clicked.connect(self.soundMoveUp)
+        self.ui.soundMoveDownPB.clicked.connect(self.soundMoveDown)
+        self.ui.soundAddToListPB.clicked.connect(self.soundAddToList)
+        self.ui.soundRemoveFromListPB.clicked.connect(self.soundRemoveFromList)
+
         # Preferences Wiring
         self.ui.aboutPB.clicked.connect(self.about)
 
 
-        # Window Management events
-        # Quit Button
-        self.ui.closeButtonPB.clicked.connect(self.shutdown)
+        # Preferences
         self.ui.improtronUnlockPB.clicked.connect(self.improtronUnlock)
 
         self.ui.setWindowFlags(
@@ -168,29 +203,19 @@ class ImproTronControlBoard(QObject):
             )
         self.ui.show()
 
-    def shutdown(self):
-        QApplication.closeAllWindows()
+        # Set up an event filter to handle the orderly shutdown of the app.
+        self.ui.installEventFilter(self)
 
     def eventFilter(self, obj, event):
         if obj is self.ui and event.type() == QEvent.Close:
-            print("Got Close")
-            self.mainDisplay.close()
-            self.auxiliaryDisplay.close()
-            #self.quit_app()
-            event.accept()
+            self.shutdown()
+            event.ignore()
             return True
-        else:
-            return False
-        #return super(self.ui, QMainWindow).eventFilter(obj, event)
+        return super(ImproTronControlBoard, self).eventFilter(obj, event)
 
-    def center(self, dialog):
-        qr = self.ui.window().frameGeometry()
-        #cp = appMain.MainWindow.geometry(self).center()
-        #qr.moveCenter(cp)
-        #self.move(qr.center())
-        x = (qr.width() - dialog.width()) / 2
-        y = (qr.height() - dialog.height()) / 2
-        dialog.move(x,y)
+    def shutdown(self):
+        self.ui.removeEventFilter(self)
+        QApplication.quit()
 
     def findWidget(self, type, widgetName):
         return self.ui.findChild(type, widgetName)
@@ -207,14 +232,8 @@ class ImproTronControlBoard(QObject):
 
     def getTextFile(self):
         dialog = QFileDialog(self.ui)
-        rect = self.ui.frameGeometry()
-        ptl = rect.topLeft()
-        dialog.move(ptl)
 
-        locations = QStandardPaths.standardLocations(QStandardPaths.AppDataLocation)
-        directory = locations[-1] if locations else QDir.currentPath()
-        dialog.setDirectory(directory)
-        fileName = dialog.getOpenFileName(self.ui, "Open Text File", "" , "Text File (*.txt)")
+        fileName = dialog.getOpenFileName(self.ui, "Open Text File", self.configFiles , "Text File (*.txt)")
         if fileName[0] != None:
             file = QFile(fileName[0])
             if not file.open(QIODevice.ReadOnly | QIODevice.Text):
@@ -248,11 +267,8 @@ class ImproTronControlBoard(QObject):
 
     @Slot()
     def pickLeftTeamColor(self):
-        color_chooser = QColorDialog(self.mainDisplay.improTron)
-        cRect = color_chooser.frameGeometry()
-        cRect.moveTopLeft(QPoint(600,600))
-        color_chooser.setGeometry(cRect)
-        colorSelected = color_chooser.getColor(Qt.green, parent = self.mainDisplay.improTron, title = 'Pick Left Team Color', options = QColorDialog.DontUseNativeDialog)
+        color_chooser = QColorDialog(self.ui)
+        colorSelected = color_chooser.getColor(title = 'Pick Left Team Color')
         if colorSelected.isValid():
             self.leftTeamBackground = colorSelected
             self.leftTeamColor = self.teamColor(colorSelected)
@@ -333,10 +349,6 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def getImageFileMain(self):
         dialog = QFileDialog(self.ui)
-        rect = self.ui.frameGeometry()
-        ptl = rect.topLeft()
-        dialog.move(ptl)
-
         locations = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
         directory = locations[-1] if locations else QDir.currentPath()
         dialog.setDirectory(directory)
@@ -365,10 +377,6 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def getImageFileAuxiliary(self):
         dialog = QFileDialog(self.ui)
-        rect = self.ui.frameGeometry()
-        ptl = rect.topLeft()
-        dialog.move(ptl)
-
         locations = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
         directory = locations[-1] if locations else QDir.currentPath()
         dialog.setDirectory(directory)
@@ -426,7 +434,7 @@ class ImproTronControlBoard(QObject):
         self.showScoresMain()
         self.showScoresAuxiliary()
 
-    # Quck add buttong to update the score and immediate show on the Main Moitor
+    # Quick add buttons to update the score and immediate show on the Main Moitor
     @Slot()
     def quickAdd50(self):
         self.ui.teamScoreLeft.setValue(self.ui.teamScoreLeft.value()+5)
@@ -465,13 +473,13 @@ class ImproTronControlBoard(QObject):
     def showLeftTextMain(self):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
-        self.mainDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
+        self.mainDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), False, font)
 
     @Slot()
     def showLeftTextAuxiliary(self):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
-        self.auxiliaryDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
+        self.auxiliaryDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), False, font)
 
     @Slot()
     def showLeftTextBoth(self):
@@ -728,14 +736,9 @@ class ImproTronControlBoard(QObject):
         self.ui.slideListLW.clear()
 
         dialog = QFileDialog()
-        rect = self.ui.frameGeometry()
-        ptl = rect.topLeft()
-        dialog.move(ptl)
-
-        dialog.setDirectory('C:/Users/guywi/AppData/Local/ImproTron')
         fileName = dialog.getOpenFileName(self.ui, "Load Slideshow",
-                    "C:/Users/guywi/AppData/Local/ImproTron/default_slideshow.json" ,
-                    "Config Files(*.json)")
+                                    self.configFiles,
+                                    "Slide Shows (*.ssh)")
 
         # Read the JSON data from the file
         if fileName[0] != None:
@@ -749,14 +752,9 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def saveSlideShow(self):
         dialog = QFileDialog(self.ui)
-        rect = self.ui.frameGeometry()
-        ptl = rect.topLeft()
-        dialog.move(ptl)
-
-        dialog.setDirectory('C:/Users/guywi/AppData/Local/ImproTron')
         fileName = dialog.getSaveFileName(self.ui, "Save Slide Show",
-                                   "C:/Users/guywi/AppData/Local/ImproTron/default_slideshow.json",
-                                   "Config Files (*.json)")
+                                   self.configFiles,
+                                   "Slide Shows (*.ssh)")
         slide_data = {}
         for slide in range(self.ui.slideListLW.count()):
             slideName = "slide"+str(slide)
@@ -878,13 +876,19 @@ class ImproTronControlBoard(QObject):
         self.ui.mediaSearchResultsLW.clear()
         self.ui.mediaSearchPreviewLBL.clear()
         self.ui.mediaFileNameLBL.clear()
-        foundMedia = self.mediaFileDatabase.searchFiles(self.ui.mediaSearchTagsLE.text(), self.ui.allTagsCB.isChecked())
+        foundMedia = self.mediaFileDatabase.searchMedia(self.ui.mediaSearchTagsLE.text(), self.ui.allMediaTagsCB.isChecked())
         for media in foundMedia:
             SlideWidget(QFileInfo(media), self.ui.mediaSearchResultsLW)
 
     @Slot()
     def setMediaLibrary(self):
-        pass
+        setDir = QFileDialog.getExistingDirectory(self.ui,
+                "Select the Image Library location",
+                "", QFileDialog.ShowDirsOnly)
+        if setDir:
+            mediaDir = QDirIterator(setDir, {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}, QDir.Files, QDirIterator.Subdirectories)
+            mediaCount = self.mediaFileDatabase.indexMedia(mediaDir)
+            self.ui.mediaFilesCountLBL.setText(str(mediaCount))
 
     @Slot(SlideWidget)
     def previewSelectedMedia(self, slide):
@@ -897,15 +901,12 @@ class ImproTronControlBoard(QObject):
                 self.ui.mediaSearchPreviewLBL.setMovie(movie)
                 movie.start()
         else:
-            reader = QImageReader(slide.imagePath())
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-
-            # Scale to match the preview
-            self.ui.mediaSearchPreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.mediaSearchPreviewLBL.size())))
-
-        # Show the file name for reference
-        self.ui.mediaFileNameLBL.setText(slide.imagePath())
+            pixmap = QPixmap()
+            if pixmap.load(slide.imagePath()):
+                if self.ui.stretchMainCB.isChecked():
+                    self.ui.mediaSearchPreviewLBL.setPixmap(pixmap.scaled(self.ui.mediaSearchPreviewLBL.size()))
+                else:
+                    self.ui.mediaSearchPreviewLBL.setPixmap(pixmap.scaledToHeight(self.ui.mediaSearchPreviewLBL.size().height()))
 
     @Slot(SlideWidget)
     def showMediaPreviewMain(self, slide):
@@ -937,6 +938,135 @@ class ImproTronControlBoard(QObject):
         if self.ui.mediaSearchResultsLW.currentItem() != None:
             SlideWidget(QFileInfo(self.ui.mediaSearchResultsLW.currentItem().imagePath()), self.ui.slideListLW)
 
+    # Sound Search Slots
+    @Slot()
+    def searchSounds(self):
+        self.ui.soundSearchResultsLW.clear()
+        foundSounds = self.mediaFileDatabase.searchSounds(self.ui.soundSearchTagsLE.text(), self.ui.allsoundTagsCB.isChecked())
+        for sound in foundSounds:
+            SlideWidget(QFileInfo(sound), self.ui.soundSearchResultsLW)
+
+    @Slot()
+    def setSoundLibrary(self):
+        setDir = QFileDialog.getExistingDirectory(self.ui,
+                "Select the Sound Library location",
+                "", QFileDialog.ShowDirsOnly)
+        if setDir:
+            soundDir = QDirIterator(setDir, {"*.alac", "*.aac","*.mp3", "*.ac3", "*.wav", "*.flac"}, QDir.Files, QDirIterator.Subdirectories)
+            soundsCount = self.mediaFileDatabase.indexSounds(soundDir)
+            self.ui.soundFilesCountLBL.setText(str(soundsCount))
+
+    @Slot()
+    def soundBack(self):
+        pass
+
+    @Slot()
+    def soundPlay(self):
+        if self.ui.soundSearchResultsLW.currentItem() != None:
+            self.sound.setSource(QUrl.fromLocalFile(self.ui.soundSearchResultsLW.currentItem().imagePath()))
+            self.sound.play()
+
+
+    @Slot()
+    def soundPause(self):
+        pass
+
+    @Slot()
+    def soundStop(self):
+        if self.sound.playbackState() != QMediaPlayer.StoppedState:
+            self.sound.stop()
+
+
+    @Slot()
+    def soundLoop(self):
+        pass
+
+    @Slot()
+    def loadSoundQueue(self):
+        if self.ui.slideListLW.count() > 0:
+            reply = QMessageBox.question(self.ui, 'Replace Spunds', 'Are you sure you want replace the current queue?',
+                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return
+
+        self.ui.slideListLW.clear()
+
+        dialog = QFileDialog()
+        fileName = dialog.getOpenFileName(self.ui, "Load Sound Queue",
+                                self.configFiles,
+                                "Sound Queue Files(*.sfx)")
+
+        # Read the JSON data from the file
+        if fileName[0] != None:
+            with open(fileName[0], 'r') as json_file:
+                sound_data = json.load(json_file)
+
+            for sound in sound_data.items():
+                file = QFileInfo(sound[1])
+                SlideWidget(file, self.ui.soundQueueLW)
+
+    @Slot()
+    def saveSoundQueue(self):
+        dialog = QFileDialog(self.ui)
+        fileName = dialog.getSaveFileName(self.ui, "Save Sound Queue",
+                                   self.configFiles,
+                                   "Sound Queue Files(*.sfx)")
+        sound_data = {}
+        for sound in range(self.ui.soundQueueLW.count()):
+            soundName = "sound"+str(sound)
+            sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
+
+        # Convert the Python dictionary to a JSON string
+        json_data = json.dumps(sound_data, indent=2)
+
+        # Write the JSON string to a file
+        with open(fileName[0], 'w') as json_file:
+            json_file.write(json_data)
+
+    @Slot()
+    def clearSoundQueue(self):
+        reply = QMessageBox.question(self.ui, 'Clear Sounds', 'Are you sure you want clear all sounds?',
+                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.ui.soundQueueLW.clear()
+
+
+    @Slot()
+    def soundMoveUp(self):
+        soundRow = self.ui.soundQueueLW.currentRow()
+        if soundRow < 0:
+            return
+        sound = self.ui.soundQueueLW.takeItem(soundRow)
+        self.ui.soundQueueLW.insertItem(soundRow-1,sound)
+        self.ui.soundQueueLW.setCurrentRow(soundRow-1)
+
+    @Slot()
+    def soundMoveDown(self):
+        soundRow = self.ui.soundQueueLW.currentRow()
+        if soundRow < 0:
+            return
+        sound = self.ui.soundQueueLW.takeItem(soundRow)
+        self.ui.soundQueueLW.insertItem(soundRow+1,sound)
+        self.ui.soundQueueLW.setCurrentRow(soundRow+1)
+
+    @Slot()
+    def soundAddToList(self):
+        if self.ui.soundSearchResultsLW.currentItem() != None:
+            sound = self.ui.soundSearchResultsLW.takeItem(self.ui.soundSearchResultsLW.currentRow())
+            self.ui.soundQueueLW.addItem(sound)
+
+    @Slot()
+    def soundRemoveFromList(self):
+        if self.ui.soundQueueLW.currentItem() != None:
+            sound = self.ui.soundQueueLW.takeItem(self.ui.soundQueueLW.currentRow())
+            self.ui.soundSearchResultsLW.addItem(sound)
+
+    @Slot("QMediaPlayer::Error", str)
+    def playerError(self, error, error_string):
+        print(error_string, file=sys.stderr)
+        self.show_status_message(error_string)
+
+    # Miscellaneous Buttons
     @Slot()
     def about(self):
         file = QFile(":/icons/about")

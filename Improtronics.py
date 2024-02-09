@@ -115,7 +115,7 @@ class ImproTron():
         if style != None:
             self.improTron.textDisplay.setStyleSheet(style)
 
-        # Figure out if the height of the text is going to bee too big and autoscale if needed
+        # Figure out if the height of the text is going to be too big and autoscale if needed
         fontMetrics = self.improTron.textDisplay.fontMetrics()
         textHeight = fontMetrics.size(Qt.TextExpandTabs,text_msg).height()
         textBoxHeight = self.improTron.textDisplay.rect().height()
@@ -203,7 +203,7 @@ class HotButton():
         self.hot_button_title.setText(self.text)
 
         self.hot_button_image_file = controlBoard.findWidget(QLineEdit, "imageFileTxt" +str(button_number))
-        self.hot_button_image_file.setText("C:\\Users\\guywi\\OneDrive\\Pictures\\Roanoke\\PICT0339.JPG")
+        self.hot_button_image_file.setText("")
 
         self.hot_button_select_file = controlBoard.findWidget(QPushButton, "selectPB" +str(button_number))
         self.hot_button_select_file.clicked.connect(self.selectImage)
