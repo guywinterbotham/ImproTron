@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>993</width>
-    <height>733</height>
+    <width>1141</width>
+    <height>782</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -222,7 +222,7 @@ color: rgb(255, 255, 255);</string>
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>72</pointsize>
+            <pointsize>90</pointsize>
            </font>
           </property>
           <property name="frameShape">
@@ -301,7 +301,7 @@ color: rgb(255, 255, 255);</string>
           <property name="font">
            <font>
             <family>Arial</family>
-            <pointsize>72</pointsize>
+            <pointsize>90</pointsize>
            </font>
           </property>
           <property name="frameShape">

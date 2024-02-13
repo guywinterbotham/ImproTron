@@ -1,22 +1,23 @@
 <RCC>
-  <qresource lang="English" prefix="/icons">
-    <file alias="loop">icons/loop.png</file>
-    <file alias="repeat">icons/repeat.png</file>
-    <file alias="back">icons/back.png</file>
-    <file alias="ffwd">icons/fast-forward.png</file>
-    <file alias="next">icons/next.png</file>
-    <file alias="pause">icons/pause.png</file>
-    <file alias="play">icons/play.png</file>
-    <file alias="stop">icons/stop.png</file>
-    <file alias="rewind">icons/rewind.png</file>
-    <file alias="down">icons/down.png</file>
-    <file alias="up">icons/up.png</file>
-    <file alias="unlocked">icons/unlocked.png</file>
-    <file alias="locked">icons/lock.png</file>
-    <file alias="left">icons/left.png</file>
-    <file alias="right">icons/right.png</file>
-    <file alias="both">icons/both.png</file>
-    <file alias="redo">icons/redo.png</file>
-    <file alias="about">icons/about.txt</file>
-  </qresource>
+    <qresource lang="English" prefix="/icons">
+        <file alias="loop">icons/loop.png</file>
+        <file alias="repeat">icons/repeat.png</file>
+        <file alias="back">icons/back.png</file>
+        <file alias="ffwd">icons/fast-forward.png</file>
+        <file alias="next">icons/next.png</file>
+        <file alias="pause">icons/pause.png</file>
+        <file alias="play">icons/play.png</file>
+        <file alias="stop">icons/stop.png</file>
+        <file alias="rewind">icons/rewind.png</file>
+        <file alias="down">icons/down.png</file>
+        <file alias="up">icons/up.png</file>
+        <file alias="unlocked">icons/unlocked.png</file>
+        <file alias="locked">icons/lock.png</file>
+        <file alias="left">icons/left.png</file>
+        <file alias="right">icons/right.png</file>
+        <file alias="both">icons/both.png</file>
+        <file alias="redo">icons/redo.png</file>
+        <file alias="about">icons/about.txt</file>
+        <file alias="yesand">icons/yesand.png</file>
+    </qresource>
 </RCC>

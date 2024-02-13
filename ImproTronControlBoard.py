@@ -2,15 +2,14 @@
 import json
 import sys
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication
-from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication
-from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl
+from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QIcon
+from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication, QPushButton
+from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl, QDirIterator
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
-from Improtronics import ThingzWidget, SlideWidget
+from Improtronics import ThingzWidget, SlideWidget, SoundFX
 from MediaFileDatabase import MediaFileDatabase
 import ImproTronIcons
-
 
 class ImproTronControlBoard(QObject):
     def __init__(self, mainImprotron, auxiliaryImprotron, parent=None):
@@ -20,13 +19,16 @@ class ImproTronControlBoard(QObject):
         loader = QUiLoader()
         self.ui = loader.load("ImproTronControlPanel.ui")
 
-        self.model = QFileSystemModel()
-        self.model.setRootPath(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0])
+        # Location for all slide shows sounds queues, hotbutton lists etc
+        self.configDir = QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0]+"/ImproTron"
 
         self.mediaFileDatabase = MediaFileDatabase()
         self.mediaDir = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]
         mediaCount = self.mediaFileDatabase.indexMedia(self.mediaDir)
         self.ui.mediaFilesCountLBL.setText(str(mediaCount))
+
+        self.mediaModel = QFileSystemModel()
+        self.mediaModel.setRootPath(self.mediaDir)
 
         self.soundDir = QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0]
         soundCount = self.mediaFileDatabase.indexSounds(self.soundDir)
@@ -36,9 +38,6 @@ class ImproTronControlBoard(QObject):
         self.audioOutput = QAudioOutput()
         self.sound.setAudioOutput(self.audioOutput)
         self.audioOutput.setVolume(50)
-
-        # Location for all slide shows sounds queues, hotbutton lists etc
-        self.configDir = QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0]+"/ImproTron"
 
         # Colors for Thingz list
         self.rightTeamBackground = QColor(Qt.white)
@@ -115,9 +114,9 @@ class ImproTronControlBoard(QObject):
 
         # Slide Show Management
         self.imageTreeView = self.ui.slideShowFilesTreeView
-        self.imageTreeView.setModel(self.model)
-        self.imageTreeView.setRootIndex(self.model.index(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]))
-        for i in range(1, self.model.columnCount()):
+        self.imageTreeView.setModel(self.mediaModel)
+        self.imageTreeView.setRootIndex(self.mediaModel.index(self.mediaDir))
+        for i in range(1, self.mediaModel.columnCount()):
             self.imageTreeView.header().hideSection(i)
         self.imageTreeView.setHeaderHidden(True)
 
@@ -179,12 +178,27 @@ class ImproTronControlBoard(QObject):
 
         self.ui.loadSoundQueuePB.clicked.connect(self.loadSoundQueue)
         self.ui.saveSoundQueuePB.clicked.connect(self.saveSoundQueue)
+        self.ui.saveSoundFXPallettePB.clicked.connect(self.saveSoundFXPallette)
         self.ui.clearSoundQueuePB.clicked.connect(self.clearSoundQueue)
 
         self.ui.soundMoveUpPB.clicked.connect(self.soundMoveUp)
         self.ui.soundMoveDownPB.clicked.connect(self.soundMoveDown)
         self.ui.soundAddToListPB.clicked.connect(self.soundAddToList)
         self.ui.soundRemoveFromListPB.clicked.connect(self.soundRemoveFromList)
+
+        # Sound Pallette Wiring
+        self.sfx_buttons = [] #empty array
+        self.number = 25      #number of hotbuttons
+
+        for button in range(self.number):
+            sfx_button = self.findWidget(QPushButton, "soundFXPB" +str(button+1))
+            self.sfx_buttons.append(SoundFX(sfx_button))
+
+        # Set a slot for the clear, load and save buttons
+        self.palletteSelect = self.ui.soundPalettesCB
+        self.palletteSelect.currentIndexChanged.connect(self.loadSoundEffects)
+
+        self.loadSoundPallettes()
 
         # Preferences Wiring
         self.ui.aboutPB.clicked.connect(self.about)
@@ -282,7 +296,7 @@ class ImproTronControlBoard(QObject):
                         self.auxiliaryDisplay.showImage(fileName, self.ui.stretchAuxCB.isChecked())
 
     def getTextFile(self):
-        fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self.configFiles , "Text File (*.txt)")
+        fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self.configDir , "Text File (*.txt)")
         if fileName[0] != None:
             file = QFile(fileName[0])
             if not file.open(QIODevice.ReadOnly | QIODevice.Text):
@@ -678,8 +692,8 @@ class ImproTronControlBoard(QObject):
     def imageSelectedfromDir(self, new_selection, old_selection):
         # get the text of the selected item
         index = self.imageTreeView.selectionModel().currentIndex()
-        if not self.model.isDir(index):
-            imageFileInfo = self.model.fileInfo(index)
+        if not self.mediaModel.isDir(index):
+            imageFileInfo = self.mediaModel.fileInfo(index)
             reader = QImageReader(imageFileInfo.absoluteFilePath())
             reader.setAutoTransform(True)
             newImage = reader.read()
@@ -701,8 +715,8 @@ class ImproTronControlBoard(QObject):
     def addSlidetoList(self):
         # get the text of the selected item
         index = self.imageTreeView.selectionModel().currentIndex()
-        if not self.model.isDir(index):
-            SlideWidget(self.model.fileInfo(index), self.ui.slideListLW)
+        if not self.mediaModel.isDir(index):
+            SlideWidget(self.mediaModel.fileInfo(index), self.ui.slideListLW)
 
     @Slot()
     def slideMoveUp(self):
@@ -889,6 +903,15 @@ class ImproTronControlBoard(QObject):
             mediaCount = self.mediaFileDatabase.indexMedia(self.mediaDir)
             self.ui.mediaFilesCountLBL.setText(str(mediaCount))
 
+            # The Media Library is also part of the Media mediaModel so reset it
+            self.imageTreeView = self.ui.slideShowFilesTreeView
+            self.imageTreeView.setModel(self.mediaModel)
+            self.imageTreeView.setRootIndex(self.mediaModel.index(self.mediaDir))
+            for i in range(1, self.mediaModel.columnCount()):
+                self.imageTreeView.header().hideSection(i)
+            self.imageTreeView.setHeaderHidden(True)
+
+
     @Slot(SlideWidget)
     def previewSelectedMedia(self, slide):
         mediaInfo = slide.fileInfo()
@@ -972,17 +995,17 @@ class ImproTronControlBoard(QObject):
 
     @Slot()
     def loadSoundQueue(self):
-        if self.ui.slideListLW.count() > 0:
+        if self.ui.soundQueueLW.count() > 0:
             reply = QMessageBox.question(self.ui, 'Replace Spunds', 'Are you sure you want replace the current queue?',
                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.No:
                 return
 
-        self.ui.slideListLW.clear()
+        self.ui.soundQueueLW.clear()
 
         fileName = QFileDialog.getOpenFileName(self.ui, "Load Sound Queue",
-                                self.configFiles,
-                                "Sound Queue Files(*.sfx)")
+                                self.configDir,
+                                "Sound Queue Files(*.sfx *.sdq)")
 
         # Read the JSON data from the file
         if fileName[0] != None:
@@ -996,7 +1019,24 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def saveSoundQueue(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
-                                   self.configFiles,
+                                   self.configDir,
+                                   "Sound Queue Files(*.sdq)")
+        sound_data = {}
+        for sound in range(self.ui.soundQueueLW.count()):
+            soundName = "sound"+str(sound)
+            sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
+
+        # Convert the Python dictionary to a JSON string
+        json_data = json.dumps(sound_data, indent=2)
+
+        # Write the JSON string to a file
+        with open(fileName[0], 'w') as json_file:
+            json_file.write(json_data)
+
+    @Slot()
+    def saveSoundFXPallette(self):
+        fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
+                                   self.configDir,
                                    "Sound Queue Files(*.sfx)")
         sound_data = {}
         for sound in range(self.ui.soundQueueLW.count()):
@@ -1009,6 +1049,9 @@ class ImproTronControlBoard(QObject):
         # Write the JSON string to a file
         with open(fileName[0], 'w') as json_file:
             json_file.write(json_data)
+
+        # Trigger a refresh of the combo box of Palletes
+        self.loadSoundPallettes()
 
     @Slot()
     def clearSoundQueue(self):
@@ -1052,6 +1095,44 @@ class ImproTronControlBoard(QObject):
     def playerError(self, error, error_string):
         print(error_string, file=sys.stderr)
         self.show_status_message(error_string)
+
+    # Sound Palletes
+    @Slot(int)
+    def loadSoundPallettes(self):
+        self.palletteSelect.clear()
+        palletteIter = QDirIterator(self.getConfigDir(),{"*.sfx"})
+        while palletteIter.hasNext():
+            palletteFileInfo = palletteIter.nextFileInfo()
+            palletteFileName = palletteFileInfo.completeBaseName()
+            self.palletteSelect.addItem(palletteFileName, palletteFileInfo)
+
+    @Slot(int)
+    def loadSoundEffects(self, index):
+        # During initialization, a negative index is sent. Use that as a trigger
+        # to diable all buttons in the case no files exist
+        buttonNumber = 0
+        if index >= 0 :
+            palletteFileInfo = self.palletteSelect.itemData(index)
+            with open(palletteFileInfo.absoluteFilePath(), 'r') as json_file:
+                soundButton_data = json.load(json_file)
+
+            # Loop through all the buttons to either set them based on the file
+            # or clear and disable
+            for sound in soundButton_data.items():
+                if buttonNumber < self.number:
+                    if QFileInfo.exists(sound[1]): # The file still exists
+                        file = QFileInfo(sound[1])
+                        if file.suffix() == "wav": # Only wav files are supported for sound effect
+                            self.sfx_buttons[buttonNumber].loadSoundEffect(file)
+                        else:
+                            self.sfx_buttons[buttonNumber].disable()
+                    else:
+                        self.sfx_buttons[buttonNumber].disable()
+
+                buttonNumber += 1
+
+        for disabledButton in range(buttonNumber, self.number):
+            self.sfx_buttons[disabledButton].disable()
 
     # Miscellaneous Buttons
     @Slot()

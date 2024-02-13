@@ -10,10 +10,18 @@ class MediaFileDatabase():
         self.db = TinyDB(storage=MemoryStorage)
         self.mediaTable = self.db.table('media')
         self.soundsTable = self.db.table('sounds')
+        self._mediaSupported = {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}
+        self._soundsSupported = {"*.alac", "*.aac","*.mp3", "*.ac3", "*.wav", "*.flac"}
+
+    def mediaSupported(self):
+        return self._mediaSupported
+
+    def soundsSupported(self):
+        return self._soundsSupported
 
     def indexMedia(self, mediaPath):
         mediaCount = 0
-        mediaDirIter = QDirIterator(mediaPath, {"*.jpg", "*.jpeg","*.gif", "*.bmp", "*.png"}, QDir.Files, QDirIterator.Subdirectories)
+        mediaDirIter = QDirIterator(mediaPath, self._mediaSupported, QDir.Files, QDirIterator.Subdirectories)
 
         self.mediaTable.truncate()
         while mediaDirIter.hasNext():
@@ -38,7 +46,7 @@ class MediaFileDatabase():
 
     def indexSounds(self, soundsPath):
         soundsCount = 0
-        soundsDirIter = QDirIterator(soundsPath, {"*.alac", "*.aac","*.mp3", "*.ac3", "*.wav", "*.flac"}, QDir.Files, QDirIterator.Subdirectories)
+        soundsDirIter = QDirIterator(soundsPath, self._soundsSupported, QDir.Files, QDirIterator.Subdirectories)
 
         self.soundsTable.truncate()
         while soundsDirIter.hasNext():

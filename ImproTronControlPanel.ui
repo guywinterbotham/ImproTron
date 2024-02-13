@@ -30,6 +30,10 @@
   <property name="windowTitle">
    <string>Improtron Control Panel</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="ImproTronIcons.qrc">
+    <normaloff>:/icons/yesand</normaloff>:/icons/yesand</iconset>
+  </property>
   <property name="autoFillBackground">
    <bool>false</bool>
   </property>
@@ -119,6 +123,9 @@
               </property>
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::PlusMinus</enum>
+              </property>
+              <property name="maximum">
+               <number>999</number>
               </property>
              </widget>
             </item>
@@ -618,6 +625,9 @@ font: 12pt &quot;Segoe UI&quot;;</string>
               </property>
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::PlusMinus</enum>
+              </property>
+              <property name="maximum">
+               <number>999</number>
               </property>
              </widget>
             </item>
@@ -3191,7 +3201,7 @@ background-color: rgb(255, 255, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Load Queue</string>
+                 <string>Load Sounds</string>
                 </property>
                </widget>
               </item>
@@ -3203,7 +3213,19 @@ background-color: rgb(255, 255, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Save Queue</string>
+                 <string>Save as Queue</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="saveSoundFXPallettePB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Save as SoundFX</string>
                 </property>
                </widget>
               </item>
@@ -3925,6 +3947,19 @@ background-color: rgb(255, 255, 0);</string>
             </layout>
            </item>
           </layout>
+         </widget>
+         <widget class="QPushButton" name="spotipyPB">
+          <property name="geometry">
+           <rect>
+            <x>210</x>
+            <y>240</y>
+            <width>75</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Spotipy</string>
+          </property>
          </widget>
         </widget>
        </widget>

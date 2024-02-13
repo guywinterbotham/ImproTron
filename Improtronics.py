@@ -3,8 +3,9 @@
 import json
 from PySide6.QtWidgets import QFileDialog, QPushButton, QLineEdit, QListWidgetItem
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import Slot, QTimer, QTime, Qt
+from PySide6.QtCore import Slot, QTimer, QTime, Qt, QUrl
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader
+from PySide6.QtMultimedia import QSoundEffect
 
 # Class to handle display on a separate monitor
 class ImproTron():
@@ -296,6 +297,40 @@ class HotButtonManager():
             # Write the JSON string to a file
             with open(fileName[0], 'w') as json_file:
                 json_file.write(json_data)
+
+# SoundFX Pallette Management. This class handles loading of a saved queue and converting
+# and WAV files contained into sound effect buttons
+class SoundFX():
+    def __init__(self, sfx_button):
+
+        self.sfx_button = sfx_button
+        self.soundFX = QSoundEffect()
+
+
+        # Take control of the actual button
+        self.sfx_button.clicked.connect(self.soundFXButtonClicked)
+
+    @Slot(str)
+    def loadSoundEffect(self, new_SoundFX):
+
+            self.sfx_button.setText(new_SoundFX.baseName())
+            self.soundFX.setSource(QUrl.fromLocalFile(new_SoundFX.absoluteFilePath()))
+
+            self.sfx_button.setEnabled(True)
+
+    @Slot(str)
+    def disable(self):
+        self.sfx_button.setText("X")
+        self.sfx_button.setEnabled(False)
+
+    @Slot()
+    def soundFXButtonClicked(self):
+        if self.soundFX.isPlaying():
+            self.soundFX.stop()
+        else:
+            self.soundFX.setVolume(0.5)
+            self.soundFX.play()
+
 
 # Subclass to maintain the additional substitutes information associated with a Thing
 class ThingzWidget(QListWidgetItem):
