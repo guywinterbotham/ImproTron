@@ -3,7 +3,7 @@ import json
 import sys
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QIcon
-from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication, QPushButton
+from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication, QPushButton, QErrorMessage
 from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl, QDirIterator
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
@@ -376,15 +376,19 @@ class ImproTronControlBoard(QObject):
 
     @Slot()
     def blackoutBoth(self):
-        self.mainDisplay.blackout()
-        self.auxiliaryDisplay.blackout()
+        self.blackoutMain()
+        self.blackoutAux()
 
     @Slot()
     def blackoutMain(self):
+        self.ui.imagePreviewMain.clear()
+        self.ui.imagePreviewMain.setStyleSheet("background:black; color:black")
         self.mainDisplay.blackout()
 
     @Slot()
     def blackoutAux(self):
+        self.ui.imagePreviewAuxiliary.clear()
+        self.ui.imagePreviewAuxiliary.setStyleSheet("background:black; color:black")
         self.auxiliaryDisplay.blackout()
 
     @Slot()
@@ -420,7 +424,7 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def loadTextboxLeft(self):
         textToLoad = self.getTextFile()
-        if len(textToLoad) > 0:
+        if textToLoad != None:
             self.ui.leftTextBox.setText(textToLoad)
 
     @Slot()
@@ -755,7 +759,7 @@ class ImproTronControlBoard(QObject):
                                     "Slide Shows (*.ssh)")
 
         # Read the JSON data from the file
-        if fileName[0] != None:
+        if fileName != None:
             with open(fileName[0], 'r') as json_file:
                 slideshow_data = json.load(json_file)
 
@@ -1091,10 +1095,9 @@ class ImproTronControlBoard(QObject):
             sound = self.ui.soundQueueLW.takeItem(self.ui.soundQueueLW.currentRow())
             self.ui.soundSearchResultsLW.addItem(sound)
 
-    @Slot("QMediaPlayer::Error", str)
+    @Slot(QMediaPlayer.Error, str)
     def playerError(self, error, error_string):
-        print(error_string, file=sys.stderr)
-        self.show_status_message(error_string)
+        QErrorMessage.showMessage(str)
 
     # Sound Palletes
     @Slot(int)

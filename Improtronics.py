@@ -110,6 +110,7 @@ class ImproTron():
 
     # Show Text on the display
     def showText(self, text_msg, style=None, autoScale = False, font=None):
+
         if font != None:
             self.improTron.textDisplay.setFont(font)
 
@@ -119,12 +120,41 @@ class ImproTron():
         # Figure out if the height of the text is going to be too big and autoscale if needed
         fontMetrics = self.improTron.textDisplay.fontMetrics()
         textHeight = fontMetrics.size(Qt.TextExpandTabs,text_msg).height()
+        textWidth = fontMetrics.size(Qt.TextExpandTabs,text_msg).width()
+
         textBoxHeight = self.improTron.textDisplay.rect().height()
-        if (textHeight >= textBoxHeight) or autoScale:
+        textBoxWidth = self.improTron.textDisplay.rect().width()
+
+        # Determine whether the text scaling is most needed for the height or width
+        scaleHeight = False
+        scaleWidth = False
+
+        if textHeight >= textBoxHeight: # Text is higher than the display box
+            scaleHeight = True
+        if textWidth >= textBoxWidth: # Text is wider than the display box
+            scaleWidth = True
+
+        # The text fits in neither direction. Scale based on the worst case.
+        if scaleHeight and scaleWidth:
+
+            if heightRatio > widthRatio:
+                scaleHeight = True
+                scaleWidth = False
+            else:
+                scaleHeight = False
+                scaleWidth = True
+
+        # Some scaling has to occur so pull the font out and scale
+        if scaleHeight or scaleWidth:
             textBoxFont = self.improTron.textDisplay.font()
-            newSize = max(1, int(textBoxFont.pointSize()*textBoxHeight/textHeight))
-            textBoxFont.setPointSize(newSize)
-            self.improTron.textDisplay.setFont(textBoxFont)
+            if scaleHeight:
+                newSize = max(1, int(textBoxFont.pointSize()/heightRatio))
+                textBoxFont.setPointSize(newSize)
+            if scaleWidth:
+                newSize = max(1, int(textBoxFont.pointSize()/widthRatio))
+                textBoxFont.setPointSize(newSize)
+
+            self.improTron.textDisplay.setFont(textBoxFont) # and put it back
 
         self.improTron.textDisplay.setText(text_msg)
         self.improTron.setCurrentWidget(self.improTron.displayText)
@@ -376,5 +406,5 @@ class SlideWidget(QListWidgetItem):
         return self._fileInto
 
     def imagePath(self):
-        return self._fileInto.absoluteFilePath()    
+        return self._fileInto.absoluteFilePath()
 
