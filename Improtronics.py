@@ -12,17 +12,12 @@ class ImproTron():
     def __init__(self, name, parent=None):
         super(ImproTron, self).__init__()
 
+        self._screen_number = 0
+        self._display_name = name
+
         self.loader = QUiLoader()
         self.improTron = self.loader.load("Improtron.ui", None)
-        self.improTron.textDisplay.setText(name)
-        self.improTron.setGeometry(300, 300, 300, 300)
-        self.improTron.setWindowTitle(name)
-        self.x = 0
-        self.y = 0
         self.media = QPixmap()
-
-        # Store some default text formating
-        self.maximize()
 
         # Countdown Timer
         self.countdownTimer = QTimer()
@@ -33,6 +28,10 @@ class ImproTron():
         self.redTime = QTime(0,0,0)
         self.timerVisible(False)
         self.improTron.countdownLCD.display("00:00:00")
+
+        # Set the unrestored location based on the allotted screen
+        self.restore()
+        self.maximize()
 
     def shutdown(self):
         self.improtron.close()
@@ -125,6 +124,9 @@ class ImproTron():
         textBoxHeight = self.improTron.textDisplay.rect().height()
         textBoxWidth = self.improTron.textDisplay.rect().width()
 
+        heightRatio = textHeight/textBoxHeight
+        widthRatio  = textWidth/textBoxWidth
+
         # Determine whether the text scaling is most needed for the height or width
         scaleHeight = False
         scaleWidth = False
@@ -212,13 +214,26 @@ class ImproTron():
         self.improTron.setWindowFlags(flags)
         self.improTron.showMaximized()
 
-    # Return to a know size to facilitate movement
+    # Restore and move the alloted screen
     def restore(self):
+        _screen = QGuiApplication.screens()[self._screen_number]
+        self.improTron.textDisplay.setText(self._display_name + ': ' + _screen.name())
+
+        _rect = _screen.availableGeometry()
+        self._top = _rect.top()
+        self._left = _rect.left()
+        _size = _screen.size()
+        self._width = int(_size.width()/2)
+        self._height = int(_size.height()/2)
+
+        self.improTron.setGeometry(self._top, self._left, self._width, self._height)
+        self.improTron.setWindowTitle(self._display_name)
+
         flags = Qt.Window
         self.improTron.setWindowFlags(flags)
-        self.improTron.setGeometry(300, 300, 300, 300)
         self.improTron.showNormal()
-# End Class ImproTron
+
+    # End Class ImproTron
 
 
 class HotButton():
@@ -270,63 +285,6 @@ class HotButton():
     @Slot()
     def hotButtonClicked(self):
         self.control_board.showMediaOnMain(self.hot_button_image_file.text())
-
-class HotButtonManager():
-    # Instantiate the Hot Buttons via a Hot Button Object that takes care of the signal and slots
-    # leveraging the naming convention
-    def __init__(self, controlBoard, mainImproton, auxiliaryImproton):
-        self.hot_buttons = [] #empty array
-        self.number = 10      #number of hotbuttons
-        self.control_board = controlBoard
-
-        for button in range(self.number):
-            self.hot_buttons.append(HotButton(button+1, controlBoard))
-
-        # Set a slot for the clear, load and save buttons
-        hotButtonClearPB = controlBoard.findWidget(QPushButton,"hotButtonClearPB")
-        hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
-
-        hotButtonLoadPB = controlBoard.findWidget(QPushButton,"hotButtonLoadPB")
-        hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
-
-        hotButtonSavePB = controlBoard.findWidget(QPushButton,"hotButtonSavePB")
-        hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
-
-    @Slot()
-    def clearHotButtonsClicked(self):
-        for button in range(self.number):
-            self.hot_buttons[button].clear()
-
-    @Slot()
-    def loadHotButtonsClicked(self):
-        fileName = QFileDialog.getOpenFileName(self.control_board.ui, "Load Hot Buttons",
-                    self.control_board.getConfigDir(),
-                    "Hot Buttons (*.hbt)")
-
-        # Read the JSON data from the file
-        if fileName != None:
-            with open(fileName[0], 'r') as json_file:
-                button_data = json.load(json_file)
-
-            for button in range(self.number):
-                self.hot_buttons[button].load(button_data)
-
-    @Slot()
-    def saveHotButtonsClicked(self):
-        fileName = QFileDialog.getSaveFileName(self.control_board.ui, "Save Hot Buttons",
-                    self.control_board.getConfigDir(),
-                    "Hot Buttons (*.hbt)")
-        if fileName != None:
-            button_data = {}
-            for button in range(self.number):
-                self.hot_buttons[button].save(button_data)
-
-            # Convert the Python dictionary to a JSON string
-            json_data = json.dumps(button_data, indent=2)
-
-            # Write the JSON string to a file
-            with open(fileName[0], 'w') as json_file:
-                json_file.write(json_data)
 
 # SoundFX Pallette Management. This class handles loading of a saved queue and converting
 # and WAV files contained into sound effect buttons

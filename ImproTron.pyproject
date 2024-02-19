@@ -3,6 +3,7 @@
         "improtron.py",
         "ImproTronControlBoard.py",
         "Improtronics.py",
-        "MediaFileDatabase.py"
+        "MediaFileDatabase.py",
+        "Settings.py"
     ]
 }

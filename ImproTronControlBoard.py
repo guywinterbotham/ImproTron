@@ -2,12 +2,12 @@
 import json
 import sys
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QIcon
-from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication, QPushButton, QErrorMessage
+from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication
+from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication, QPushButton
 from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl, QDirIterator
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
-from Improtronics import ThingzWidget, SlideWidget, SoundFX
+from Improtronics import ThingzWidget, SlideWidget, SoundFX, HotButton
 from MediaFileDatabase import MediaFileDatabase
 import ImproTronIcons
 
@@ -188,9 +188,9 @@ class ImproTronControlBoard(QObject):
 
         # Sound Pallette Wiring
         self.sfx_buttons = [] #empty array
-        self.number = 25      #number of hotbuttons
+        self.soundFXNumber = 25      #number of soundeffects for a pallette
 
-        for button in range(self.number):
+        for button in range(self.soundFXNumber):
             sfx_button = self.findWidget(QPushButton, "soundFXPB" +str(button+1))
             self.sfx_buttons.append(SoundFX(sfx_button))
 
@@ -200,10 +200,20 @@ class ImproTronControlBoard(QObject):
 
         self.loadSoundPallettes()
 
-        # Preferences Wiring
-        self.ui.aboutPB.clicked.connect(self.about)
+        # Hot Buttons Wiring
+        self.hot_buttons = [] #empty array
+        self.hotButtonNumber = 10      #number of hotbuttons
+
+        for button in range(self.hotButtonNumber):
+            self.hot_buttons.append(HotButton(button+1, self))
+
+        # Set a slot for the clear, load and save buttons
+        self.ui.hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
+        self.ui.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
+        self.ui.hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
 
         # Preferences
+        self.ui.aboutPB.clicked.connect(self.about)
         self.ui.improtronUnlockPB.clicked.connect(self.improtronUnlock)
 
         self.ui.setWindowFlags(
@@ -772,17 +782,19 @@ class ImproTronControlBoard(QObject):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Slide Show",
                                    self.configDir,
                                    "Slide Shows (*.ssh)")
-        slide_data = {}
-        for slide in range(self.ui.slideListLW.count()):
-            slideName = "slide"+str(slide)
-            slide_data[slideName] = self.ui.slideListLW.item(slide).imagePath()
 
-        # Convert the Python dictionary to a JSON string
-        json_data = json.dumps(slide_data, indent=2)
+        if len(fileName) != 0:
+            slide_data = {}
+            for slide in range(self.ui.slideListLW.count()):
+                slideName = "slide"+str(slide)
+                slide_data[slideName] = self.ui.slideListLW.item(slide).imagePath()
 
-        # Write the JSON string to a file
-        with open(fileName[0], 'w') as json_file:
-            json_file.write(json_data)
+            # Convert the Python dictionary to a JSON string
+            json_data = json.dumps(slide_data, indent=2)
+
+            # Write the JSON string to a file
+            with open(fileName[0], 'w') as json_file:
+                json_file.write(json_data)
 
     @Slot()
     def clearSlideShow(self):
@@ -894,8 +906,11 @@ class ImproTronControlBoard(QObject):
         self.ui.mediaSearchPreviewLBL.clear()
         self.ui.mediaFileNameLBL.clear()
         foundMedia = self.mediaFileDatabase.searchMedia(self.ui.mediaSearchTagsLE.text(), self.ui.allMediaTagsCB.isChecked())
-        for media in foundMedia:
-            SlideWidget(QFileInfo(media), self.ui.mediaSearchResultsLW)
+        if len(foundMedia) > 0:
+            for media in foundMedia:
+                SlideWidget(QFileInfo(media), self.ui.mediaSearchResultsLW)
+        else:
+            reply = QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
 
     @Slot()
     def setMediaLibrary(self):
@@ -959,8 +974,12 @@ class ImproTronControlBoard(QObject):
     def searchSounds(self):
         self.ui.soundSearchResultsLW.clear()
         foundSounds = self.mediaFileDatabase.searchSounds(self.ui.soundSearchTagsLE.text(), self.ui.allsoundTagsCB.isChecked())
-        for sound in foundSounds:
-            SlideWidget(QFileInfo(sound), self.ui.soundSearchResultsLW)
+        if len(foundSounds) > 0:
+            for sound in foundSounds:
+                SlideWidget(QFileInfo(sound), self.ui.soundSearchResultsLW)
+        else:
+            reply = QMessageBox.information(self.ui, 'No Search Results', 'No sounds with those tags found.')
+
 
     @Slot()
     def setSoundLibrary(self):
@@ -1000,7 +1019,7 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def loadSoundQueue(self):
         if self.ui.soundQueueLW.count() > 0:
-            reply = QMessageBox.question(self.ui, 'Replace Spunds', 'Are you sure you want replace the current queue?',
+            reply = QMessageBox.question(self.ui, 'Replace Sounds', 'Are you sure you want replace the current queue?',
                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.No:
                 return
@@ -1025,34 +1044,38 @@ class ImproTronControlBoard(QObject):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
                                    self.configDir,
                                    "Sound Queue Files(*.sdq)")
-        sound_data = {}
-        for sound in range(self.ui.soundQueueLW.count()):
-            soundName = "sound"+str(sound)
-            sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
 
-        # Convert the Python dictionary to a JSON string
-        json_data = json.dumps(sound_data, indent=2)
+        if len(fileName) != 0:
+            sound_data = {}
+            for sound in range(self.ui.soundQueueLW.count()):
+                soundName = "sound"+str(sound)
+                sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
 
-        # Write the JSON string to a file
-        with open(fileName[0], 'w') as json_file:
-            json_file.write(json_data)
+            # Convert the Python dictionary to a JSON string
+            json_data = json.dumps(sound_data, indent=2)
+
+            # Write the JSON string to a file
+            with open(fileName[0], 'w') as json_file:
+                json_file.write(json_data)
 
     @Slot()
     def saveSoundFXPallette(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
                                    self.configDir,
                                    "Sound Queue Files(*.sfx)")
-        sound_data = {}
-        for sound in range(self.ui.soundQueueLW.count()):
-            soundName = "sound"+str(sound)
-            sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
 
-        # Convert the Python dictionary to a JSON string
-        json_data = json.dumps(sound_data, indent=2)
+        if len(fileName) != 0:
+            sound_data = {}
+            for sound in range(self.ui.soundQueueLW.count()):
+                soundName = "sound"+str(sound)
+                sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
 
-        # Write the JSON string to a file
-        with open(fileName[0], 'w') as json_file:
-            json_file.write(json_data)
+            # Convert the Python dictionary to a JSON string
+            json_data = json.dumps(sound_data, indent=2)
+
+            # Write the JSON string to a file
+            with open(fileName[0], 'w') as json_file:
+                json_file.write(json_data)
 
         # Trigger a refresh of the combo box of Palletes
         self.loadSoundPallettes()
@@ -1097,7 +1120,7 @@ class ImproTronControlBoard(QObject):
 
     @Slot(QMediaPlayer.Error, str)
     def playerError(self, error, error_string):
-        QErrorMessage.showMessage(str)
+        QMessageBox.critical(self.ui, "Media Player Error", error_string)
 
     # Sound Palletes
     @Slot(int)
@@ -1122,7 +1145,7 @@ class ImproTronControlBoard(QObject):
             # Loop through all the buttons to either set them based on the file
             # or clear and disable
             for sound in soundButton_data.items():
-                if buttonNumber < self.number:
+                if buttonNumber < self.soundFXNumber:
                     if QFileInfo.exists(sound[1]): # The file still exists
                         file = QFileInfo(sound[1])
                         if file.suffix() == "wav": # Only wav files are supported for sound effect
@@ -1134,10 +1157,47 @@ class ImproTronControlBoard(QObject):
 
                 buttonNumber += 1
 
-        for disabledButton in range(buttonNumber, self.number):
+        for disabledButton in range(buttonNumber, self.soundFXNumber):
             self.sfx_buttons[disabledButton].disable()
 
-    # Miscellaneous Buttons
+    # Preferences and Hot Buttons
+    @Slot()
+    def clearHotButtonsClicked(self):
+        for button in range(self.hotButtonNumber):
+            self.hot_buttons[button].clear()
+
+    @Slot()
+    def loadHotButtonsClicked(self):
+        fileName = QFileDialog.getOpenFileName(self.ui, "Load Hot Buttons",
+                    self.getConfigDir(),
+                    "Hot Buttons (*.hbt)")
+
+        # Read the JSON data from the file
+        if len(fileName) != 0:
+            with open(fileName[0], 'r') as json_file:
+                button_data = json.load(json_file)
+
+            for button in range(self.hotButtonNumber):
+                self.hot_buttons[button].load(button_data)
+
+    @Slot()
+    def saveHotButtonsClicked(self):
+        fileName = QFileDialog.getSaveFileName(self.ui, "Save Hot Buttons",
+                    self.getConfigDir(),
+                    "Hot Buttons (*.hbt)")
+
+        if len(fileName) != 0:
+            button_data = {}
+            for button in range(self.hotButtonNumber):
+                self.hot_buttons[button].save(button_data)
+
+            # Convert the Python dictionary to a JSON string
+            json_data = json.dumps(button_data, indent=2)
+
+            # Write the JSON string to a file
+            with open(fileName[0], 'w') as json_file:
+                json_file.write(json_data)
+
     @Slot()
     def about(self):
         file = QFile(":/icons/about")

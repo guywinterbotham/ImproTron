@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1056</width>
-    <height>710</height>
+    <height>749</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -793,7 +793,7 @@ background-color: rgb(0, 0, 0);</string>
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>8</number>
         </property>
         <property name="iconSize">
          <size>
@@ -1055,9 +1055,6 @@ background-color: rgb(0, 0, 0);</string>
                <font>
                 <pointsize>12</pointsize>
                </font>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
               </property>
               <property name="verticalScrollBarPolicy">
                <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -1987,7 +1984,7 @@ background-color: rgb(0, 0, 0);</string>
                </layout>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <layout class="QHBoxLayout" name="slideShowPlayerHL">
                 <item>
                  <widget class="QLabel" name="slideShowSecondLBL">
                   <property name="text">
@@ -2255,520 +2252,6 @@ background-color: rgb(255, 255, 0);</string>
                 </property>
                 <property name="text">
                  <string>Save List</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="hotButtonsTab">
-         <property name="minimumSize">
-          <size>
-           <width>675</width>
-           <height>0</height>
-          </size>
-         </property>
-         <attribute name="title">
-          <string>Hot Buttons</string>
-         </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <layout class="QVBoxLayout" name="hotButtonPBsVL">
-            <item>
-             <spacer name="verticalSpacer">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="hotButtonClearPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Clear All</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="hotButtonLoadPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Load List</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="hotButtonSavePB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Save List</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="hotButtonVL">
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonConfigHLayout">
-              <item>
-               <widget class="QLabel" name="hotButtonConfigTitleLBL">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>140</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Title</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="hotButtonConfigFillerLBL">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>50</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="hotButtonConfigImageLBL">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>600</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Image File</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL1">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl1">
-                <property name="text">
-                 <string>Button  1</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="titleHotButton1">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt1">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB1">
-                <property name="text">
-                 <string>Select ...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL2">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl2">
-                <property name="text">
-                 <string>Button  2</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="titleHotButton2">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt2">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB2">
-                <property name="text">
-                 <string>Select ...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL3">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl3">
-                <property name="text">
-                 <string>Button  3</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="titleHotButton3">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt3">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB3">
-                <property name="text">
-                 <string>Select ...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL4">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl4">
-                <property name="text">
-                 <string>Button  4</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="titleHotButton4">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt4">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB4">
-                <property name="text">
-                 <string>Select ...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL5">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl5">
-                <property name="text">
-                 <string>Button  5</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="titleHotButton5">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt5">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB5">
-                <property name="text">
-                 <string>Select ...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL6">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl6">
-                <property name="text">
-                 <string>Button  6</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="titleHotButton6">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt6">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB6">
-                <property name="text">
-                 <string>Select ...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL7">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl7">
-                <property name="text">
-                 <string>Button  7</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="titleHotButton7">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt7">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB7">
-                <property name="text">
-                 <string>Select ...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL8">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl8">
-                <property name="text">
-                 <string>Button  8</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="titleHotButton8">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt8">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB8">
-                <property name="text">
-                 <string>Select ...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL9">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl9">
-                <property name="text">
-                 <string>Button  9</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="titleHotButton9">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt9">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB9">
-                <property name="text">
-                 <string>Select ...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="hotButtonHL10">
-              <item>
-               <widget class="QLabel" name="hotButtonLbl10">
-                <property name="text">
-                 <string>Button 10</string>
-                </property>
-               </widget>
-              </item>
-              <item alignment="Qt::AlignLeft">
-               <widget class="QLineEdit" name="titleHotButton10">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maxLength">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="imageFileTxt10">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="selectPB10">
-                <property name="text">
-                 <string>Select ...</string>
                 </property>
                </widget>
               </item>
@@ -3832,6 +3315,17 @@ background-color: rgb(255, 255, 0);</string>
           </item>
          </layout>
         </widget>
+        <widget class="QWidget" name="spotifyTab">
+         <property name="minimumSize">
+          <size>
+           <width>675</width>
+           <height>0</height>
+          </size>
+         </property>
+         <attribute name="title">
+          <string>Spotify</string>
+         </attribute>
+        </widget>
         <widget class="QWidget" name="lightsTab">
          <property name="enabled">
           <bool>false</bool>
@@ -3850,130 +3344,655 @@ background-color: rgb(255, 255, 0);</string>
          <attribute name="title">
           <string>Preferences</string>
          </attribute>
-         <widget class="QPushButton" name="colorLeftPB">
-          <property name="geometry">
-           <rect>
-            <x>60</x>
-            <y>110</y>
-            <width>122</width>
-            <height>29</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="text">
-           <string>Left Team Color ...</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="colorRightPB">
-          <property name="geometry">
-           <rect>
-            <x>60</x>
-            <y>150</y>
-            <width>122</width>
-            <height>29</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Right Team Color ...</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="aboutPB">
-          <property name="geometry">
-           <rect>
-            <x>70</x>
-            <y>250</y>
-            <width>75</width>
-            <height>24</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>About</string>
-          </property>
-         </widget>
-         <widget class="QWidget" name="layoutWidget">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>301</width>
-            <height>79</height>
-           </rect>
-          </property>
-          <layout class="QHBoxLayout" name="preferenceHL">
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_2"/>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_3"/>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="ImproTronPositionVL">
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_12">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <layout class="QHBoxLayout" name="preferencesHL">
+            <item>
+             <layout class="QVBoxLayout" name="settingsVL">
+              <item>
+               <widget class="QGroupBox" name="presetsGB">
+                <property name="title">
+                 <string>Presets</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_2">
+                 <item>
+                  <layout class="QVBoxLayout" name="presetsVL">
+                   <item>
+                    <widget class="QLabel" name="improtronUnlockLBL">
+                     <property name="text">
+                      <string>Unlock and move screens to their respective monitors.</string>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="improtronUnlockPB">
+                     <property name="font">
+                      <font>
+                       <pointsize>12</pointsize>
+                      </font>
+                     </property>
+                     <property name="text">
+                      <string>Screen Locations</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="ImproTronIcons.qrc">
+                       <normaloff>:/icons/locked</normaloff>
+                       <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="colorLeftPB">
+                     <property name="font">
+                      <font>
+                       <pointsize>12</pointsize>
+                      </font>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true"/>
+                     </property>
+                     <property name="text">
+                      <string>Left Team Color</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="colorRightPB">
+                     <property name="font">
+                      <font>
+                       <pointsize>12</pointsize>
+                      </font>
+                     </property>
+                     <property name="text">
+                      <string>Right Team Color</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="hotButtonListsGB">
+                <property name="title">
+                 <string>Hot Button Lists</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <layout class="QVBoxLayout" name="hotButtonListsVL">
+                   <item>
+                    <widget class="QPushButton" name="hotButtonLoadPB">
+                     <property name="font">
+                      <font>
+                       <pointsize>12</pointsize>
+                      </font>
+                     </property>
+                     <property name="text">
+                      <string>Load List</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="hotButtonSavePB">
+                     <property name="font">
+                      <font>
+                       <pointsize>12</pointsize>
+                      </font>
+                     </property>
+                     <property name="text">
+                      <string>Save List</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="hotButtonClearPB">
+                     <property name="font">
+                      <font>
+                       <pointsize>12</pointsize>
+                      </font>
+                     </property>
+                     <property name="text">
+                      <string>Clear List</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="hotButtonsGB">
+              <property name="title">
+               <string>Hot Buttons</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_3">
                <item>
-                <widget class="QLabel" name="label">
-                 <property name="text">
-                  <string>Unlock and move the Improtrons and control panel to the screen they will inhabit while in use.</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                </widget>
+                <layout class="QVBoxLayout" name="hotButtonVL">
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonConfigHLayout">
+                   <item>
+                    <widget class="QLabel" name="hotButtonConfigTitleLBL">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>140</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Title</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="hotButtonConfigFillerLBL">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>50</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="hotButtonConfigImageLBL">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>600</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Image File</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL1">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl1">
+                     <property name="text">
+                      <string>01</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="titleHotButton1">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt1">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB1">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL2">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl2">
+                     <property name="text">
+                      <string>02</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="titleHotButton2">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt2">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB2">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL3">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl3">
+                     <property name="text">
+                      <string>03</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="titleHotButton3">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt3">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB3">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL4">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl4">
+                     <property name="text">
+                      <string>04</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="titleHotButton4">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt4">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB4">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL5">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl5">
+                     <property name="text">
+                      <string>05</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="titleHotButton5">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt5">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB5">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL6">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl6">
+                     <property name="text">
+                      <string>06</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="titleHotButton6">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt6">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB6">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL7">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl7">
+                     <property name="text">
+                      <string>07</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="titleHotButton7">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt7">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB7">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL8">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl8">
+                     <property name="text">
+                      <string>08</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="titleHotButton8">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt8">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB8">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL9">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl9">
+                     <property name="text">
+                      <string>09</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="titleHotButton9">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt9">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB9">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="hotButtonHL10">
+                   <item>
+                    <widget class="QLabel" name="hotButtonLbl10">
+                     <property name="text">
+                      <string>10</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item alignment="Qt::AlignLeft">
+                    <widget class="QLineEdit" name="titleHotButton10">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maxLength">
+                      <number>15</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="imageFileTxt10">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="selectPB10">
+                     <property name="text">
+                      <string>Select ...</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
                </item>
               </layout>
-             </item>
-             <item>
-              <widget class="QPushButton" name="improtronUnlockPB">
-               <property name="text">
-                <string>Set Screen Locations</string>
-               </property>
-               <property name="icon">
-                <iconset resource="ImproTronIcons.qrc">
-                 <normaloff>:/icons/locked</normaloff>
-                 <normalon>:/icons/unlocked</normalon>:/icons/locked</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_7"/>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QPushButton" name="spotipyPB">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>240</y>
-            <width>75</width>
-            <height>24</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Spotipy</string>
-          </property>
-         </widget>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="experimentalGB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="title">
+               <string>Experimental</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <item>
+                <layout class="QVBoxLayout" name="experimentalVL">
+                 <item>
+                  <widget class="QPushButton" name="spotipyPB">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Spotipy</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="experimentalVS">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="aboutPB">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>About</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>
@@ -4030,39 +4049,6 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>clearSlideShowPB</tabstop>
   <tabstop>loadSlideShowPB</tabstop>
   <tabstop>saveSlideShowPB</tabstop>
-  <tabstop>titleHotButton1</tabstop>
-  <tabstop>imageFileTxt1</tabstop>
-  <tabstop>selectPB1</tabstop>
-  <tabstop>titleHotButton2</tabstop>
-  <tabstop>imageFileTxt2</tabstop>
-  <tabstop>selectPB2</tabstop>
-  <tabstop>titleHotButton3</tabstop>
-  <tabstop>imageFileTxt3</tabstop>
-  <tabstop>selectPB3</tabstop>
-  <tabstop>titleHotButton4</tabstop>
-  <tabstop>imageFileTxt4</tabstop>
-  <tabstop>selectPB4</tabstop>
-  <tabstop>titleHotButton5</tabstop>
-  <tabstop>imageFileTxt5</tabstop>
-  <tabstop>selectPB5</tabstop>
-  <tabstop>titleHotButton6</tabstop>
-  <tabstop>imageFileTxt6</tabstop>
-  <tabstop>selectPB6</tabstop>
-  <tabstop>titleHotButton7</tabstop>
-  <tabstop>imageFileTxt7</tabstop>
-  <tabstop>selectPB7</tabstop>
-  <tabstop>titleHotButton8</tabstop>
-  <tabstop>imageFileTxt8</tabstop>
-  <tabstop>selectPB8</tabstop>
-  <tabstop>titleHotButton9</tabstop>
-  <tabstop>imageFileTxt9</tabstop>
-  <tabstop>selectPB9</tabstop>
-  <tabstop>titleHotButton10</tabstop>
-  <tabstop>imageFileTxt10</tabstop>
-  <tabstop>selectPB10</tabstop>
-  <tabstop>hotButtonClearPB</tabstop>
-  <tabstop>hotButtonLoadPB</tabstop>
-  <tabstop>hotButtonSavePB</tabstop>
   <tabstop>hotPB2</tabstop>
   <tabstop>teamNameRight</tabstop>
   <tabstop>teamScoreRight</tabstop>
