@@ -23,6 +23,7 @@ __pycache__
 core
 !core/
 tags
+.cache
 .DS_Store
 .directory
 *.debug

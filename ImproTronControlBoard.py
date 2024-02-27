@@ -3,8 +3,8 @@ import json
 import sys
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication
-from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication, QPushButton
-from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl, QDirIterator
+from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication, QPushButton, QStyle
+from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 from Improtronics import ThingzWidget, SlideWidget, SoundFX, HotButton
@@ -37,7 +37,7 @@ class ImproTronControlBoard(QObject):
         self.sound = QMediaPlayer()
         self.audioOutput = QAudioOutput()
         self.sound.setAudioOutput(self.audioOutput)
-        self.audioOutput.setVolume(50)
+        self.audioOutput.setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
 
         # Colors for Thingz list
         self.rightTeamBackground = QColor(Qt.white)
@@ -88,20 +88,38 @@ class ImproTronControlBoard(QObject):
         self.ui.blackoutBothPB.clicked.connect(self.blackoutBoth)
 
         # Countdown timer controls
+        self.ui.startTimerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
         self.ui.startTimerPB.clicked.connect(self.startTimer)
+
+        self.ui.resetTimerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaSkipBackward))
         self.ui.resetTimerPB.clicked.connect(self.resetTimer)
+
+        self.ui.pauseTimerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPause))
         self.ui.pauseTimerPB.clicked.connect(self.pauseTimerPB)
+
         self.ui.timerVisibleMainCB.stateChanged.connect(self.timerVisibleMain)
 
         # Connect Thingz Management
         self.ui.thingzListLW.itemClicked.connect(self.showSelectedThing)
         self.ui.thingzListLW.itemChanged.connect(self.titleEdited)
+
+        #self.ui.addThingPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogYesButton))
         self.ui.addThingPB.clicked.connect(self.addThingtoList)
+
         self.ui.thingNameTxt.returnPressed.connect(self.addThingtoList)
+
+        self.ui.removeThingPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCloseButton))
         self.ui.removeThingPB.clicked.connect(self.removeThingfromList)
+
+        self.ui.clearThingzPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogDiscardButton))
         self.ui.clearThingzPB.clicked.connect(self.clearThingzList)
+
+        self.ui.thingzMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
         self.ui.thingzMoveUpPB.clicked.connect(self.thingzMoveUp)
+
+        self.ui.thingzMoveDownPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowDown))
         self.ui.thingzMoveDownPB.clicked.connect(self.thingzMoveDown)
+
         self.ui.leftThingTeamRB.clicked.connect(self.leftThingTeam)
         self.ui.rightThingTeamRB.clicked.connect(self.rightThingTeam)
         self.ui.thingTextEdit.textChanged.connect(self.updateThingsText)
@@ -128,12 +146,25 @@ class ImproTronControlBoard(QObject):
         self.ui.slideListLW.itemClicked.connect(self.previewSelectedSlide)
         self.ui.slideListLW.itemDoubleClicked.connect(self.showSlideMain)
         self.ui.addSlidePB.clicked.connect(self.addSlidetoList)
+
+        self.ui.slideMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
         self.ui.slideMoveUpPB.clicked.connect(self.slideMoveUp)
+
+        self.ui.slideMoveDownPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowDown))
         self.ui.slideMoveDownPB.clicked.connect(self.slideMoveDown)
+
+        self.ui.removeSlidePB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCloseButton))
         self.ui.removeSlidePB.clicked.connect(self.removeSlidefromList)
+
+        self.ui.clearSlideShowPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogDiscardButton))
         self.ui.clearSlideShowPB.clicked.connect(self.clearSlideShow)
+
+        self.ui.loadSlideShowPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogOpenButton))
         self.ui.loadSlideShowPB.clicked.connect(self.loadSlideShow)
+
+        self.ui.saveSlideShowPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogSaveButton))
         self.ui.saveSlideShowPB.clicked.connect(self.saveSlideShow)
+
         self.ui.showSlideMainPB.clicked.connect(self.showSlideMain)
         self.ui.showSlideAuxiliaryPB.clicked.connect(self.showSlideAuxiliary)
         self.ui.showSlideBothPB.clicked.connect(self.showSlideBoth)
@@ -144,13 +175,36 @@ class ImproTronControlBoard(QObject):
         self.paused = False
         self. currentSlide = 0
         self.slideShowTimer.timeout.connect(self.nextSlide)
-        self.ui.slideShowRestartPB.clicked.connect(self.slideShowRestart)
-        self.ui.slideShowRewindPB.clicked.connect(self.slideShowBack)
-        self.ui.slideShowPlayPB.clicked.connect(self.slideShowPlay)
-        self.ui.slideShowPausePB.clicked.connect(self.slideShowPause)
-        self.ui.slideShowStopPB.clicked.connect(self.slideShowStop)
-        self.ui.slideShowForwardPB.clicked.connect(self.slideShowForward)
+
+        self.ui.slideShowSkipPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaSkipForward))
         self.ui.slideShowSkipPB.clicked.connect(self.slideShowSkip)
+
+        self.ui.slideShowRestartPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaSkipBackward))
+        self.ui.slideShowRestartPB.clicked.connect(self.slideShowRestart)
+
+        self.ui.slideShowForwardPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaSeekForward))
+        self.ui.slideShowForwardPB.clicked.connect(self.slideShowForward)
+
+        self.ui.slideShowRewindPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaSeekBackward))
+        self.ui.slideShowRewindPB.clicked.connect(self.slideShowBack)
+
+        self.ui.slideShowPlayPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
+        self.ui.slideShowPlayPB.clicked.connect(self.slideShowPlay)
+
+        self.ui.slideShowPausePB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPause))
+        self.ui.slideShowPausePB.clicked.connect(self.slideShowPause)
+
+        self.ui.slideShowStopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaStop))
+        self.ui.slideShowStopPB.clicked.connect(self.slideShowStop)
+
+
+        # Whammy secondsSettings
+        self.ui.secsPerWhamCB.addItems(['0.5', '1.0', '1.5', '2.0'])
+        self.ui.whammyPB.clicked.connect(self.startWhamming)
+        self.whammyTimer = QTimer()
+        self.whammyRandomizer = QRandomGenerator()
+        self.whams = 0
+        self.whammyTimer.timeout.connect(self.nextWham)
 
         # Image Search Connections
         self.ui.searchMediaPB.clicked.connect(self.searchMedia)
@@ -168,31 +222,49 @@ class ImproTronControlBoard(QObject):
         self.ui.soundSearchTagsLE.returnPressed.connect(self.searchSounds)
         self.ui.setSoundLibraryPB.clicked.connect(self.setSoundLibrary)
 
-        self.ui.soundBackPB.clicked.connect(self.soundBack)
+        self.ui.soundPlayPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
         self.ui.soundPlayPB.clicked.connect(self.soundPlay)
+
+        self.ui.soundPausePB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPause))
         self.ui.soundPausePB.clicked.connect(self.soundPause)
+
+        self.ui.soundStopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaStop))
         self.ui.soundStopPB.clicked.connect(self.soundStop)
+
+        self.ui.soundLoopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_BrowserReload))
         self.ui.soundLoopPB.clicked.connect(self.soundLoop)
-        self.ui.soundVolumeSL.valueChanged.connect(self.audioOutput.setVolume)
+
+        self.ui.soundVolumeSL.valueChanged.connect(self.setSoundVolume)
         self.sound.errorOccurred.connect(self.playerError)
 
         self.ui.loadSoundQueuePB.clicked.connect(self.loadSoundQueue)
         self.ui.saveSoundQueuePB.clicked.connect(self.saveSoundQueue)
         self.ui.saveSoundFXPallettePB.clicked.connect(self.saveSoundFXPallette)
         self.ui.clearSoundQueuePB.clicked.connect(self.clearSoundQueue)
+        self.ui.soundFXVolumeHS.valueChanged.connect(self.setFXVolume)
 
+        self.ui.soundMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
         self.ui.soundMoveUpPB.clicked.connect(self.soundMoveUp)
+
+        self.ui.soundMoveDownPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowDown))
         self.ui.soundMoveDownPB.clicked.connect(self.soundMoveDown)
+
+        self.ui.soundAddToListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
         self.ui.soundAddToListPB.clicked.connect(self.soundAddToList)
+
+        self.ui.soundRemoveFromListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowBack))
         self.ui.soundRemoveFromListPB.clicked.connect(self.soundRemoveFromList)
 
         # Sound Pallette Wiring
         self.sfx_buttons = [] #empty array
         self.soundFXNumber = 25      #number of soundeffects for a pallette
 
+        _volume = self.ui.soundFXVolumeHS.value()/self.ui.soundFXVolumeHS.maximum()
         for button in range(self.soundFXNumber):
             sfx_button = self.findWidget(QPushButton, "soundFXPB" +str(button+1))
-            self.sfx_buttons.append(SoundFX(sfx_button))
+            _soundFX = SoundFX(sfx_button)
+            _soundFX.setFXVolume(_volume)
+            self.sfx_buttons.append(_soundFX)
 
         # Set a slot for the clear, load and save buttons
         self.palletteSelect = self.ui.soundPalettesCB
@@ -752,6 +824,7 @@ class ImproTronControlBoard(QObject):
 
     @Slot()
     def removeSlidefromList(self):
+        self.ui.slidePreviewLBL.clear()
         self.ui.slideListLW.takeItem(self.ui.slideListLW.row(self.ui.slideListLW.currentItem()))
 
     @Slot()
@@ -899,6 +972,32 @@ class ImproTronControlBoard(QObject):
     def timerVisibleMain(self):
         self.mainDisplay.timerVisible(self.ui.timerVisibleMainCB.isChecked())
 
+    # Whammy Controlers
+    @Slot()
+    def startWhamming(self):
+        slideCount = self.ui.slideListLW.count()
+
+        if slideCount == 0:
+            return
+
+        whammyDelay = int(float(self.ui.secsPerWhamCB. currentText ())*1000)
+        self.whammyTimer.setInterval(whammyDelay)
+        self.whams = self.ui.spinBox.value()
+        nextSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
+
+        self.ui.slideListLW.setCurrentRow(nextSlide)
+        self.showSlideMain()
+        self.whammyTimer.start()
+
+    @Slot()
+    def nextWham(self):
+        nextSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
+        self.ui.slideListLW.setCurrentRow(nextSlide)
+        self.showSlideMain()
+        self.whams -= 1
+        if self.whams <= 1:
+            self.whammyTimer.stop()
+
     # Media Seach Slots
     @Slot()
     def searchMedia(self):
@@ -992,29 +1091,41 @@ class ImproTronControlBoard(QObject):
             self.ui.soundFilesCountLBL.setText(str(soundsCount))
 
     @Slot()
-    def soundBack(self):
-        pass
-
-    @Slot()
     def soundPlay(self):
+        if self.sound.playbackState() == QMediaPlayer.PausedState:
+            self.sound.play()
+            return
+
         if self.ui.soundSearchResultsLW.currentItem() != None:
             self.sound.setSource(QUrl.fromLocalFile(self.ui.soundSearchResultsLW.currentItem().imagePath()))
+            self.sound.setPosition(0)
             self.sound.play()
-
 
     @Slot()
     def soundPause(self):
-        pass
+        if self.sound.playbackState() == QMediaPlayer.PausedState:
+            self.sound.play()
+            return
+
+        if self.sound.isPlaying():
+            self.sound.pause()
 
     @Slot()
     def soundStop(self):
-        if self.sound.playbackState() != QMediaPlayer.StoppedState:
-            self.sound.stop()
-
+        self.sound.stop()
 
     @Slot()
     def soundLoop(self):
-        pass
+        if self.ui.soundLoopPB.isChecked():
+            self.sound.setLoops(QMediaPlayer.Infinite)
+        else:
+            self.sound.setLoops(QMediaPlayer.Once)
+            if self.sound.isPlaying():
+                self.sound.stop()
+
+    @Slot(int)
+    def setSoundVolume(self, value):
+        self.audioOutput.setVolume(value/self.ui.soundVolumeSL.maximum())
 
     @Slot()
     def loadSoundQueue(self):
@@ -1159,6 +1270,12 @@ class ImproTronControlBoard(QObject):
 
         for disabledButton in range(buttonNumber, self.soundFXNumber):
             self.sfx_buttons[disabledButton].disable()
+
+    @Slot(int)
+    def setFXVolume(self, value):
+        sliderMax = self.ui.soundFXVolumeHS.maximum()
+        for sound in self.sfx_buttons:
+            sound.setFXVolume(value/sliderMax)
 
     # Preferences and Hot Buttons
     @Slot()

@@ -450,21 +450,6 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                      <property name="text">
                       <string/>
                      </property>
-                     <property name="icon">
-                      <iconset resource="ImproTronIcons.qrc">
-                       <normaloff>:/icons/play</normaloff>:/icons/play</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="resetTimerPB">
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="ImproTronIcons.qrc">
-                       <normaloff>:/icons/redo</normaloff>:/icons/redo</iconset>
-                     </property>
                     </widget>
                    </item>
                    <item>
@@ -472,9 +457,12 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                      <property name="text">
                       <string/>
                      </property>
-                     <property name="icon">
-                      <iconset resource="ImproTronIcons.qrc">
-                       <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="resetTimerPB">
+                     <property name="text">
+                      <string/>
                      </property>
                     </widget>
                    </item>
@@ -793,7 +781,7 @@ background-color: rgb(0, 0, 0);</string>
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>8</number>
+         <number>5</number>
         </property>
         <property name="iconSize">
          <size>
@@ -1063,7 +1051,7 @@ background-color: rgb(0, 0, 0);</string>
                <enum>Qt::ScrollBarAlwaysOff</enum>
               </property>
               <property name="acceptRichText">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1125,7 +1113,7 @@ background-color: rgb(0, 0, 0);</string>
                <enum>Qt::ScrollBarAlwaysOff</enum>
               </property>
               <property name="acceptRichText">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1701,7 +1689,7 @@ background-color: rgb(0, 0, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Move Up</string>
+                 <string/>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -1726,7 +1714,7 @@ background-color: rgb(0, 0, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Move Down</string>
+                 <string/>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -1744,7 +1732,7 @@ background-color: rgb(0, 0, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Remove Thing</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1756,7 +1744,7 @@ background-color: rgb(0, 0, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Clear Thingz</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1971,6 +1959,12 @@ background-color: rgb(0, 0, 0);</string>
                 </item>
                 <item>
                  <widget class="QPushButton" name="addSlidePB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -1980,6 +1974,19 @@ background-color: rgb(0, 0, 0);</string>
                    <string>Add to List</string>
                   </property>
                  </widget>
+                </item>
+                <item>
+                 <spacer name="slidePreviewSP">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </item>
@@ -2013,20 +2020,12 @@ background-color: rgb(0, 0, 0);</string>
                   <property name="text">
                    <string/>
                   </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/rewind</normaloff>:/icons/rewind</iconset>
-                  </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QPushButton" name="slideShowRewindPB">
                   <property name="text">
                    <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/back</normaloff>:/icons/back</iconset>
                   </property>
                  </widget>
                 </item>
@@ -2035,20 +2034,12 @@ background-color: rgb(0, 0, 0);</string>
                   <property name="text">
                    <string/>
                   </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/play</normaloff>:/icons/play</iconset>
-                  </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QPushButton" name="slideShowPausePB">
                   <property name="text">
                    <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
                   </property>
                  </widget>
                 </item>
@@ -2057,20 +2048,12 @@ background-color: rgb(0, 0, 0);</string>
                   <property name="text">
                    <string/>
                   </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
-                  </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QPushButton" name="slideShowForwardPB">
                   <property name="text">
                    <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/next</normaloff>:/icons/next</iconset>
                   </property>
                  </widget>
                 </item>
@@ -2079,9 +2062,101 @@ background-color: rgb(0, 0, 0);</string>
                   <property name="text">
                    <string/>
                   </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/ffwd</normaloff>:/icons/ffwd</iconset>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="WhammyHL">
+                <item>
+                 <widget class="QLabel" name="secPerWhanLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Seconds/Wham</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="secsPerWhamCB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="currentIndex">
+                   <number>-1</number>
+                  </property>
+                  <property name="maxVisibleItems">
+                   <number>3</number>
+                  </property>
+                  <property name="minimumContentsLength">
+                   <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="whamsLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Whams</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="margin">
+                   <number>4</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="spinBox">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="whammyPB">
+                  <property name="font">
+                   <font>
+                    <family>Segoe UI</family>
+                    <pointsize>12</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(0, 0, 255);
+font: 700 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 0);</string>
+                  </property>
+                  <property name="text">
+                   <string>WHAMMY!</string>
                   </property>
                  </widget>
                 </item>
@@ -2171,7 +2246,7 @@ background-color: rgb(0, 0, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Move Up</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -2183,7 +2258,7 @@ background-color: rgb(0, 0, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Move Down</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -2195,27 +2270,7 @@ background-color: rgb(0, 0, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Remove</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="whammyPB">
-                <property name="font">
-                 <font>
-                  <family>Segoe UI</family>
-                  <pointsize>9</pointsize>
-                  <italic>false</italic>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">color: rgb(0, 0, 255);
-font: 700 9pt &quot;Segoe UI&quot;;
-background-color: rgb(255, 255, 0);</string>
-                </property>
-                <property name="text">
-                 <string>WHAMMY!</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -2227,7 +2282,7 @@ background-color: rgb(255, 255, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Clear List</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -2239,7 +2294,7 @@ background-color: rgb(255, 255, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Load List</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -2251,7 +2306,7 @@ background-color: rgb(255, 255, 0);</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Save List</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -2456,6 +2511,9 @@ background-color: rgb(255, 255, 0);</string>
                   <pointsize>12</pointsize>
                  </font>
                 </property>
+                <property name="maximum">
+                 <number>100</number>
+                </property>
                 <property name="singleStep">
                  <number>5</number>
                 </property>
@@ -2485,24 +2543,9 @@ background-color: rgb(255, 255, 0);</string>
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QPushButton" name="soundBackPB">
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset theme="media-playlist-repeat" resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/back</normaloff>:/icons/back</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
                  <widget class="QPushButton" name="soundPlayPB">
                   <property name="text">
                    <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/play</normaloff>:/icons/play</iconset>
                   </property>
                  </widget>
                 </item>
@@ -2511,20 +2554,12 @@ background-color: rgb(255, 255, 0);</string>
                   <property name="text">
                    <string/>
                   </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
-                  </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QPushButton" name="soundStopPB">
                   <property name="text">
                    <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
                   </property>
                  </widget>
                 </item>
@@ -2533,9 +2568,8 @@ background-color: rgb(255, 255, 0);</string>
                   <property name="text">
                    <string/>
                   </property>
-                  <property name="icon">
-                   <iconset resource="ImproTronIcons.qrc">
-                    <normaloff>:/icons/loop</normaloff>:/icons/loop</iconset>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -2566,20 +2600,12 @@ background-color: rgb(255, 255, 0);</string>
                 <property name="text">
                  <string/>
                 </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/up</normaloff>:/icons/up</iconset>
-                </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="soundMoveDownPB">
                 <property name="text">
                  <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/down</normaloff>:/icons/down</iconset>
                 </property>
                </widget>
               </item>
@@ -2601,20 +2627,12 @@ background-color: rgb(255, 255, 0);</string>
                 <property name="text">
                  <string/>
                 </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/right</normaloff>:/icons/right</iconset>
-                </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="soundRemoveFromListPB">
                 <property name="text">
                  <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="ImproTronIcons.qrc">
-                  <normaloff>:/icons/left</normaloff>:/icons/left</iconset>
                 </property>
                </widget>
               </item>
@@ -2767,7 +2785,7 @@ background-color: rgb(255, 255, 0);</string>
              <enum>QLayout::SetDefaultConstraint</enum>
             </property>
             <item>
-             <layout class="QHBoxLayout" name="soundFXPaletteHL" stretch="0,0,1">
+             <layout class="QHBoxLayout" name="soundFXPaletteHL" stretch="0,0,0,0">
               <property name="spacing">
                <number>6</number>
               </property>
@@ -2817,38 +2835,36 @@ background-color: rgb(255, 255, 0);</string>
                </widget>
               </item>
               <item>
-               <widget class="QSlider" name="soundFXVolumeSL">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
+               <widget class="QLabel" name="soundFXVolumeLBL">
                 <property name="font">
                  <font>
                   <pointsize>12</pointsize>
                  </font>
                 </property>
-                <property name="toolTip">
-                 <string extracomment="SoundFX Volume"/>
+                <property name="text">
+                 <string>Volume:</string>
                 </property>
-                <property name="whatsThis">
-                 <string extracomment="SoundFX Volume"/>
-                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="soundFXVolumeHS">
                 <property name="maximum">
                  <number>100</number>
                 </property>
-                <property name="singleStep">
-                 <number>5</number>
-                </property>
-                <property name="sliderPosition">
-                 <number>1</number>
+                <property name="value">
+                 <number>50</number>
                 </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
+                <property name="invertedAppearance">
+                 <bool>false</bool>
+                </property>
                 <property name="tickPosition">
-                 <enum>QSlider::TicksBothSides</enum>
+                 <enum>QSlider::TicksAbove</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>10</number>
                 </property>
                </widget>
               </item>
@@ -4045,7 +4061,6 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>slideMoveUpPB</tabstop>
   <tabstop>slideMoveDownPB</tabstop>
   <tabstop>removeSlidePB</tabstop>
-  <tabstop>whammyPB</tabstop>
   <tabstop>clearSlideShowPB</tabstop>
   <tabstop>loadSlideShowPB</tabstop>
   <tabstop>saveSlideShowPB</tabstop>

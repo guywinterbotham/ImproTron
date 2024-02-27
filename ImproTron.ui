@@ -105,10 +105,10 @@ background-color: rgb(0, 0, 0);</string>
          <string>Witty Comment</string>
         </property>
         <property name="textFormat">
-         <enum>Qt::PlainText</enum>
+         <enum>Qt::AutoText</enum>
         </property>
         <property name="scaledContents">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>

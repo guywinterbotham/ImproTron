@@ -1,10 +1,10 @@
 # The display is a container for all the possible features that can be displayed
 # This Python file uses the following encoding: utf-8
 import json
-from PySide6.QtWidgets import QFileDialog, QPushButton, QLineEdit, QListWidgetItem
+from PySide6.QtWidgets import QFileDialog, QPushButton, QLineEdit, QListWidgetItem, QStyle, QApplication
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import Slot, QTimer, QTime, Qt, QUrl
-from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader
+from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon
 from PySide6.QtMultimedia import QSoundEffect
 
 # Class to handle display on a separate monitor
@@ -294,21 +294,27 @@ class SoundFX():
         self.sfx_button = sfx_button
         self.soundFX = QSoundEffect()
 
-
         # Take control of the actual button
         self.sfx_button.clicked.connect(self.soundFXButtonClicked)
 
     @Slot(str)
     def loadSoundEffect(self, new_SoundFX):
 
-            self.sfx_button.setText(new_SoundFX.baseName())
-            self.soundFX.setSource(QUrl.fromLocalFile(new_SoundFX.absoluteFilePath()))
+        self.sfx_button.setIcon(QIcon())
+        self.sfx_button.setText(new_SoundFX.baseName())
+        self.soundFX.setSource(QUrl.fromLocalFile(new_SoundFX.absoluteFilePath()))
 
-            self.sfx_button.setEnabled(True)
+        self.sfx_button.setEnabled(True)
+
+    # Assumes a value btween 0-1
+    @Slot(str)
+    def setFXVolume(self, value):
+        self.soundFX.setVolume(value)
 
     @Slot(str)
     def disable(self):
-        self.sfx_button.setText("X")
+        self.sfx_button.setText("")
+        self.sfx_button.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCancelButton))
         self.sfx_button.setEnabled(False)
 
     @Slot()
@@ -316,9 +322,7 @@ class SoundFX():
         if self.soundFX.isPlaying():
             self.soundFX.stop()
         else:
-            self.soundFX.setVolume(0.5)
             self.soundFX.play()
-
 
 # Subclass to maintain the additional substitutes information associated with a Thing
 class ThingzWidget(QListWidgetItem):
