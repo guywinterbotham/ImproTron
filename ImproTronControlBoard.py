@@ -4,7 +4,7 @@ import sys
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication
 from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication, QPushButton, QStyle
-from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator
+from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator, QPoint
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 from Improtronics import ThingzWidget, SlideWidget, SoundFX, HotButton
@@ -12,26 +12,33 @@ from MediaFileDatabase import MediaFileDatabase
 import ImproTronIcons
 
 class ImproTronControlBoard(QObject):
-    def __init__(self, mainImprotron, auxiliaryImprotron, parent=None):
+    def __init__(self, mainImprotron, auxiliaryImprotron, settings, parent=None):
         super(ImproTronControlBoard,self).__init__()
+        self._settings = settings
+
         self.mainDisplay = mainImprotron
         self.auxiliaryDisplay = auxiliaryImprotron
+
         loader = QUiLoader()
         self.ui = loader.load("ImproTronControlPanel.ui")
 
-        # Location for all slide shows sounds queues, hotbutton lists etc
-        self.configDir = QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0]+"/ImproTron"
+        # Relocate the Screens
+        self.auxiliaryDisplay.restore()
+        self.auxiliaryDisplay.setLocation(self._settings.getAuxLocation())
+        self.auxiliaryDisplay.maximize()
+
+        self.mainDisplay.restore()
+        self.mainDisplay.setLocation(self._settings.getMainLocation())
+        self.mainDisplay.maximize()
 
         self.mediaFileDatabase = MediaFileDatabase()
-        self.mediaDir = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]
-        mediaCount = self.mediaFileDatabase.indexMedia(self.mediaDir)
+        mediaCount = self.mediaFileDatabase.indexMedia(self._settings.getMediaDir())
         self.ui.mediaFilesCountLBL.setText(str(mediaCount))
 
         self.mediaModel = QFileSystemModel()
-        self.mediaModel.setRootPath(self.mediaDir)
+        self.mediaModel.setRootPath(self._settings.getMediaDir())
 
-        self.soundDir = QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0]
-        soundCount = self.mediaFileDatabase.indexSounds(self.soundDir)
+        soundCount = self.mediaFileDatabase.indexSounds(self._settings.getSoundDir())
         self.ui.soundFilesCountLBL.setText(str(soundCount))
 
         self.sound = QMediaPlayer()
@@ -39,13 +46,10 @@ class ImproTronControlBoard(QObject):
         self.sound.setAudioOutput(self.audioOutput)
         self.audioOutput.setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
 
-        # Colors for Thingz list
-        self.rightTeamBackground = QColor(Qt.white)
-        self.rightTeamColor = QColor(Qt.black)
-        self.leftTeamBackground = QColor(Qt.white)
-        self.leftTeamColor = QColor(Qt.black)
-
         # Connect Score related signals to slots
+        self.setRightTeamColors(self._settings.getRightTeamColor())
+        self.setLeftTeamColors(self._settings.getLeftTeamColor())
+
         self.ui.colorRightPB.clicked.connect(self.pickRightTeamColor)
         self.ui.colorLeftPB.clicked.connect(self.pickLeftTeamColor)
         self.ui.showScoresMainPB.clicked.connect(self.showScoresMain)
@@ -133,7 +137,7 @@ class ImproTronControlBoard(QObject):
         # Slide Show Management
         self.imageTreeView = self.ui.slideShowFilesTreeView
         self.imageTreeView.setModel(self.mediaModel)
-        self.imageTreeView.setRootIndex(self.mediaModel.index(self.mediaDir))
+        self.imageTreeView.setRootIndex(self.mediaModel.index(self._settings.getMediaDir()))
         for i in range(1, self.mediaModel.columnCount()):
             self.imageTreeView.header().hideSection(i)
         self.imageTreeView.setHeaderHidden(True)
@@ -301,6 +305,7 @@ class ImproTronControlBoard(QObject):
 
     def eventFilter(self, obj, event):
         if obj is self.ui and event.type() == QEvent.Close:
+            self._settings.save()
             self.shutdown()
             event.ignore()
             return True
@@ -310,20 +315,11 @@ class ImproTronControlBoard(QObject):
         self.ui.removeEventFilter(self)
         QApplication.quit()
 
-    def getConfigDir(self):
-        return self.configDir
-
-    def getMediaDir(self):
-        return self.mediaDir
-
-    def getMusicDir(self):
-        return self.soundDir
-
     def findWidget(self, type, widgetName):
         return self.ui.findChild(type, widgetName)
 
     def selectImageFile(self):
-        selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Media", self.mediaDir , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
+        selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Media", self._settings.getMediaDir() , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
         if selectedFileName != None:
             return selectedFileName[0]
 
@@ -378,7 +374,7 @@ class ImproTronControlBoard(QObject):
                         self.auxiliaryDisplay.showImage(fileName, self.ui.stretchAuxCB.isChecked())
 
     def getTextFile(self):
-        fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self.configDir , "Text File (*.txt)")
+        fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self._settings.getConfigDir() , "Text File (*.txt)")
         if fileName[0] != None:
             file = QFile(fileName[0])
             if not file.open(QIODevice.ReadOnly | QIODevice.Text):
@@ -404,39 +400,41 @@ class ImproTronControlBoard(QObject):
 
         return style
 
-    def teamColor(self, color):
+    def teamFont(self, color):
         if(color.red()*0.299 + color.green()*0.587 + color.blue()*0.114) < 186:
             return QColor(Qt.white)
 
         return QColor(Qt.black)
 
+    def setLeftTeamColors(self, colorSelected):
+        style = self.styleSheet(colorSelected)
+
+        self.ui.teamNameLeft.setStyleSheet(style)
+        self.ui.leftThingTeamRB.setStyleSheet(style)
+        self.mainDisplay.colorizeLeftScore(style)
+        self.auxiliaryDisplay.colorizeLeftScore(style)
+
+    def setRightTeamColors(self, colorSelected):
+        style = self.styleSheet(colorSelected)
+
+        self.ui.teamNameRight.setStyleSheet(style)
+        self.ui.rightThingTeamRB.setStyleSheet(style)
+        self.mainDisplay.colorizeRightScore(style)
+        self.auxiliaryDisplay.colorizeRightScore(style)
+
     @Slot()
     def pickLeftTeamColor(self):
-        color_chooser = QColorDialog(self.ui)
-        colorSelected = color_chooser.getColor(title = 'Pick Left Team Color')
+        colorSelected = QColorDialog.getColor(self._settings.getLeftTeamColor(), self.ui,title = 'Pick Left Team Color')
         if colorSelected.isValid():
-            self.leftTeamBackground = colorSelected
-            self.leftTeamColor = self.teamColor(colorSelected)
-            style = self.styleSheet(self.leftTeamBackground)
-
-            self.ui.teamNameLeft.setStyleSheet(style)
-            self.ui.leftThingTeamRB.setStyleSheet(style)
-            self.mainDisplay.colorizeLeftScore(style)
-            self.auxiliaryDisplay.colorizeLeftScore(style)
+            self._settings.setLeftTeamColor(colorSelected)
+            self.setLeftTeamColors(colorSelected)
 
     @Slot()
     def pickRightTeamColor(self):
-        color_chooser = QColorDialog(self.ui)
-        colorSelected = color_chooser.getColor(title = 'Pick Left Team Color')
+        colorSelected = QColorDialog.getColor(self._settings.getRightTeamColor(), self.ui,title = 'Pick Right Team Color')
         if colorSelected.isValid():
-            self.rightTeamBackground = colorSelected
-            self.rightTeamColor = self.teamColor(colorSelected)
-            style = self.styleSheet(self.rightTeamBackground)
-
-            self.ui.teamNameRight.setStyleSheet(style)
-            self.ui.rightThingTeamRB.setStyleSheet(style)
-            self.mainDisplay.colorizeRightScore(style)
-            self.auxiliaryDisplay.colorizeRightScore(style)
+            self._settings.setRightTeamColor(colorSelected)
+            self.setRightTeamColors(colorSelected)
 
     @Slot()
     def pickLeftTextColor(self):
@@ -621,9 +619,14 @@ class ImproTronControlBoard(QObject):
     # on th screen they subsequently reside on.
     def improtronUnlock(self):
         if self.ui.improtronUnlockPB.isChecked():
-            self.mainDisplay.restore()
             self.auxiliaryDisplay.restore()
-        else: # Order matters so the main displays on top
+            self.mainDisplay.restore()
+        else:
+            self._settings.setAuxLocation(self.auxiliaryDisplay.getLocation())
+            self._settings.setMainLocation(self.mainDisplay.getLocation())
+            self._settings.save()
+
+            # Order matters so the main displays on top
             self.auxiliaryDisplay.maximize()
             self.mainDisplay.maximize()
 
@@ -678,11 +681,11 @@ class ImproTronControlBoard(QObject):
         currentThing = self.ui.thingzListLW.currentItem()
         if currentThing != None:
             if currentThing.isLeftSideTeam():
-                currentThing.setForeground(self.rightTeamColor)
-                currentThing.setBackground(self.rightTeamBackground)
+                currentThing.setBackground(self._settings.getRightTeamColor())
+                currentThing.setForeground(self.teamFont(self._settings.getRightTeamColor()))
             else:
-                currentThing.setForeground(self.leftTeamColor)
-                currentThing.setBackground(self.leftTeamBackground)
+                currentThing.setBackground(self._settings.getLeftTeamColor())
+                currentThing.setForeground(self.teamFont(self._settings.getLeftTeamColor()))
 
         currentThing.toggleTeam()
 
@@ -691,11 +694,11 @@ class ImproTronControlBoard(QObject):
         currentThing = self.ui.thingzListLW.currentItem()
         if currentThing != None:
             if currentThing.isLeftSideTeam():
-                currentThing.setForeground(self.rightTeamColor)
-                currentThing.setBackground(self.rightTeamBackground)
+                currentThing.setBackground(self._settings.getRightTeamColor())
+                currentThing.setForeground(self.teamFont(self._settings.getRightTeamColor()))
             else:
-                currentThing.setForeground(self.leftTeamColor)
-                currentThing.setBackground(self.leftTeamBackground)
+                currentThing.setBackground(self._settings.getLeftTeamColor())
+                currentThing.setForeground(self.teamFont(self._settings.getLeftTeamColor()))
 
             currentThing.toggleTeam()
 
@@ -724,13 +727,13 @@ class ImproTronControlBoard(QObject):
             # and color the thing appropriately
             if self.ui.leftThingTeamRB.isChecked():
                 newThing = ThingzWidget(thingStr, True, self.ui.thingzListLW)
-                newThing.setForeground(self.leftTeamColor)
-                newThing.setBackground(self.leftTeamBackground)
+                newThing.setBackground(self._settings.getLeftTeamColor())
+                newThing.setForeground(self.teamFont(self._settings.getLeftTeamColor()))
                 self.ui.rightThingTeamRB.setChecked(True)
             else:
                 newThing = ThingzWidget(thingStr, False, self.ui.thingzListLW)
-                newThing.setForeground(self.rightTeamColor)
-                newThing.setBackground(self.rightTeamBackground)
+                newThing.setBackground(self._settings.getLeftTeamColor())
+                newThing.setForeground(self.teamFont(self._settings.getLeftTeamColor()))
                 self.ui.leftThingTeamRB.setChecked(True)
 
             newThingFont = newThing.font()
@@ -838,7 +841,7 @@ class ImproTronControlBoard(QObject):
         self.ui.slideListLW.clear()
 
         fileName = QFileDialog.getOpenFileName(self.ui, "Load Slideshow",
-                                    self.configDir,
+                                    self._settings.getConfigDir(),
                                     "Slide Shows (*.ssh)")
 
         # Read the JSON data from the file
@@ -853,7 +856,7 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def saveSlideShow(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Slide Show",
-                                   self.configDir,
+                                   self._settings.getConfigDir(),
                                    "Slide Shows (*.ssh)")
 
         if len(fileName) != 0:
@@ -1015,16 +1018,16 @@ class ImproTronControlBoard(QObject):
     def setMediaLibrary(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
                 "Select the Media Library location",
-                self.mediaDir, QFileDialog.ShowDirsOnly)
+                self._settings.getMediaDir(), QFileDialog.ShowDirsOnly)
         if setDir:
-            self.mediaDir = setDir
-            mediaCount = self.mediaFileDatabase.indexMedia(self.mediaDir)
+            self._settings.setMediaDir(setDir)
+            mediaCount = self.mediaFileDatabase.indexMedia(setDir)
             self.ui.mediaFilesCountLBL.setText(str(mediaCount))
 
             # The Media Library is also part of the Media mediaModel so reset it
             self.imageTreeView = self.ui.slideShowFilesTreeView
             self.imageTreeView.setModel(self.mediaModel)
-            self.imageTreeView.setRootIndex(self.mediaModel.index(self.mediaDir))
+            self.imageTreeView.setRootIndex(self.mediaModel.index(setDir))
             for i in range(1, self.mediaModel.columnCount()):
                 self.imageTreeView.header().hideSection(i)
             self.imageTreeView.setHeaderHidden(True)
@@ -1084,10 +1087,10 @@ class ImproTronControlBoard(QObject):
     def setSoundLibrary(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
                 "Select the Sound Library location",
-                self.soundDir, QFileDialog.ShowDirsOnly)
+                self._settings.getSoundDir(), QFileDialog.ShowDirsOnly)
         if setDir:
-            self.soundDir = setDir
-            soundsCount = self.mediaFileDatabase.indexSounds(self.soundDir)
+            self._settings.setSoundDir(setDir)
+            soundsCount = self.mediaFileDatabase.indexSounds(setDir)
             self.ui.soundFilesCountLBL.setText(str(soundsCount))
 
     @Slot()
@@ -1138,7 +1141,7 @@ class ImproTronControlBoard(QObject):
         self.ui.soundQueueLW.clear()
 
         fileName = QFileDialog.getOpenFileName(self.ui, "Load Sound Queue",
-                                self.configDir,
+                                self._settings.getConfigDir(),
                                 "Sound Queue Files(*.sfx *.sdq)")
 
         # Read the JSON data from the file
@@ -1153,7 +1156,7 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def saveSoundQueue(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
-                                   self.configDir,
+                                   self._settings.getConfigDir(),
                                    "Sound Queue Files(*.sdq)")
 
         if len(fileName) != 0:
@@ -1172,7 +1175,7 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def saveSoundFXPallette(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
-                                   self.configDir,
+                                   self._settings.getConfigDir(),
                                    "Sound Queue Files(*.sfx)")
 
         if len(fileName) != 0:
@@ -1237,7 +1240,7 @@ class ImproTronControlBoard(QObject):
     @Slot(int)
     def loadSoundPallettes(self):
         self.palletteSelect.clear()
-        palletteIter = QDirIterator(self.getConfigDir(),{"*.sfx"})
+        palletteIter = QDirIterator(self._settings.getConfigDir(),{"*.sfx"})
         while palletteIter.hasNext():
             palletteFileInfo = palletteIter.nextFileInfo()
             palletteFileName = palletteFileInfo.completeBaseName()
@@ -1286,7 +1289,7 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def loadHotButtonsClicked(self):
         fileName = QFileDialog.getOpenFileName(self.ui, "Load Hot Buttons",
-                    self.getConfigDir(),
+                    self._settings.getConfigDir(),
                     "Hot Buttons (*.hbt)")
 
         # Read the JSON data from the file
@@ -1300,7 +1303,7 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def saveHotButtonsClicked(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Hot Buttons",
-                    self.getConfigDir(),
+                    self._settings.getConfigDir(),
                     "Hot Buttons (*.hbt)")
 
         if len(fileName) != 0:

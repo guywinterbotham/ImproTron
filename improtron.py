@@ -20,6 +20,6 @@ if __name__ == "__main__":
     # Fire up some Improtrons and get the party started
     displayAuxiliary = ImproTron("Auxiliary")
     displayMain = ImproTron("Main")
-    improTronControlBoard = ImproTronControlBoard(displayMain, displayAuxiliary)
+    improTronControlBoard = ImproTronControlBoard(displayMain, displayAuxiliary, settings)
 
     sys.exit(app.exec())

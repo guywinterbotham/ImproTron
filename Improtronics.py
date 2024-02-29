@@ -1,7 +1,7 @@
 # The display is a container for all the possible features that can be displayed
 # This Python file uses the following encoding: utf-8
-import json
-from PySide6.QtWidgets import QFileDialog, QPushButton, QLineEdit, QListWidgetItem, QStyle, QApplication
+
+from PySide6.QtWidgets import QPushButton, QLineEdit, QListWidgetItem, QStyle, QApplication
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import Slot, QTimer, QTime, Qt, QUrl
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon
@@ -28,10 +28,6 @@ class ImproTron():
         self.redTime = QTime(0,0,0)
         self.timerVisible(False)
         self.improTron.countdownLCD.display("00:00:00")
-
-        # Set the unrestored location based on the allotted screen
-        self.restore()
-        self.maximize()
 
     def shutdown(self):
         self.improtron.close()
@@ -208,6 +204,14 @@ class ImproTron():
         self.improTron.rightScoreLCD.setText(str(argRight))
         self.improTron.setCurrentWidget(self.improTron.displayScore)
 
+    # Return the location to persist
+    def getLocation(self):
+        return self.improTron.pos()
+
+    # Move to the location
+    def setLocation(self, q):
+        self.improTron.move(q)
+
     # Maximize on the screen where the improtron was moved to
     def maximize(self):
         flags = Qt.Window | Qt.FramelessWindowHint
@@ -216,17 +220,7 @@ class ImproTron():
 
     # Restore and move the alloted screen
     def restore(self):
-        _screen = QGuiApplication.screens()[self._screen_number]
-        self.improTron.textDisplay.setText(self._display_name + ': ' + _screen.name())
-
-        _rect = _screen.availableGeometry()
-        self._top = _rect.top()
-        self._left = _rect.left()
-        _size = _screen.size()
-        self._width = int(_size.width()/2)
-        self._height = int(_size.height()/2)
-
-        self.improTron.setGeometry(self._top, self._left, self._width, self._height)
+        self.improTron.textDisplay.setText(self._display_name)
         self.improTron.setWindowTitle(self._display_name)
 
         flags = Qt.Window
