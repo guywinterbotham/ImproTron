@@ -20,9 +20,19 @@ class Settings:
             # Default Location of Sounds, and SoundFX (Wav Files)
             self.setSoundDir(QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0])
 
+            # Default Location of text files
+            self.setDocumentDir(QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0])
+
+            # File name of default Hot Button file. This may not exist on install
+            self.setLastHotButtonFile(self.getConfigDir()+"/default.hbt")
+
             # Team Colors
             self.setLeftTeamColor(QColor(Qt.blue))
             self.setRightTeamColor(QColor(Qt.red))
+
+            # Team Names
+            self.setLeftTeamName("Left Team")
+            self.setRightTeamName("Right Team")
 
             # Screen Locations
             primaryScreen = QGuiApplication.primaryScreen()
@@ -59,6 +69,18 @@ class Settings:
     def setRightTeamColor(self, color):
         self._settings['rightTeamColor'] = "#{:06x}".format(color.rgb())
 
+    def setLeftTeamName(self, name):
+        self._settings['leftTeamName'] = name
+
+    def getLeftTeamName(self):
+        return self._settings['leftTeamName']
+
+    def setRightTeamName(self, name):
+        self._settings['rightTeamName'] = name
+
+    def getRightTeamName(self):
+        return self._settings['rightTeamName']
+
     def getConfigDir(self):
         return self._settings['configDir']
 
@@ -82,17 +104,31 @@ class Settings:
     def setSoundDir(self, mediaDir):
         self._settings['soundDir'] = mediaDir
 
+    def getDocumentDir(self):
+        return self._settings['documentDir']
+
+    def setDocumentDir(self, documentDir):
+        self._settings['documentDir'] = documentDir
+
+    def getLastHotButtonFile(self):
+        hotButtonFile = QFileInfo(self._settings['lastHotButton'])
+        if hotButtonFile.exists():
+            return self._settings['lastHotButton']
+
+        return None
+
+    def setLastHotButtonFile(self, hotButtonFile):
+        self._settings['lastHotButton'] = hotButtonFile
+
     def getMainLocation(self):
-        return QPoint(-65, -849)
-        #return QPoint(int(self._settings['mainX']), int(self._settings['mainY']))
+        return QPoint(int(self._settings['mainX']), int(self._settings['mainY']))
 
     def setMainLocation(self, p):
         self._settings['mainX'] = p.x()
         self._settings['mainY'] = p.y()
 
     def getAuxLocation(self):
-        return QPoint(-100, -741)
-        #return QPoint(int(self._settings['auxX']), int(self._settings['auxY']))
+        return QPoint(int(self._settings['auxX']), int(self._settings['auxY']))
 
     def setAuxLocation(self, p):
         self._settings['auxX'] = p.x()

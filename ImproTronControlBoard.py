@@ -1,23 +1,23 @@
 # This Python file uses the following encoding: utf-8
 import json
-import sys
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication
 from PySide6.QtWidgets import QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QApplication, QPushButton, QStyle
-from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator, QPoint
+from PySide6.QtCore import QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo, QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator, QPoint, QRegularExpression
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+from Settings import Settings
+from Improtronics import ImproTron, ThingzWidget, SlideWidget, SoundFX, HotButton
 
-from Improtronics import ThingzWidget, SlideWidget, SoundFX, HotButton
 from MediaFileDatabase import MediaFileDatabase
 import ImproTronIcons
 
 class ImproTronControlBoard(QObject):
-    def __init__(self, mainImprotron, auxiliaryImprotron, settings, parent=None):
+    def __init__(self, parent=None):
         super(ImproTronControlBoard,self).__init__()
-        self._settings = settings
+        self._settings = Settings()
 
-        self.mainDisplay = mainImprotron
-        self.auxiliaryDisplay = auxiliaryImprotron
+        self.mainDisplay = ImproTron("Main")
+        self.auxiliaryDisplay = ImproTron("Auxiliary")
 
         loader = QUiLoader()
         self.ui = loader.load("ImproTronControlPanel.ui")
@@ -46,25 +46,25 @@ class ImproTronControlBoard(QObject):
         self.sound.setAudioOutput(self.audioOutput)
         self.audioOutput.setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
 
-        # Connect Score related signals to slots
-        self.setRightTeamColors(self._settings.getRightTeamColor())
-        self.setLeftTeamColors(self._settings.getLeftTeamColor())
-
+        # Recall Team names and colors then connect Score related signals to slots
+        self.ui.teamNameLeft.textChanged.connect(self.showLeftTeam)
+        self.ui.teamNameRight.textChanged.connect(self.showRightTeam)
         self.ui.colorRightPB.clicked.connect(self.pickRightTeamColor)
         self.ui.colorLeftPB.clicked.connect(self.pickLeftTeamColor)
         self.ui.showScoresMainPB.clicked.connect(self.showScoresMain)
         self.ui.showScoresBothPB.clicked.connect(self.showScoresBoth)
         self.ui.showScoresAuxiliaryPB.clicked.connect(self.showScoresAuxiliary)
 
+        self.setLeftTeamColors(self._settings.getLeftTeamColor())
+        self.setRightTeamColors(self._settings.getRightTeamColor())
+        self.ui.teamNameLeft.setText(self._settings.getLeftTeamName())
+        self.ui.teamNameRight.setText(self._settings.getRightTeamName())
+
         # Quick Add Buttons for score updates.
         self.ui.add50PB.clicked.connect(self.quickAdd50) # Add 5 to Left team
         self.ui.add32PB.clicked.connect(self.quickAdd32) # Add 3 to Left, 2 to Right
         self.ui.add23PB.clicked.connect(self.quickAdd23) # Add 2 to Left, 3 to Right
         self.ui.add05PB.clicked.connect(self.quickAdd05) # Add 5 to Right team
-
-        # Connect Team Name updates
-        self.ui.teamNameLeft.textEdited.connect(self.showLeftTeam)
-        self.ui.teamNameRight.textEdited.connect(self.showRightTeam)
 
         # Connect info (text and images) message updates
         self.ui.showLeftTextMainPB.clicked.connect(self.showLeftTextMain)
@@ -83,6 +83,27 @@ class ImproTronControlBoard(QObject):
         self.ui.loadImageAuxiliaryPB.clicked.connect(self.getImageFileAuxiliary)
         self.ui.pasteImageMainPB.clicked.connect(self.pasteImageMain)
         self.ui.pasteImageAuxiliaryPB.clicked.connect(self.pasteImageAuxiliary)
+
+        # Ininialize preset color boxes from dialog custom colors.
+        self.setPresetColors()
+        self.ui.leftColorPreset1.clicked.connect(self.useLeftColorPreset1)
+        self.ui.leftColorPreset2.clicked.connect(self.useLeftColorPreset2)
+        self.ui.leftColorPreset3.clicked.connect(self.useLeftColorPreset3)
+        self.ui.leftColorPreset4.clicked.connect(self.useLeftColorPreset4)
+        self.ui.leftColorPreset5.clicked.connect(self.useLeftColorPreset5)
+        self.ui.leftColorPreset6.clicked.connect(self.useLeftColorPreset6)
+        self.ui.leftColorPreset7.clicked.connect(self.useLeftColorPreset7)
+        self.ui.leftColorPreset8.clicked.connect(self.useLeftColorPreset8)
+
+        self.ui.rightColorPreset1.clicked.connect(self.useRightColorPreset1)
+        self.ui.rightColorPreset2.clicked.connect(self.useRightColorPreset2)
+        self.ui.rightColorPreset3.clicked.connect(self.useRightColorPreset3)
+        self.ui.rightColorPreset4.clicked.connect(self.useRightColorPreset4)
+        self.ui.rightColorPreset5.clicked.connect(self.useRightColorPreset5)
+        self.ui.rightColorPreset6.clicked.connect(self.useRightColorPreset6)
+        self.ui.rightColorPreset7.clicked.connect(self.useRightColorPreset7)
+        self.ui.rightColorPreset8.clicked.connect(self.useRightColorPreset8)
+
 
         # Connect Show Text Config elements
         self.ui.rightTextColorPB.clicked.connect(self.pickRightTextColor)
@@ -283,6 +304,16 @@ class ImproTronControlBoard(QObject):
         for button in range(self.hotButtonNumber):
             self.hot_buttons.append(HotButton(button+1, self))
 
+        # Load the last saved hotbutton file
+        lastHotButtons = self._settings.getLastHotButtonFile()
+        if lastHotButtons != None:
+            with open(lastHotButtons, 'r') as json_file:
+                button_data = json.load(json_file)
+
+            for button in range(self.hotButtonNumber):
+                self.hot_buttons[button].load(button_data)
+
+
         # Set a slot for the clear, load and save buttons
         self.ui.hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
         self.ui.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
@@ -318,6 +349,29 @@ class ImproTronControlBoard(QObject):
     def findWidget(self, type, widgetName):
         return self.ui.findChild(type, widgetName)
 
+    # Populate the preset color buttons with the presets defined in the color dialog
+    def setPresetColors(self):
+        leftPresets = QRegularExpression('leftColorPreset')
+        rightPresets = QRegularExpression('rightColorPreset')
+
+        # Use the index provided by the QColorDialog. Cap at the max number of buttons
+        maxColorPresets = QColorDialog.customCount()
+
+        colorIndex = 0
+        for colorButton in self.ui.textDisplayTab.findChildren(QPushButton, leftPresets):
+            if colorIndex < maxColorPresets:
+                colorButton.setStyleSheet(self.styleSheet(QColorDialog.customColor(colorIndex)))
+
+            colorIndex += 1
+
+        colorIndex = 0
+        for colorButton in self.ui.textDisplayTab.findChildren(QPushButton, rightPresets):
+            if colorIndex < maxColorPresets:
+                colorButton.setStyleSheet(self.styleSheet(QColorDialog.customColor(colorIndex)))
+
+            colorIndex += 1
+
+
     def selectImageFile(self):
         selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Media", self._settings.getMediaDir() , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
         if selectedFileName != None:
@@ -328,6 +382,7 @@ class ImproTronControlBoard(QObject):
     def showMediaOnMain(self, fileName):
         if fileName != None:
             if QFileInfo.exists(fileName):
+
                 mediaInfo = QFileInfo(fileName)
                 if mediaInfo.suffix().lower() == 'gif':
                     movie = QMovie(fileName)
@@ -374,8 +429,11 @@ class ImproTronControlBoard(QObject):
                         self.auxiliaryDisplay.showImage(fileName, self.ui.stretchAuxCB.isChecked())
 
     def getTextFile(self):
-        fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self._settings.getConfigDir() , "Text File (*.txt)")
+        fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self._settings.getDocumentDir() , "Text File (*.txt)")
         if fileName[0] != None:
+            fileInfo = QFileInfo(fileName[0])
+            self._settings.setDocumentDir(fileInfo.absolutePath())
+
             file = QFile(fileName[0])
             if not file.open(QIODevice.ReadOnly | QIODevice.Text):
                 return
@@ -436,23 +494,127 @@ class ImproTronControlBoard(QObject):
             self._settings.setRightTeamColor(colorSelected)
             self.setRightTeamColors(colorSelected)
 
+    # Text box color mamagement
+    def setTextBoxColor(self, coloredButton, colorStyle):
+        coloredButton.setStyleSheet(colorStyle)
+
+    # Left side preset colors
+    @Slot()
+    def useLeftColorPreset1(self):
+        style = self.ui.leftColorPreset1.styleSheet()
+        self.setTextBoxColor(self.ui.leftTextColorPB, style)
+
+    @Slot()
+    def useLeftColorPreset1(self):
+        style = self.ui.leftColorPreset1.styleSheet()
+        self.setTextBoxColor(self.ui.leftTextColorPB, style)
+
+    @Slot()
+    def useLeftColorPreset2(self):
+        style = self.ui.leftColorPreset2.styleSheet()
+        self.setTextBoxColor(self.ui.leftTextColorPB, style)
+
+    @Slot()
+    def useLeftColorPreset3(self):
+        style = self.ui.leftColorPreset3.styleSheet()
+        self.setTextBoxColor(self.ui.leftTextColorPB, style)
+
+    @Slot()
+    def useLeftColorPreset4(self):
+        style = self.ui.leftColorPreset4.styleSheet()
+        self.setTextBoxColor(self.ui.leftTextColorPB, style)
+
+    @Slot()
+    def useLeftColorPreset5(self):
+        style = self.ui.leftColorPreset5.styleSheet()
+        self.setTextBoxColor(self.ui.leftTextColorPB, style)
+
+    @Slot()
+    def useLeftColorPreset6(self):
+        style = self.ui.leftColorPreset6.styleSheet()
+        self.setTextBoxColor(self.ui.leftTextColorPB, style)
+
+    @Slot()
+    def useLeftColorPreset7(self):
+        style = self.ui.leftColorPreset7.styleSheet()
+        self.setTextBoxColor(self.ui.leftTextColorPB, style)
+
+    @Slot()
+    def useLeftColorPreset8(self):
+        style = self.ui.leftColorPreset8.styleSheet()
+        self.setTextBoxColor(self.ui.leftTextColorPB, style)
+
+
     @Slot()
     def pickLeftTextColor(self):
         color_chooser = QColorDialog(self.ui)
         colorSelected = color_chooser.getColor(title = 'Pick Left Text Box Color')
+
+        # Update the presets incase one was changed while picking a color
+        self.setPresetColors()
+
         if colorSelected != None:
             style = self.styleSheet(colorSelected)
+            self.setTextBoxColor(self.ui.leftTextColorPB, style)
 
-            self.ui.leftTextColorPB.setStyleSheet(style)
+    # Right side preset colors
+    @Slot()
+    def useRightColorPreset1(self):
+        style = self.ui.rightColorPreset1.styleSheet()
+        self.setTextBoxColor(self.ui.rightTextColorPB, style)
+
+    @Slot()
+    def useRightColorPreset1(self):
+        style = self.ui.rightColorPreset1.styleSheet()
+        self.setTextBoxColor(self.ui.rightTextColorPB, style)
+
+    @Slot()
+    def useRightColorPreset2(self):
+        style = self.ui.rightColorPreset2.styleSheet()
+        self.setTextBoxColor(self.ui.rightTextColorPB, style)
+
+    @Slot()
+    def useRightColorPreset3(self):
+        style = self.ui.rightColorPreset3.styleSheet()
+        self.setTextBoxColor(self.ui.rightTextColorPB, style)
+
+    @Slot()
+    def useRightColorPreset4(self):
+        style = self.ui.rightColorPreset4.styleSheet()
+        self.setTextBoxColor(self.ui.rightTextColorPB, style)
+
+    @Slot()
+    def useRightColorPreset5(self):
+        style = self.ui.rightColorPreset5.styleSheet()
+        self.setTextBoxColor(self.ui.rightTextColorPB, style)
+
+    @Slot()
+    def useRightColorPreset6(self):
+        style = self.ui.rightColorPreset6.styleSheet()
+        self.setTextBoxColor(self.ui.rightTextColorPB, style)
+
+    @Slot()
+    def useRightColorPreset7(self):
+        style = self.ui.rightColorPreset7.styleSheet()
+        self.setTextBoxColor(self.ui.rightTextColorPB, style)
+
+    @Slot()
+    def useRightColorPreset8(self):
+        style = self.ui.rightColorPreset8.styleSheet()
+        self.setTextBoxColor(self.ui.rightTextColorPB, style)
+
 
     @Slot()
     def pickRightTextColor(self):
         color_chooser = QColorDialog(self.ui)
         colorSelected = color_chooser.getColor(title = 'Pick Right Text Box Color')
+
+        # Update the presets incase one was changed while picking a color
+        self.setPresetColors()
+
         if colorSelected.isValid():
             style = self.styleSheet(colorSelected)
-
-            self.ui.rightTextColorPB.setStyleSheet(style)
+            self.setTextBoxColor(self.ui.leftTextColorPB, style)
 
     @Slot()
     def blackoutBoth(self):
@@ -561,24 +723,26 @@ class ImproTronControlBoard(QObject):
         self.mainDisplay.showLeftTeam(teamName)
         self.auxiliaryDisplay.showLeftTeam(teamName)
         self.ui.leftThingTeamRB.setText(teamName)
+        self._settings.setLeftTeamName(teamName)
 
     @Slot(str)
     def showRightTeam(self, teamName):
         self.mainDisplay.showRightTeam(teamName)
         self.auxiliaryDisplay.showRightTeam(teamName)
         self.ui.rightThingTeamRB.setText(teamName)
+        self._settings.setRightTeamName(teamName)
 
     @Slot()
     def showLeftTextMain(self):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
-        self.mainDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), False, font)
+        self.mainDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
 
     @Slot()
     def showLeftTextAuxiliary(self):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
-        self.auxiliaryDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), False, font)
+        self.auxiliaryDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
 
     @Slot()
     def showLeftTextBoth(self):
@@ -589,13 +753,13 @@ class ImproTronControlBoard(QObject):
     def showRightTextMain(self):
         font = self.ui.fontComboBoxRight.currentFont()
         font.setPointSize(self.ui.rightFontSize.value())
-        self.mainDisplay.showText(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), False, font)
+        self.mainDisplay.showText(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
 
     @Slot()
     def showRightTextAuxiliary(self):
         font = self.ui.fontComboBoxRight.currentFont()
         font.setPointSize(self.ui.rightFontSize.value())
-        self.auxiliaryDisplay.showText(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), False, font)
+        self.auxiliaryDisplay.showText(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
 
     @Slot()
     def showRightTextBoth(self):
@@ -630,6 +794,7 @@ class ImproTronControlBoard(QObject):
             self.auxiliaryDisplay.maximize()
             self.mainDisplay.maximize()
 
+    # Things Tab Management
     def listThingz(self):
         listText = "Empty"
         if self.ui.thingzListLW.count() > 0:
@@ -639,14 +804,13 @@ class ImproTronControlBoard(QObject):
 
         return listText
 
-    # Things Tab Management
     @Slot()
     def showThingzListMain(self):
-        self.mainDisplay.showText(self.listThingz(), self.styleSheet(self.leftTeamBackground), True)
+        self.mainDisplay.showText(self.listThingz())
 
     @Slot()
     def showThingzListAuxiliary(self):
-        self.auxiliaryDisplay.showText(self.listThingz(), self.styleSheet(self.rightTeamBackground), True)
+        self.auxiliaryDisplay.showText(self.listThingz())
 
     @Slot()
     def showThingzListBoth(self):
@@ -657,13 +821,13 @@ class ImproTronControlBoard(QObject):
     def showThingMain(self):
         currentThing = self.ui.thingzListLW.currentItem()
         if currentThing != None:
-            self.mainDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()), True)
+            self.mainDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()))
 
     @Slot()
     def showThingAuxiliary(self):
         currentThing = self.ui.thingzListLW.currentItem()
         if currentThing != None:
-            self.auxiliaryDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()), True)
+            self.auxiliaryDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()))
 
     @Slot()
     def showThingBoth(self):
@@ -730,10 +894,10 @@ class ImproTronControlBoard(QObject):
                 newThing.setBackground(self._settings.getLeftTeamColor())
                 newThing.setForeground(self.teamFont(self._settings.getLeftTeamColor()))
                 self.ui.rightThingTeamRB.setChecked(True)
-            else:
+            else: # Right Team Color
                 newThing = ThingzWidget(thingStr, False, self.ui.thingzListLW)
-                newThing.setBackground(self._settings.getLeftTeamColor())
-                newThing.setForeground(self.teamFont(self._settings.getLeftTeamColor()))
+                newThing.setBackground(self._settings.getRightTeamColor())
+                newThing.setForeground(self.teamFont(self._settings.getRightTeamColor()))
                 self.ui.leftThingTeamRB.setChecked(True)
 
             newThingFont = newThing.font()
@@ -1294,6 +1458,10 @@ class ImproTronControlBoard(QObject):
 
         # Read the JSON data from the file
         if len(fileName) != 0:
+
+            # Remember the last loaded hotbutton file for when the app is started
+            self._settings.setLastHotButtonFile(fileName[0])
+
             with open(fileName[0], 'r') as json_file:
                 button_data = json.load(json_file)
 

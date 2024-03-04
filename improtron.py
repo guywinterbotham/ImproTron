@@ -1,8 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import sys
 from PySide6.QtWidgets import QApplication
-from Improtronics import ImproTron
-from Settings import Settings
 from ImproTronControlBoard import ImproTronControlBoard
 
 #export QT_LOGGING_RULES="qt.pyside.libpyside.warning=true"
@@ -15,11 +13,7 @@ from ImproTronControlBoard import ImproTronControlBoard
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    settings = Settings()
-
-    # Fire up some Improtrons and get the party started
-    displayAuxiliary = ImproTron("Auxiliary")
-    displayMain = ImproTron("Main")
-    improTronControlBoard = ImproTronControlBoard(displayMain, displayAuxiliary, settings)
+    # Get the party started
+    improTronControlBoard = ImproTronControlBoard()
 
     sys.exit(app.exec())

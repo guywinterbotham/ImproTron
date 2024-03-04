@@ -108,7 +108,7 @@ background-color: rgb(0, 0, 0);</string>
          <enum>Qt::AutoText</enum>
         </property>
         <property name="scaledContents">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>

@@ -104,8 +104,7 @@ class ImproTron():
         self.improTron.setCurrentWidget(self.improTron.displayText)
 
     # Show Text on the display
-    def showText(self, text_msg, style=None, autoScale = False, font=None):
-
+    def showText(self, text_msg, style=None, font=None):
         if font != None:
             self.improTron.textDisplay.setFont(font)
 
