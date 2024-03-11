@@ -1029,12 +1029,9 @@ class ImproTronControlBoard(QObject):
                 slideName = "slide"+str(slide)
                 slide_data[slideName] = self.ui.slideListLW.item(slide).imagePath()
 
-            # Convert the Python dictionary to a JSON string
-            json_data = json.dumps(slide_data, indent=2)
-
             # Write the JSON string to a file
-            with open(fileName[0], 'w') as json_file:
-                json_file.write(json_data)
+            with open(fileName[0], 'w', encoding='utf8') as json_file:
+                json.dump(slide_data, json_file, indent=2)
 
     @Slot()
     def clearSlideShow(self):
@@ -1329,12 +1326,9 @@ class ImproTronControlBoard(QObject):
                 soundName = "sound"+str(sound)
                 sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
 
-            # Convert the Python dictionary to a JSON string
-            json_data = json.dumps(sound_data, indent=2)
-
             # Write the JSON string to a file
-            with open(fileName[0], 'w') as json_file:
-                json_file.write(json_data)
+            with open(fileName[0], 'w', encoding='utf8') as json_file:
+                json.dump(sound_data, json_file, indent=2)
 
     @Slot()
     def saveSoundFXPallette(self):
@@ -1348,12 +1342,9 @@ class ImproTronControlBoard(QObject):
                 soundName = "sound"+str(sound)
                 sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
 
-            # Convert the Python dictionary to a JSON string
-            json_data = json.dumps(sound_data, indent=2)
-
             # Write the JSON string to a file
-            with open(fileName[0], 'w') as json_file:
-                json_file.write(json_data)
+            with open(fileName[0], 'w', encoding='utf8') as json_file:
+                json.dump(sound_data, json_file, indent=2)
 
         # Trigger a refresh of the combo box of Palletes
         self.loadSoundPallettes()
@@ -1479,12 +1470,9 @@ class ImproTronControlBoard(QObject):
             for button in range(self.hotButtonNumber):
                 self.hot_buttons[button].save(button_data)
 
-            # Convert the Python dictionary to a JSON string
-            json_data = json.dumps(button_data, indent=2)
-
-            # Write the JSON string to a file
-            with open(fileName[0], 'w') as json_file:
-                json_file.write(json_data)
+            # Write the JSON string to a file. Since Button names could have special characters, encode
+            with open(fileName[0], 'w', encoding='utf8') as json_file:
+                json.dump(button_data, json_file, indent=2)
 
     @Slot()
     def about(self):

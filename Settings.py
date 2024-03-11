@@ -41,12 +41,9 @@ class Settings:
             self.setAuxLocation(primaryLocation.topLeft())
 
     def save(self):
-        # Convert the Python dictionary to a JSON string
-        json_data = json.dumps(self._settings, indent=2)
-
-        # Write the JSON string to a file
-        with open(self._settings['configDir'] + self._defaultConfig, 'w') as json_file:
-            json_file.write(json_data)
+        # Write the JSON string to a file. Since certain settings could have special characters, encode
+        with open(self._settings['configDir'] + self._defaultConfig, 'w', encoding='utf8') as json_file:
+            json.dump(self._settings, json_file, indent=2)
 
     def load(self):
         configFileInfo = QFileInfo(self._settings['configDir'] + self._defaultConfig)

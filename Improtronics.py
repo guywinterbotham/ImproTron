@@ -6,6 +6,7 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import Slot, QTimer, QTime, Qt, QUrl
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon
 from PySide6.QtMultimedia import QSoundEffect
+from Timer import CountdownTimer
 
 # Class to handle display on a separate monitor
 class ImproTron():
@@ -19,68 +20,24 @@ class ImproTron():
         self.improTron = self.loader.load("Improtron.ui", None)
         self.media = QPixmap()
 
-        # Countdown Timer
-        self.countdownTimer = QTimer()
-        self.countdownTimer.timeout.connect(self.countdown)
+    # Countdown Timer Passthrough controls
+        self._timer = CountdownTimer(self._display_name+" Timer")
 
-        self.countdownTime = QTime(0,0,0)
-        self.startingTime = QTime(0,0,0)
-        self.redTime = QTime(0,0,0)
-        self.timerVisible(False)
-        self.improTron.countdownLCD.display("00:00:00")
+    def timerStart(self, time, redTime):
+        self._timer.start(time, redTime)
+
+    def timerPause(self):
+        self._timer.pause()
+
+    def timerReset(self, time, redTime):
+        self._timer.reset(time, redTime)
 
     def shutdown(self):
         self.improtron.close()
 
     # Functions for the Countdown Timer
     def timerVisible(self, visible = False):
-        self.improTron.countdownLCD.setVisible(visible)
-
-    def timerStart(self, time, redTime):
-        if not self.countdownTimer.isActive():
-            self.countdownTime.setHMS(time.hour(), time.minute(), time.second())
-            self.startingTime.setHMS(time.hour(), time.minute(), time.second())
-            self.redTime.setHMS(redTime.hour(), redTime.minute(), redTime.second())
-            self.improTron.countdownLCD.setStyleSheet("background:black; color: white")
-
-            self.countdownTimer.start(1000)
-
-    def timerPause(self):
-        if self.countdownTimer.isActive():
-            self.countdownTimer.stop()
-        else:
-            self.countdownTimer.start(1000)
-
-
-    def timerReset(self, time, redTime):
-        if self.countdownTimer.isActive():
-            self.countdownTime.setHMS(time.hour(), time.minute(), time.second())
-            self.startingTime.setHMS(time.hour(), time.minute(), time.second())
-            self.redTime.setHMS(redTime.hour(), redTime.minute(), redTime.second())
-            self.improTron.countdownLCD.setStyleSheet("background:black; color: white")
-
-    @Slot()
-    def countdown(self):
-        self.countdownTime = self.countdownTime.addSecs(-1)
-        text = self.countdownTime.toString("hh:mm:ss")
-
-        # Blinking effect
-        if (self.countdownTime.second() % 2) == 0:
-            text = text.replace(":", " ")
-
-        # Alert time - something is close to happening
-        if self.countdownTime <= self.redTime:
-            self.improTron.countdownLCD.setStyleSheet("background:black; color: red")
-
-        # Timeout - when countime rolls over and goes to midnight then
-        # it has timed out. However the default comparison logic will see the rolled
-        # over time as greater than zero time. SO detect the rollover instead.
-        if self.countdownTime > self.startingTime:
-            self.countdownTimer.stop()
-            return
-
-        self.improTron.countdownLCD.display(text)
-
+        self._timer.showTimer(self.improTron.frameGeometry(), visible)
 
     # Colorize the Left score display
     def colorizeLeftScore(self, scoreStyle):
