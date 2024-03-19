@@ -14,11 +14,14 @@ class Settings:
         # Attempt to load the default settings
         if not self.load():
 
-            # Default Location of Pictures, Gifs and Movies
+            # Default Location of Pictures and Gifs
             self.setMediaDir(QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0])
 
             # Default Location of Sounds, and SoundFX (Wav Files)
             self.setSoundDir(QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0])
+
+            # Default Videos
+            self.setVideoDir(QStandardPaths.standardLocations(QStandardPaths.MoviesLocation)[0])
 
             # Default Location of text files
             self.setDocumentDir(QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0])
@@ -94,6 +97,12 @@ class Settings:
 
     def setMediaDir(self, mediaDir):
         self._settings['mediaDir'] = mediaDir
+
+    def getVideoDir(self):
+        return self._settings['videoDir']
+
+    def setVideoDir(self, mediaDir):
+        self._settings['videoDir'] = mediaDir
 
     def getSoundDir(self):
         return self._settings['soundDir']

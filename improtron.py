@@ -9,6 +9,7 @@ from ImproTronControlBoard import ImproTronControlBoard
 # venv\Scripts\activate.bat
 # venv\Scripts\pyside6-deploy -c ImproTron.spec
 # venv\Scripts\pyside6-rcc -g python ImproTronIcons.qrc > ImproTronIcons.py
+# venv\Scripts\pyside6-uic ImproTron.ui -o ui_ImproTron.py
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

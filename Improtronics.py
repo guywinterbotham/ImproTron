@@ -1,23 +1,24 @@
 # The display is a container for all the possible features that can be displayed
 # This Python file uses the following encoding: utf-8
 
-from PySide6.QtWidgets import QPushButton, QLineEdit, QListWidgetItem, QStyle, QApplication
-from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import Slot, QTimer, QTime, Qt, QUrl
+from PySide6.QtWidgets import QPushButton, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow
+from PySide6.QtCore import Slot, Qt, QUrl
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon
 from PySide6.QtMultimedia import QSoundEffect
 from Timer import CountdownTimer
+from ui_ImproTron import Ui_ImproTron
 
 # Class to handle display on a separate monitor
-class ImproTron():
+class ImproTron(QMainWindow):
     def __init__(self, name, parent=None):
         super(ImproTron, self).__init__()
 
         self._screen_number = 0
         self._display_name = name
 
-        self.loader = QUiLoader()
-        self.improTron = self.loader.load("Improtron.ui", None)
+        self.ui = Ui_ImproTron()
+        self.ui.setupUi(self)
+
         self.media = QPixmap()
 
     # Countdown Timer Passthrough controls
@@ -33,48 +34,48 @@ class ImproTron():
         self._timer.reset(time, redTime)
 
     def shutdown(self):
-        self.improtron.close()
+        self.close()
 
     # Functions for the Countdown Timer
     def timerVisible(self, visible = False):
-        self._timer.showTimer(self.improTron.frameGeometry(), visible)
+        self._timer.showTimer(self.frameGeometry(), visible)
 
     # Colorize the Left score display
     def colorizeLeftScore(self, scoreStyle):
-        self.improTron.leftTeamLabel.setStyleSheet(scoreStyle)
-        self.improTron.leftScoreLCD.setStyleSheet(scoreStyle)
+        self.ui.leftTeamLabel.setStyleSheet(scoreStyle)
+        self.ui.leftScoreLCD.setStyleSheet(scoreStyle)
 
     # Colorize the Right score display
     def colorizeRightScore(self, scoreStyle):
-        self.improTron.rightTeamLabel.setStyleSheet(scoreStyle)
-        self.improTron.rightScoreLCD.setStyleSheet(scoreStyle)
+        self.ui.rightTeamLabel.setStyleSheet(scoreStyle)
+        self.ui.rightScoreLCD.setStyleSheet(scoreStyle)
 
     # Clear the text display and show
     def clearText(self):
-        self.improTron.textDisplay.clear()
-        self.improTron.setCurrentWidget(self.improTron.displayText)
+        self.ui.textDisplay.clear()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
         # Clear the display to black
     def blackout(self):
-        self.improTron.textDisplay.setStyleSheet("background:black; color:black")
-        self.improTron.textDisplay.setText("blackout")
-        self.improTron.setCurrentWidget(self.improTron.displayText)
+        self.ui.textDisplay.setStyleSheet("background:black; color:black")
+        self.ui.textDisplay.setText("blackout")
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show Text on the display
     def showText(self, text_msg, style=None, font=None):
         if font != None:
-            self.improTron.textDisplay.setFont(font)
+            self.ui.textDisplay.setFont(font)
 
         if style != None:
-            self.improTron.textDisplay.setStyleSheet(style)
+            self.ui.textDisplay.setStyleSheet(style)
 
         # Figure out if the height of the text is going to be too big and autoscale if needed
-        fontMetrics = self.improTron.textDisplay.fontMetrics()
+        fontMetrics = self.ui.textDisplay.fontMetrics()
         textHeight = fontMetrics.size(Qt.TextExpandTabs,text_msg).height()
         textWidth = fontMetrics.size(Qt.TextExpandTabs,text_msg).width()
 
-        textBoxHeight = self.improTron.textDisplay.rect().height()
-        textBoxWidth = self.improTron.textDisplay.rect().width()
+        textBoxHeight = self.ui.textDisplay.rect().height()
+        textBoxWidth = self.ui.textDisplay.rect().width()
 
         heightRatio = textHeight/textBoxHeight
         widthRatio  = textWidth/textBoxWidth
@@ -100,7 +101,7 @@ class ImproTron():
 
         # Some scaling has to occur so pull the font out and scale
         if scaleHeight or scaleWidth:
-            textBoxFont = self.improTron.textDisplay.font()
+            textBoxFont = self.ui.textDisplay.font()
             if scaleHeight:
                 newSize = max(1, int(textBoxFont.pointSize()/heightRatio))
                 textBoxFont.setPointSize(newSize)
@@ -108,10 +109,10 @@ class ImproTron():
                 newSize = max(1, int(textBoxFont.pointSize()/widthRatio))
                 textBoxFont.setPointSize(newSize)
 
-            self.improTron.textDisplay.setFont(textBoxFont) # and put it back
+            self.ui.textDisplay.setFont(textBoxFont) # and put it back
 
-        self.improTron.textDisplay.setText(text_msg)
-        self.improTron.setCurrentWidget(self.improTron.displayText)
+        self.ui.textDisplay.setText(text_msg)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show an image on the disaply
     def showImage(self, fileName, stretch = True):
@@ -121,67 +122,83 @@ class ImproTron():
 
         if newImage:
             if stretch:
-                self.improTron.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaled(self.improTron.textDisplay.size())))
+                self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.textDisplay.size())))
             else:
-                self.improTron.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.improTron.textDisplay.size().height())))
-        self.improTron.setCurrentWidget(self.improTron.displayText)
+                self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.textDisplay.size().height())))
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show an image on the from the clipboard
     def pasteImage(self, stretch = True):
         pixmap = QGuiApplication.clipboard().pixmap()
         if pixmap != None:
             if stretch:
-                self.improTron.textDisplay.setPixmap(pixmap.scaled(self.improTron.textDisplay.size()))
+                self.ui.textDisplay.setPixmap(pixmap.scaled(self.ui.textDisplay.size()))
             else:
-                self.improTron.textDisplay.setPixmap(pixmap.scaledToHeight(self.improTron.textDisplay.size().height()))
+                self.ui.textDisplay.setPixmap(pixmap.scaledToHeight(self.ui.textDisplay.size().height()))
 
-            self.improTron.setCurrentWidget(self.improTron.displayText)
+            self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show an movie on the disaply
     def showMovie(self, movieFile):
         movie = QMovie(movieFile)
         movie.setSpeed(100)
-        movie.setScaledSize(self.improTron.textDisplay.size())
-        self.improTron.textDisplay.setMovie(movie)
+        movie.setScaledSize(self.ui.textDisplay.size())
+        self.ui.textDisplay.setMovie(movie)
         movie.start()
-        self.improTron.setCurrentWidget(self.improTron.displayText)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Set the name of the Left Team
     def showLeftTeam(self, teamName):
-        self.improTron.leftTeamLabel.setText(teamName)
+        self.ui.leftTeamLabel.setText(teamName)
 
     # Set the name of the Right Team
     def showRightTeam(self, teamName):
-        self.improTron.rightTeamLabel.setText(teamName)
+        self.ui.rightTeamLabel.setText(teamName)
 
     # Update the scores on the score board
     def updateScores(self, argLeft, argRight):
-        self.improTron.leftScoreLCD.setText(str(argLeft))
-        self.improTron.rightScoreLCD.setText(str(argRight))
-        self.improTron.setCurrentWidget(self.improTron.displayScore)
+        self.ui.leftScoreLCD.setText(str(argLeft))
+        self.ui.rightScoreLCD.setText(str(argRight))
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayScore)
+
+    # Flip to the video player
+    def showVideo(self):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayVideo)
+
+    # Return the camera viewport
+    def getVideoPlayer(self):
+        return self.ui.videoPlayer
+
+    # Flip to the video player
+    def showCamera(self):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayCamera)
+
+    # Return the camera viewport
+    def getCameraPlayer(self):
+        return self.ui.cameraPlayer
 
     # Return the location to persist
     def getLocation(self):
-        return self.improTron.pos()
+        return self.pos()
 
     # Move to the location
     def setLocation(self, q):
-        self.improTron.move(q)
+        self.move(q)
 
     # Maximize on the screen where the improtron was moved to
     def maximize(self):
         flags = Qt.Window | Qt.FramelessWindowHint
-        self.improTron.setWindowFlags(flags)
-        self.improTron.showMaximized()
+        self.setWindowFlags(flags)
+        self.showMaximized()
 
     # Restore and move the alloted screen
     def restore(self):
-        self.improTron.textDisplay.setText(self._display_name)
-        self.improTron.setWindowTitle(self._display_name)
+        self.showText(self._display_name)
+        self.setWindowTitle(self._display_name)
 
         flags = Qt.Window
-        self.improTron.setWindowFlags(flags)
-        self.improTron.showNormal()
+        self.setWindowFlags(flags)
+        self.showNormal()
 
     # End Class ImproTron
 

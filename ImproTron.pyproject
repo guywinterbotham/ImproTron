@@ -4,6 +4,7 @@
         "ImproTronControlBoard.py",
         "Improtronics.py",
         "MediaFileDatabase.py",
-        "Settings.py"
+        "Settings.py",
+        "Timer.py"
     ]
 }
