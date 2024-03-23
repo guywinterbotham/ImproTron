@@ -199,6 +199,8 @@ class ImproTronControlBoard(QObject):
         self.ui.slideListLW.itemClicked.connect(self.previewSelectedSlide)
         self.ui.slideListLW.itemDoubleClicked.connect(self.showSlideMain)
         self.ui.addSlidePB.clicked.connect(self.addSlidetoList)
+        self.ui.slideShowSecondSB.valueChanged.connect(self.slideShowSecondChanged)
+
 
         self.ui.slideMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
         self.ui.slideMoveUpPB.clicked.connect(self.slideMoveUp)
@@ -224,7 +226,7 @@ class ImproTronControlBoard(QObject):
 
         # Slideshow Timer wiring
         self.slideShowTimer = QTimer()
-        self.secondsSettings = self.ui.slideShowSecondSB
+        self.ui.slideShowSecondSB.setValue(self._settings.getSlideshowDelay())
         self.paused = False
         self. currentSlide = 0
         self.slideShowTimer.timeout.connect(self.nextSlide)
@@ -366,6 +368,21 @@ class ImproTronControlBoard(QObject):
         # Preferences
         self.ui.aboutPB.clicked.connect(self.about)
         self.ui.improtronUnlockPB.clicked.connect(self.improtronUnlock)
+        self.ui.startupImagePB.clicked.connect(self.startupImage)
+        self.ui.startupSlidesPB.clicked.connect(self.startupSlides)
+
+        _startupSlideshow = self._settings.getStartupSlideShow()
+        if len(_startupSlideshow) >0:
+            self.loadSlides(_startupSlideshow)
+            self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
+            self.slideShowPlay()
+
+        else:
+            self.showMediaOnMain(self._settings.getStartupImage())
+            self.showMediaOnAux(self._settings.getStartupImage())
+
+        # Set up an event filter to handle the orderly shutdown of the app.
+        self.ui.installEventFilter(self)
 
         self.ui.setWindowFlags(
             Qt.Window |
@@ -375,8 +392,6 @@ class ImproTronControlBoard(QObject):
             )
         self.ui.show()
 
-        # Set up an event filter to handle the orderly shutdown of the app.
-        self.ui.installEventFilter(self)
 
     def eventFilter(self, obj, event):
         if obj is self.ui and event.type() == QEvent.Close:
@@ -418,20 +433,16 @@ class ImproTronControlBoard(QObject):
 
     def selectImageFile(self):
         selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Media", self._settings.getMediaDir() , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
-        if selectedFileName != None:
-            return selectedFileName[0]
 
-        return None
+        return selectedFileName[0]
 
     def selectVideoFile(self):
         selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Video", self._settings.getVideoDir() , "Video Files (*.mp4)")
-        if selectedFileName != None:
-            return selectedFileName[0]
 
-        return None
+        return selectedFileName[0]
 
     def showMediaOnMain(self, fileName):
-        if fileName != None:
+        if len(fileName) > 0:
             if QFileInfo.exists(fileName):
 
                 mediaInfo = QFileInfo(fileName)
@@ -456,7 +467,7 @@ class ImproTronControlBoard(QObject):
                     self.mainDisplay.showImage(fileName, self.ui.stretchMainCB.isChecked())
 
     def showMediaOnAux(self, fileName):
-        if fileName != None:
+        if len(fileName) > 0:
             if QFileInfo.exists(fileName):
                 mediaInfo = QFileInfo(fileName)
                 if bytes(mediaInfo.suffix().lower(),"ascii") in QMovie.supportedFormats():
@@ -717,7 +728,7 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def getVideoFileMain(self):
         self.videoFile = self.selectVideoFile()
-        if self.videoFile != None:
+        if len(self.videoFile) > 0:
             if QFileInfo.exists(self.videoFile):
 
                 mediaInfo = QFileInfo(self.videoFile)
@@ -907,6 +918,7 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def updateThingsText(self):
         currentThing = self.ui.thingzListLW.currentItem()
+
         if currentThing != None:
             self.ui.thingzListLW.currentItem().updateSubstitutes(self.ui.thingTextEdit.toPlainText())
 
@@ -1011,6 +1023,10 @@ class ImproTronControlBoard(QObject):
             self.ui.leftThingTeamRB.setChecked(True)
 
     # Slideshow Management
+    @Slot(int)
+    def slideShowSecondChanged(self, value):
+        self._settings.setSlideshowDelay(value)
+
     @Slot(QItemSelection, QItemSelection)
     def imageSelectedfromDir(self, new_selection, old_selection):
         # get the text of the selected item
@@ -1064,6 +1080,16 @@ class ImproTronControlBoard(QObject):
         self.ui.slidePreviewLBL.clear()
         self.ui.slideListLW.takeItem(self.ui.slideListLW.row(self.ui.slideListLW.currentItem()))
 
+    def loadSlides(self, fileName):
+        # Read the JSON data from the file
+        if len(fileName) > 0:
+            with open(fileName, 'r') as json_file:
+                slideshow_data = json.load(json_file)
+
+            for slide in slideshow_data.items():
+                file = QFileInfo(slide[1])
+                SlideWidget(file, self.ui.slideListLW)
+
     @Slot()
     def loadSlideShow(self):
         if self.ui.slideListLW.count() > 0:
@@ -1078,21 +1104,14 @@ class ImproTronControlBoard(QObject):
                                     self._settings.getConfigDir(),
                                     "Slide Shows (*.ssh)")
 
-        # Read the JSON data from the file
-        if len(fileName[0]) != 0:
-            with open(fileName[0], 'r') as json_file:
-                slideshow_data = json.load(json_file)
-
-            for slide in slideshow_data.items():
-                file = QFileInfo(slide[1])
-                SlideWidget(file, self.ui.slideListLW)
+        self.loadSlides(fileName[0])
 
     @Slot()
     def saveSlideShow(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Slide Show",
                                    self._settings.getConfigDir(),
                                    "Slide Shows (*.ssh)")
-        if len(fileName[0]) != 0:
+        if len(fileName[0]) > 0:
             slide_data = {}
             for slide in range(self.ui.slideListLW.count()):
                 slideName = "slide"+str(slide)
@@ -1160,7 +1179,7 @@ class ImproTronControlBoard(QObject):
         if not self.paused:
             self.currentSlide = 0
         self.paused = False
-        self.slideShowTimer.setInterval(self.secondsSettings.value()*1000)
+        self.slideShowTimer.setInterval(self._settings.getSlideshowDelay()*1000)
         self.ui.slideListLW.setCurrentRow(self.currentSlide)
         self.mainDisplay.blackout() # removes and text colors
         self.showSlideMain()
@@ -1376,7 +1395,7 @@ class ImproTronControlBoard(QObject):
                                 "Sound Queue Files(*.sfx *.sdq)")
 
         # Read the JSON data from the file
-        if len(fileName[0]) != 0:
+        if len(fileName[0]) > 0:
             with open(fileName[0], 'r') as json_file:
                 sound_data = json.load(json_file)
 
@@ -1390,7 +1409,7 @@ class ImproTronControlBoard(QObject):
                                    self._settings.getConfigDir(),
                                    "Sound Queue Files(*.sdq)")
 
-        if len(fileName[0]) != 0:
+        if len(fileName[0]) > 0:
             sound_data = {}
             for sound in range(self.ui.soundQueueLW.count()):
                 soundName = "sound"+str(sound)
@@ -1406,7 +1425,7 @@ class ImproTronControlBoard(QObject):
                                    self._settings.getConfigDir(),
                                    "Sound Queue Files(*.sfx)")
 
-        if len(fileName[0]) != 0:
+        if len(fileName[0]) > 0:
             sound_data = {}
             for sound in range(self.ui.soundQueueLW.count()):
                 soundName = "sound"+str(sound)
@@ -1549,7 +1568,7 @@ class ImproTronControlBoard(QObject):
                     "Hot Buttons (*.hbt)")
 
         # Read the JSON data from the file
-        if len(fileName[0]) != 0:
+        if len(fileName[0]) > 0:
 
             # Remember the last loaded hotbutton file for when the app is started
             self._settings.setLastHotButtonFile(fileName[0])
@@ -1566,7 +1585,7 @@ class ImproTronControlBoard(QObject):
                     self._settings.getConfigDir(),
                     "Hot Buttons (*.hbt)")
 
-        if len(fileName[0]) != 0:
+        if len(fileName[0]) > 0:
             button_data = {}
             for button in range(self.hotButtonNumber):
                 self.hot_buttons[button].save(button_data)
@@ -1574,6 +1593,20 @@ class ImproTronControlBoard(QObject):
             # Write the JSON string to a file. Since Button names could have special characters, encode
             with open(fileName[0], 'w', encoding='utf8') as json_file:
                 json.dump(button_data, json_file, indent=2)
+
+    @Slot()
+    def startupSlides(self):
+        fileName = QFileDialog.getOpenFileName(self.ui, "Startup Slideshow",
+                                    self._settings.getConfigDir(),
+                                    "Slide Shows (*.ssh)")
+
+        # If the user cancels then the filename will be blank and that is what will be stored as a flag to
+        # not play any startup slides
+        self._settings.setStartupSlideShow(fileName[0])
+
+    @Slot()
+    def startupImage(self):
+        self._settings.setStartupImage(self.selectImageFile())
 
     @Slot()
     def about(self):
@@ -1595,6 +1628,11 @@ class ImproTronControlBoard(QObject):
     # Camera Slots
     @Slot(QCameraDevice)
     def setCamera(self, cameraDevice):
+        # Temporary code to disable the camera until a defect in Qt is resovled
+        if cameraDevice == QMediaDevices.defaultVideoInput():
+            self.disableCameraControls()
+            return
+
         self.m_camera = QCamera(cameraDevice)
         self.m_captureSession.setCamera(self.m_camera)
 
@@ -1625,6 +1663,12 @@ class ImproTronControlBoard(QObject):
             self.ui.cameraStopPB.setEnabled(False)
             self.ui.cameraSettingsPB.setEnabled(False)
 
+    @Slot(bool)
+    def disableCameraControls(self):
+        self.ui.cameraStartPB.setEnabled(False)
+        self.ui.cameraStopPB.setEnabled(False)
+        self.ui.cameraSettingsPB.setEnabled(False)
+
     @Slot()
     def displayCameraError(self):
         if self.m_camera.error() != QCamera.NoError:
@@ -1638,7 +1682,9 @@ class ImproTronControlBoard(QObject):
     @Slot()
     def updateCameras(self):
         self.ui.camerasLW.clear()
+
         available_cameras = self.m_devices.videoInputs()
+
         for cameraDevice in available_cameras:
             videoDeviceItem = QListWidgetItem(cameraDevice.description(),
                                           self.ui.camerasLW)

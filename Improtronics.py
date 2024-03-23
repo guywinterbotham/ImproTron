@@ -116,16 +116,17 @@ class ImproTron(QMainWindow):
 
     # Show an image on the disaply
     def showImage(self, fileName, stretch = True):
-        reader = QImageReader(fileName)
-        reader.setAutoTransform(True)
-        newImage = reader.read()
+        if len(fileName) >0:
+            reader = QImageReader(fileName)
+            reader.setAutoTransform(True)
+            newImage = reader.read()
 
-        if newImage:
-            if stretch:
-                self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.textDisplay.size())))
-            else:
-                self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.textDisplay.size().height())))
-        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
+            if newImage:
+                if stretch:
+                    self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.textDisplay.size())))
+                else:
+                    self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.textDisplay.size().height())))
+            self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show an image on the from the clipboard
     def pasteImage(self, stretch = True):
@@ -140,12 +141,13 @@ class ImproTron(QMainWindow):
 
     # Show an movie on the disaply
     def showMovie(self, movieFile):
-        movie = QMovie(movieFile)
-        movie.setSpeed(100)
-        movie.setScaledSize(self.ui.textDisplay.size())
-        self.ui.textDisplay.setMovie(movie)
-        movie.start()
-        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
+        if len(movieFile) > 0:
+            movie = QMovie(movieFile)
+            movie.setSpeed(100)
+            movie.setScaledSize(self.ui.textDisplay.size())
+            self.ui.textDisplay.setMovie(movie)
+            movie.start()
+            self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Set the name of the Left Team
     def showLeftTeam(self, teamName):

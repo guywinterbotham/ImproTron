@@ -2,7 +2,10 @@
 import sys
 from PySide6.QtWidgets import QApplication
 from ImproTronControlBoard import ImproTronControlBoard
-
+from PySide6.QtMultimedia import (QAudioInput, QCamera, QCameraDevice,
+                                    QImageCapture, QMediaCaptureSession,
+                                    QMediaDevices, QMediaMetaData,
+                                    QMediaRecorder, QMediaPlayer, QAudioOutput)
 #export QT_LOGGING_RULES="qt.pyside.libpyside.warning=true"
 
 # Commands to use in the build process
