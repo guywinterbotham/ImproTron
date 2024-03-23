@@ -43,6 +43,7 @@ ImproTronIcons.py
 # qtcreator generated files
 *.pro.user*
 CMakeLists.txt.user*
+ui_*.py
 
 # xemacs temporary files
 *.flc
