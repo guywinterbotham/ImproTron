@@ -10,6 +10,7 @@ input_file = improtron.py
 exec_directory = .
 # path to .pyproject project file
 project_file = ImproTron.pyproject
+icon = C:\Users\guywi\OneDrive\Documents\git\ImproTron\yesand.ico
 
 [python]
 # python path
@@ -35,7 +36,8 @@ wheel_shiboken =
 [nuitka]
 # (str) specify any extra nuitka arguments
 # eg = extra_args = --show-modules --follow-stdlib
-extra_args = --quiet --disable-console --windows-icon-from-ico=./icons/yesand.png --noinclude-qt-translations
+# extra_args = --quiet --disable-console --windows-icon-from-ico=./icons/yesand.png --noinclude-qt-translations
+extra_args = --quiet --standalone --windows-icon-from-ico=./icons/yesand.png --noinclude-qt-translations --include-qt-plugins=sensible,multimedia
 
 [buildozer]
 # build mode
