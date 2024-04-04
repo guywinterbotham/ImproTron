@@ -3,22 +3,25 @@ import json
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QImage
 from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox,
-                                QApplication, QPushButton, QStyle, QListWidgetItem)
-from PySide6.QtCore import (QObject, QStandardPaths, Slot, Qt, QTimer, QItemSelection, QFileInfo,
+                                QApplication, QPushButton, QStyle, QListWidgetItem, QSizePolicy)
+from PySide6.QtCore import (QObject, QStandardPaths, Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo,
                                 QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator,
-                                QPoint, QRegularExpression)
+                                QPoint, QRegularExpression, QSize, QModelIndex, QThread)
 from PySide6.QtMultimedia import (QAudioInput, QCamera, QCameraDevice,
                                     QImageCapture, QMediaCaptureSession,
                                     QMediaDevices, QMediaMetaData,
                                     QMediaRecorder, QMediaPlayer, QAudioOutput)
 
+from PySide6.QtMultimediaWidgets import QVideoWidget
+
 from Settings import Settings
-from Improtronics import ImproTron, ThingzWidget, SlideWidget, SoundFX, HotButton
+from Improtronics import ImproTron, ThingzWidget, SlideWidget, SoundFX, HotButton, SlideLoaderThread
 
 from MediaFileDatabase import MediaFileDatabase
 import ImproTronIcons
 
 class ImproTronControlBoard(QObject):
+    slideLoadSignal = Signal(str)
     def __init__(self, parent=None):
         super(ImproTronControlBoard,self).__init__()
         self._settings = Settings()
@@ -47,7 +50,6 @@ class ImproTronControlBoard(QObject):
         self.ui.camerasLW.itemClicked.connect(self.updateCameraDevice)
 
         self.mediaPlayer = QMediaPlayer()
-        self.mediaPlayer.setVideoOutput(self.mainDisplay.getVideoPlayer())
 
         self.videoFile = None
 
@@ -59,7 +61,6 @@ class ImproTronControlBoard(QObject):
         self.updateCameras()
 
         self.m_captureSession = QMediaCaptureSession()
-        self.m_captureSession.setVideoOutput(self.mainDisplay.getCameraPlayer())
         self.setCamera(QMediaDevices.defaultVideoInput())
 
         # In memory database configuration
@@ -132,7 +133,6 @@ class ImproTronControlBoard(QObject):
         self.ui.rightColorPreset7.clicked.connect(self.useRightColorPreset7)
         self.ui.rightColorPreset8.clicked.connect(self.useRightColorPreset8)
 
-
         # Connect Show Text Config elements
         self.ui.rightTextColorPB.clicked.connect(self.pickRightTextColor)
         self.ui.leftTextColorPB.clicked.connect(self.pickLeftTextColor)
@@ -201,7 +201,6 @@ class ImproTronControlBoard(QObject):
         self.ui.addSlidePB.clicked.connect(self.addSlidetoList)
         self.ui.slideShowSecondSB.valueChanged.connect(self.slideShowSecondChanged)
 
-
         self.ui.slideMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
         self.ui.slideMoveUpPB.clicked.connect(self.slideMoveUp)
 
@@ -231,6 +230,16 @@ class ImproTronControlBoard(QObject):
         self. currentSlide = 0
         self.slideShowTimer.timeout.connect(self.nextSlide)
 
+        # Async thread set up
+        self.slideLoaderThread = SlideLoaderThread()
+
+        self.slideLoadSignal.connect(self.slideLoaderThread.loadSlide)
+
+        self.thread = QThread()
+        self.slideLoaderThread.moveToThread(self.thread)
+        self.thread.start()
+
+        # Slide controls connections
         self.ui.slideShowSkipPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaSkipForward))
         self.ui.slideShowSkipPB.clicked.connect(self.slideShowSkip)
 
@@ -326,7 +335,20 @@ class ImproTronControlBoard(QObject):
 
         self.loadSoundPallettes()
 
-        #video Player Wiring
+        # Video Player Wiring
+
+        # The Video Widget is not support by the designer so it is created here
+        # using code from the generated UI
+        self.mediaViewerVW = QVideoWidget(self.ui.videoTab)
+        self.mediaViewerVW.setObjectName(u"mediaViewerVW")
+        sizePolicy11 = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
+        sizePolicy11.setHorizontalStretch(1)
+        sizePolicy11.setVerticalStretch(1)
+        sizePolicy11.setHeightForWidth(self.mediaViewerVW.sizePolicy().hasHeightForWidth())
+        self.mediaViewerVW.setSizePolicy(sizePolicy11)
+        self.mediaViewerVW.setMinimumSize(QSize(430, 290))
+        self.ui.videoPreviewVL.addWidget(self.mediaViewerVW)
+
         self.ui.videoPlayPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
         self.ui.videoPlayPB.clicked.connect(self.videoPlay)
 
@@ -339,9 +361,7 @@ class ImproTronControlBoard(QObject):
         self.ui.videoLoopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_BrowserReload))
         self.ui.videoLoopPB.clicked.connect(self.videoLoop)
 
-        self.ui.videoVolumeSL.valueChanged.connect(self.setSoundVolume)
-
-        self.ui.loadVideoPB.clicked.connect(self.getVideoFileMain)
+        self.ui.loadVideoPB.clicked.connect(self.getVideoFile)
 
         # Hot Buttons Wiring
         self.hot_buttons = [] #empty array
@@ -726,7 +746,7 @@ class ImproTronControlBoard(QObject):
         self.showMediaOnAux(self.selectImageFile())
 
     @Slot()
-    def getVideoFileMain(self):
+    def getVideoFile(self):
         self.videoFile = self.selectVideoFile()
         if len(self.videoFile) > 0:
             if QFileInfo.exists(self.videoFile):
@@ -734,15 +754,6 @@ class ImproTronControlBoard(QObject):
                 mediaInfo = QFileInfo(self.videoFile)
                 if mediaInfo.suffix().lower() == 'mp4':
                     self.mediaPlayer.setSource(QUrl(self.videoFile))
-                    self.m_captureSession.setVideoOutput(None)
-                    self.mediaPlayer.setVideoOutput(self.mainDisplay.getVideoPlayer())
-
-                    self.mainDisplay.showVideo()
-                    self.mediaPlayer.play()
-
-    @Slot()
-    def getVideoFileAuxiliary(self):
-        self.showMediaOnAux(self.selectVideoFile())
 
     @Slot()
     def loadTextboxLeft(self):
@@ -1013,6 +1024,10 @@ class ImproTronControlBoard(QObject):
         self.ui.thingzListLW.takeItem(self.ui.thingzListLW.row(self.ui.thingzListLW.currentItem()))
         if self.ui.thingzListLW.currentItem() != None:
             self.showSelectedThing(self.ui.thingzListLW.currentItem())
+        else:
+            self.ui.thingFocusLBL.clear()
+            self.ui.thingTextEdit.clear()
+
 
     @Slot()
     def clearThingzList(self):
@@ -1021,6 +1036,9 @@ class ImproTronControlBoard(QObject):
         if reply == QMessageBox.Yes:
             self.ui.thingzListLW.clear()
             self.ui.leftThingTeamRB.setChecked(True)
+            self.ui.thingFocusLBL.clear()
+            self.ui.thingTextEdit.clear()
+
 
     # Slideshow Management
     @Slot(int)
@@ -1233,23 +1251,36 @@ class ImproTronControlBoard(QObject):
         if slideCount == 0:
             return
 
-        whammyDelay = int(float(self.ui.secsPerWhamCB. currentText ())*1000)
+        whammyDelay = int(float(self.ui.secsPerWhamCB.currentText())*1000)
         self.whammyTimer.setInterval(whammyDelay)
         self.whams = self.ui.spinBox.value()
-        nextSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
 
+        nextSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
         self.ui.slideListLW.setCurrentRow(nextSlide)
-        self.showSlideMain()
+        self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
         self.whammyTimer.start()
 
     @Slot()
     def nextWham(self):
+        image = self.slideLoaderThread.getSlide()
+        if image:
+            if self.ui.stretchMainCB.isChecked():
+                self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(image.scaled(self.ui.imagePreviewMain.size())))
+            else:
+                self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.ui.imagePreviewMain.size().height())))
+
+            self.mainDisplay.showSlide(image, self.ui.stretchMainCB.isChecked())
+
+
+        self.whams -= 1
+        if self.whams <= 0:
+            self.whammyTimer.stop()
+            return
+
         nextSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
         self.ui.slideListLW.setCurrentRow(nextSlide)
-        self.showSlideMain()
-        self.whams -= 1
-        if self.whams <= 1:
-            self.whammyTimer.stop()
+        self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
+
 
     # Media Seach Slots
     @Slot()
@@ -1286,7 +1317,8 @@ class ImproTronControlBoard(QObject):
     @Slot(SlideWidget)
     def previewSelectedMedia(self, slide):
         mediaInfo = slide.fileInfo()
-        if mediaInfo.suffix().lower() == 'gif' or mediaInfo.suffix().lower() == 'mp4':
+        self.ui.mediaFileNameLBL.setText(slide.imagePath())
+        if mediaInfo.suffix().lower() == 'gif':
             movie = QMovie(slide.imagePath())
             if movie.isValid():
                 movie.setSpeed(100)
@@ -1294,12 +1326,14 @@ class ImproTronControlBoard(QObject):
                 self.ui.mediaSearchPreviewLBL.setMovie(movie)
                 movie.start()
         else:
-            pixmap = QPixmap()
-            if pixmap.load(slide.imagePath()):
+            reader = QImageReader(slide.imagePath())
+            reader.setAutoTransform(True)
+            newImage = reader.read()
+            if newImage:
                 if self.ui.stretchMainCB.isChecked():
-                    self.ui.mediaSearchPreviewLBL.setPixmap(pixmap.scaled(self.ui.mediaSearchPreviewLBL.size()))
+                    self.ui.mediaSearchPreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.mediaSearchPreviewLBL.size())))
                 else:
-                    self.ui.mediaSearchPreviewLBL.setPixmap(pixmap.scaledToHeight(self.ui.mediaSearchPreviewLBL.size().height()))
+                    self.ui.mediaSearchPreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.mediaSearchPreviewLBL.size().height())))
 
     @Slot(SlideWidget)
     def showMediaPreviewMain(self, slide):
@@ -1530,6 +1564,15 @@ class ImproTronControlBoard(QObject):
             self.mediaPlayer.play()
             return
 
+        self.m_captureSession.setVideoOutput(None) #Disable the camera
+
+        if self.ui.videoOnMainRB.isChecked():
+            self.mediaPlayer.setVideoOutput(self.mainDisplay.showVideo())
+        elif self.ui.videoOnAuxRB.isChecked():
+            self.mediaPlayer.setVideoOutput(self.auxiliaryDisplay.showVideo())
+        else:
+            self.mediaPlayer.setVideoOutput(self.mediaViewerVW)
+
         self.mediaPlayer.setPosition(0)
         self.mediaPlayer.play()
 
@@ -1628,10 +1671,6 @@ class ImproTronControlBoard(QObject):
     # Camera Slots
     @Slot(QCameraDevice)
     def setCamera(self, cameraDevice):
-        # Temporary code to disable the camera until a defect in Qt is resovled
-        if cameraDevice == QMediaDevices.defaultVideoInput():
-            self.disableCameraControls()
-            return
 
         self.m_camera = QCamera(cameraDevice)
         self.m_captureSession.setCamera(self.m_camera)
@@ -1644,13 +1683,25 @@ class ImproTronControlBoard(QObject):
 
     @Slot()
     def startCamera(self):
+
+        self.mediaPlayer.setVideoOutput(None)
+
+        if self.ui.videoOnMainRB.isChecked():
+            self.m_captureSession.setVideoOutput(self.mainDisplay.showCamera())
+        elif self.ui.videoOnAuxRB.isChecked():
+            self.m_captureSession.setVideoOutput(self.auxiliaryDisplay.showCamera())
+        else:
+            self.m_captureSession.setVideoOutput(self.mediaViewerVW)
+
         self.m_camera.start()
-        self.mainDisplay.showCamera()
 
     @Slot()
     def stopCamera(self):
         self.m_camera.stop()
-        self.mainDisplay.blackout()
+        if self.ui.videoOnMainRB.isChecked():
+            self.mainDisplay.blackout()
+        elif self.ui.videoOnAuxRB.isChecked():
+            self.auxiliaryDisplay.blackout()
 
     @Slot(bool)
     def updateCameraActive(self, active):
@@ -1675,9 +1726,9 @@ class ImproTronControlBoard(QObject):
             QMessageBox.warning(self, "Camera Error",
                                 self.m_camera.errorString())
 
-    @Slot()
-    def updateCameraDevice(self):
-        self.setCamera(QMediaDevices.defaultVideoInput())
+    @Slot(QListWidgetItem)
+    def updateCameraDevice(self, camera):
+        self.setCamera(camera.data(Qt.UserRole))
 
     @Slot()
     def updateCameras(self):
@@ -1688,5 +1739,6 @@ class ImproTronControlBoard(QObject):
         for cameraDevice in available_cameras:
             videoDeviceItem = QListWidgetItem(cameraDevice.description(),
                                           self.ui.camerasLW)
+            videoDeviceItem.setData(Qt.UserRole, cameraDevice)
             if cameraDevice == self.m_devices.defaultVideoInput():
                 videoDeviceItem.setSelected(True)

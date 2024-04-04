@@ -2,7 +2,7 @@
 # This Python file uses the following encoding: utf-8
 
 from PySide6.QtWidgets import QPushButton, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow
-from PySide6.QtCore import Slot, Qt, QUrl
+from PySide6.QtCore import Slot, Qt, QUrl, QObject
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon
 from PySide6.QtMultimedia import QSoundEffect
 from Timer import CountdownTimer
@@ -57,8 +57,8 @@ class ImproTron(QMainWindow):
 
         # Clear the display to black
     def blackout(self):
-        self.ui.textDisplay.setStyleSheet("background:black; color:black")
-        self.ui.textDisplay.setText("blackout")
+        self.ui.textDisplay.setStyleSheet("background:black; color:white")
+        self.ui.textDisplay.clear()
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show Text on the display
@@ -114,7 +114,16 @@ class ImproTron(QMainWindow):
         self.ui.textDisplay.setText(text_msg)
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
-    # Show an image on the disaply
+    # Show an static slide on the display
+    def showSlide(self, image, stretch = True):
+        if image:
+            if stretch:
+                self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaled(self.ui.textDisplay.size())))
+            else:
+                self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.ui.textDisplay.size().height())))
+            self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
+
+    # Show an image on the display
     def showImage(self, fileName, stretch = True):
         if len(fileName) >0:
             reader = QImageReader(fileName)
@@ -126,7 +135,7 @@ class ImproTron(QMainWindow):
                     self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.textDisplay.size())))
                 else:
                     self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.textDisplay.size().height())))
-            self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
+                self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show an image on the from the clipboard
     def pasteImage(self, stretch = True):
@@ -163,20 +172,14 @@ class ImproTron(QMainWindow):
         self.ui.rightScoreLCD.setText(str(argRight))
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayScore)
 
-    # Flip to the video player
+    # Flip to the video player and return the widget to connect the video play to
     def showVideo(self):
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayVideo)
-
-    # Return the camera viewport
-    def getVideoPlayer(self):
         return self.ui.videoPlayer
 
-    # Flip to the video player
+    # Flip to the video player and return the widget to connect the video play to
     def showCamera(self):
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayCamera)
-
-    # Return the camera viewport
-    def getCameraPlayer(self):
         return self.ui.cameraPlayer
 
     # Return the location to persist
@@ -339,3 +342,20 @@ class SlideWidget(QListWidgetItem):
     def imagePath(self):
         return self._fileInto.absoluteFilePath()
 
+# Used during slide shows and Whammy to load images aynchronously
+class SlideLoaderThread(QObject):
+
+    def __init__(self):
+        super(SlideLoaderThread, self).__init__()
+        self.reader = QImageReader()
+        self.reader.setAutoTransform(True)
+        self.newImage = None
+
+    @Slot(str)
+    def loadSlide(self, fileName):
+        self.reader.setFileName(fileName)
+        self.newImage = self.reader.read()
+
+    @Slot()
+    def getSlide(self):
+        return self.newImage
