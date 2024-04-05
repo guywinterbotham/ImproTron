@@ -111,6 +111,7 @@ class ImproTron(QMainWindow):
 
             self.ui.textDisplay.setFont(textBoxFont) # and put it back
 
+        self.ui.textDisplay.clear()
         self.ui.textDisplay.setText(text_msg)
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
@@ -308,7 +309,7 @@ class ThingzWidget(QListWidgetItem):
         return self._substitutes
 
     def thingData(self):
-        return self.text() + "\n\n" + self._substitutes
+        return self.text() + "\n" + self._substitutes
 
     def updateSubstitutes(self, substitutesText):
         self._substitutes = substitutesText

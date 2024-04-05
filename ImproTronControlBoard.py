@@ -156,8 +156,8 @@ class ImproTronControlBoard(QObject):
         self.ui.thingzListLW.itemClicked.connect(self.showSelectedThing)
         self.ui.thingzListLW.itemChanged.connect(self.titleEdited)
 
-        #self.ui.addThingPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogYesButton))
         self.ui.addThingPB.clicked.connect(self.addThingtoList)
+        self.ui.toggleTeamPB.clicked.connect(self.toggleTeam)
 
         self.ui.thingNameTxt.returnPressed.connect(self.addThingtoList)
 
@@ -173,8 +173,6 @@ class ImproTronControlBoard(QObject):
         self.ui.thingzMoveDownPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowDown))
         self.ui.thingzMoveDownPB.clicked.connect(self.thingzMoveDown)
 
-        self.ui.leftThingTeamRB.clicked.connect(self.leftThingTeam)
-        self.ui.rightThingTeamRB.clicked.connect(self.rightThingTeam)
         self.ui.thingTextEdit.textChanged.connect(self.updateThingsText)
         self.ui.showThingMainPB.clicked.connect(self.showThingMain)
         self.ui.showThingAuxiliaryPB.clicked.connect(self.showThingAuxiliary)
@@ -410,6 +408,9 @@ class ImproTronControlBoard(QObject):
             Qt.WindowCloseButtonHint |
             Qt.WindowTitleHint
             )
+        # Force the default feature tab on start up
+        self.ui.featureTabs.setCurrentWidget(self.ui.textDisplayTab)
+
         self.ui.show()
 
 
@@ -422,6 +423,7 @@ class ImproTronControlBoard(QObject):
         return super(ImproTronControlBoard, self).eventFilter(obj, event)
 
     def shutdown(self):
+        self.thread.quit()
         self.ui.removeEventFilter(self)
         QApplication.quit()
 
@@ -829,12 +831,14 @@ class ImproTronControlBoard(QObject):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
         self.mainDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
+        self.ui.imagePreviewMain.clear()
 
     @Slot()
     def showLeftTextAuxiliary(self):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
         self.auxiliaryDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
+        self.ui.imagePreviewAuxiliary.clear()
 
     @Slot()
     def showLeftTextBoth(self):
@@ -846,12 +850,14 @@ class ImproTronControlBoard(QObject):
         font = self.ui.fontComboBoxRight.currentFont()
         font.setPointSize(self.ui.rightFontSize.value())
         self.mainDisplay.showText(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
+        self.ui.imagePreviewMain.clear()
 
     @Slot()
     def showRightTextAuxiliary(self):
         font = self.ui.fontComboBoxRight.currentFont()
         font.setPointSize(self.ui.rightFontSize.value())
         self.auxiliaryDisplay.showText(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
+        self.ui.imagePreviewAuxiliary.clear()
 
     @Slot()
     def showRightTextBoth(self):
@@ -898,11 +904,15 @@ class ImproTronControlBoard(QObject):
 
     @Slot()
     def showThingzListMain(self):
-        self.mainDisplay.showText(self.listThingz())
+        thingFont = self.ui.thingFontFCB.currentFont()
+        thingFont.setPointSize(self.ui.thingFontSizeSB.value())
+        self.mainDisplay.showText(self.listThingz(), font = thingFont)
 
     @Slot()
     def showThingzListAuxiliary(self):
-        self.auxiliaryDisplay.showText(self.listThingz())
+        thingFont = self.ui.thingFontFCB.currentFont()
+        thingFont.setPointSize(self.ui.thingFontSizeSB.value())
+        self.auxiliaryDisplay.showText(self.listThingz(), font = thingFont)
 
     @Slot()
     def showThingzListBoth(self):
@@ -913,13 +923,17 @@ class ImproTronControlBoard(QObject):
     def showThingMain(self):
         currentThing = self.ui.thingzListLW.currentItem()
         if currentThing != None:
-            self.mainDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()))
+            thingFont = self.ui.thingFontFCB.currentFont()
+            thingFont.setPointSize(self.ui.thingFontSizeSB.value())
+            self.mainDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()), thingFont)
 
     @Slot()
     def showThingAuxiliary(self):
         currentThing = self.ui.thingzListLW.currentItem()
         if currentThing != None:
-            self.auxiliaryDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()))
+            thingFont = self.ui.thingFontFCB.currentFont()
+            thingFont.setPointSize(self.ui.thingFontSizeSB.value())
+            self.auxiliaryDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()), thingFont)
 
     @Slot()
     def showThingBoth(self):
@@ -934,20 +948,7 @@ class ImproTronControlBoard(QObject):
             self.ui.thingzListLW.currentItem().updateSubstitutes(self.ui.thingTextEdit.toPlainText())
 
     @Slot()
-    def rightThingTeam(self):
-        currentThing = self.ui.thingzListLW.currentItem()
-        if currentThing != None:
-            if currentThing.isLeftSideTeam():
-                currentThing.setBackground(self._settings.getRightTeamColor())
-                currentThing.setForeground(self.teamFont(self._settings.getRightTeamColor()))
-            else:
-                currentThing.setBackground(self._settings.getLeftTeamColor())
-                currentThing.setForeground(self.teamFont(self._settings.getLeftTeamColor()))
-
-            currentThing.toggleTeam()
-
-    @Slot()
-    def leftThingTeam(self):
+    def toggleTeam(self):
         currentThing = self.ui.thingzListLW.currentItem()
         if currentThing != None:
             if currentThing.isLeftSideTeam():
@@ -964,16 +965,11 @@ class ImproTronControlBoard(QObject):
         # Display selected item's title and text in the editor
         self.ui.thingFocusLBL.setText(thing.text())
         self.ui.thingTextEdit.setPlainText(thing.substitutes())
-        if thing.isLeftSideTeam():
-            self.ui.leftThingTeamRB.setChecked(True)
-        else:
-            self.ui.rightThingTeamRB.setChecked(True)
 
     @Slot(ThingzWidget)
     def titleEdited(self, thing):
         # Display selected item's title and text in the editor
         self.ui.thingFocusLBL.setText(thing.text())
-        self.ui.thingTextEdit.setPlainText(thing.substitutes())
 
     @Slot()
     def addThingtoList(self):
@@ -1000,6 +996,8 @@ class ImproTronControlBoard(QObject):
 
             self.ui.thingNameTxt.setText("")
             self.ui.thingNameTxt.setFocus()
+            self.ui.thingzListLW.setCurrentItem(newThing)
+            self.ui.thingTextEdit.clear()
 
     @Slot()
     def thingzMoveDown(self):
@@ -1038,7 +1036,6 @@ class ImproTronControlBoard(QObject):
             self.ui.leftThingTeamRB.setChecked(True)
             self.ui.thingFocusLBL.clear()
             self.ui.thingTextEdit.clear()
-
 
     # Slideshow Management
     @Slot(int)
