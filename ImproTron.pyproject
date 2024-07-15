@@ -5,6 +5,7 @@
         "Improtronics.py",
         "MediaFileDatabase.py",
         "Settings.py",
-        "Timer.py"
+        "Timer.py",
+        "TouchPortal.py"
     ]
 }

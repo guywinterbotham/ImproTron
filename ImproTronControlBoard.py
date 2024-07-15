@@ -4,13 +4,14 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QImage
 from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox,
                                 QApplication, QPushButton, QStyle, QListWidgetItem, QSizePolicy)
-from PySide6.QtCore import (QObject, QStandardPaths, Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo,
+from PySide6.QtCore import (QObject, QStandardPaths, Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir,
                                 QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator,
                                 QPoint, QRegularExpression, QSize, QModelIndex, QThread)
 from PySide6.QtMultimedia import (QAudioInput, QCamera, QCameraDevice,
                                     QImageCapture, QMediaCaptureSession,
                                     QMediaDevices, QMediaMetaData,
                                     QMediaRecorder, QMediaPlayer, QAudioOutput)
+from PySide6.QtNetwork import QTcpSocket
 
 from PySide6.QtMultimediaWidgets import QVideoWidget
 
@@ -18,6 +19,7 @@ from Settings import Settings
 from Improtronics import ImproTron, ThingzWidget, SlideWidget, SoundFX, HotButton, SlideLoaderThread
 
 from MediaFileDatabase import MediaFileDatabase
+from TouchPortal import TouchPortal
 import ImproTronIcons
 
 class ImproTronControlBoard(QObject):
@@ -259,7 +261,11 @@ class ImproTronControlBoard(QObject):
         self.ui.slideShowStopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaStop))
         self.ui.slideShowStopPB.clicked.connect(self.slideShowStop)
 
-        # Whammy secondsSettings
+        # Promo Slides - replaces the slide show with a direct load from a preset directory
+        self.ui.startPromosPB.clicked.connect(self.startPromosSlideShow)
+        self.promosMode = False # determines whether the slide list is resampled from the promo dir each cycle
+
+        # Whammy seconds settings
         self.ui.secsPerWhamCB.addItems(['0.5', '1.0', '1.5', '2.0'])
         self.ui.whammyPB.clicked.connect(self.startWhamming)
         self.whammyTimer = QTimer()
@@ -322,7 +328,7 @@ class ImproTronControlBoard(QObject):
 
         _volume = self.ui.soundFXVolumeHS.value()/self.ui.soundFXVolumeHS.maximum()
         for button in range(self.soundFXNumber):
-            sfx_button = self.findWidget(QPushButton, "soundFXPB" +str(button+1))
+            sfx_button = self.ui.findChild(QPushButton, "soundFXPB" +str(button+1))
             _soundFX = SoundFX(sfx_button)
             _soundFX.setFXVolume(_volume)
             self.sfx_buttons.append(_soundFX)
@@ -383,21 +389,35 @@ class ImproTronControlBoard(QObject):
         self.ui.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
         self.ui.hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
 
+        # Touch Portal Connect
+        self.touchPortalClient = TouchPortal('127.0.0.1', 12136)
+        self.ui.touchPanelConPB.clicked.connect(self.touchPortalClient.connectTouchPanel)
+
+        # Connect the Touch Portal custom signals to a slot
+        self.touchPortalClient.buttonAction.connect(self.onTouchPortalButtonAction)
+        self.touchPortalClient.mediaAction.connect(self.onTouchPortalMediaAction)
+        self.touchPortalClient.soundAction.connect(self.onTouchPortalSoundAction)
+
         # Preferences
         self.ui.aboutPB.clicked.connect(self.about)
         self.ui.improtronUnlockPB.clicked.connect(self.improtronUnlock)
         self.ui.startupImagePB.clicked.connect(self.startupImage)
-        self.ui.startupSlidesPB.clicked.connect(self.startupSlides)
+        self.ui.promosDirPB.clicked.connect(self.selectPromosDirectory)
 
-        _startupSlideshow = self._settings.getStartupSlideShow()
-        if len(_startupSlideshow) >0:
-            self.loadSlides(_startupSlideshow)
+        _promosDirectory = self._settings.getPromosDirectory()
+        if len(_promosDirectory) >0:
             self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
-            self.slideShowPlay()
+            self.startPromosSlideShow()
+
+            # Force the default feature tab on start up to the Slide Show to make it quicker to stop for the show.
+            self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
 
         else:
             self.showMediaOnMain(self._settings.getStartupImage())
             self.showMediaOnAux(self._settings.getStartupImage())
+
+            # Force the default feature tab on start up to the Text Display
+            self.ui.featureTabs.setCurrentWidget(self.ui.textDisplayTab)
 
         # Set up an event filter to handle the orderly shutdown of the app.
         self.ui.installEventFilter(self)
@@ -408,11 +428,10 @@ class ImproTronControlBoard(QObject):
             Qt.WindowCloseButtonHint |
             Qt.WindowTitleHint
             )
-        # Force the default feature tab on start up
-        self.ui.featureTabs.setCurrentWidget(self.ui.textDisplayTab)
 
         self.ui.show()
-
+# ################################################################################################
+# ####################### Slots and more
 
     def eventFilter(self, obj, event):
         if obj is self.ui and event.type() == QEvent.Close:
@@ -423,10 +442,12 @@ class ImproTronControlBoard(QObject):
         return super(ImproTronControlBoard, self).eventFilter(obj, event)
 
     def shutdown(self):
+        self.touchPortalClient.disconnect()
         self.thread.quit()
         self.ui.removeEventFilter(self)
         QApplication.quit()
 
+    # Utility encapsulating the ui code to find widgets by name
     def findWidget(self, type, widgetName):
         return self.ui.findChild(type, widgetName)
 
@@ -698,7 +719,7 @@ class ImproTronControlBoard(QObject):
 
         if colorSelected.isValid():
             style = self.styleSheet(colorSelected)
-            self.setTextBoxColor(self.ui.leftTextColorPB, style)
+            self.setTextBoxColor(self.ui.rightTextColorPB, style)
 
     @Slot()
     def blackoutBoth(self):
@@ -1143,10 +1164,27 @@ class ImproTronControlBoard(QObject):
         if reply == QMessageBox.Yes:
             self.ui.slideListLW.clear()
 
+    # Promos specific behaviour
+    def loadPromosSlides(self):
+        _promosDirectory = self._settings.getPromosDirectory()
+        if len(_promosDirectory) > 0:
+            self.ui.slideListLW.clear()
+            for file_info in QDir(_promosDirectory).entryInfoList("*.jpg", QDir.Files, QDir.Name):
+                SlideWidget(file_info, self.ui.slideListLW)
+
+    @Slot()
+    def startPromosSlideShow(self):
+        self.promosMode = True
+        self.loadPromosSlides()
+        self.slideShowPlay()
+
     @Slot()
     def showSlideMain(self):
-        if self.ui.slideListLW.currentItem() != None:
-            self.showMediaOnMain(self.ui.slideListLW.currentItem().imagePath())
+        if self.ui.copytoAuxCB.isChecked(): # Duplicate to Aux if Duplicate preference set
+            self.showSlideBoth()
+        else:
+            if self.ui.slideListLW.currentItem() != None:
+                self.showMediaOnMain(self.ui.slideListLW.currentItem().imagePath())
 
     @Slot()
     def showSlideAuxiliary(self):
@@ -1162,14 +1200,21 @@ class ImproTronControlBoard(QObject):
     # Slots for handling the Slide Show Player
     @Slot()
     def nextSlide(self):
+        # Resample the promos directory once the current cycle is done
+        if self.promosMode and self.currentSlide == 0:
+            self.loadPromosSlides()
+
+        # Progress the slide show if there are now slides to show in the list
         self.currentSlide += 1
         slideCount = self.ui.slideListLW.count()
         if slideCount > 0:
             self.currentSlide = self.currentSlide % slideCount
             self.ui.slideListLW.setCurrentRow(self.currentSlide)
+
             self.showSlideMain()
         else:
             self.currentSlide = 0
+            print("Missing Slides:",self.currentSlide)
 
     @Slot()
     def slideShowRestart(self):
@@ -1209,6 +1254,7 @@ class ImproTronControlBoard(QObject):
     def slideShowStop(self):
         self.slideShowTimer.stop()
         self.paused = False
+        self.promosMode = False # Cancel the promo behavior on a stop
         self.currentSlide = 0
 
     @Slot()
@@ -1279,7 +1325,18 @@ class ImproTronControlBoard(QObject):
         self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
 
 
-    # Media Seach Slots
+    # Media Search Slots
+    @Slot()
+    def touchPortal(self):
+        self.ui.mediaSearchResultsLW.clear()
+        self.ui.mediaSearchPreviewLBL.clear()
+        self.ui.mediaFileNameLBL.clear()
+        foundMedia = self.mediaFileDatabase.searchMedia(self.ui.mediaSearchTagsLE.text(), self.ui.allMediaTagsCB.isChecked())
+        if len(foundMedia) > 0:
+            for media in foundMedia:
+                SlideWidget(QFileInfo(media), self.ui.mediaSearchResultsLW)
+        else:
+            reply = QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
     @Slot()
     def searchMedia(self):
         self.ui.mediaSearchResultsLW.clear()
@@ -1309,7 +1366,6 @@ class ImproTronControlBoard(QObject):
             for i in range(1, self.mediaModel.columnCount()):
                 self.imageTreeView.header().hideSection(i)
             self.imageTreeView.setHeaderHidden(True)
-
 
     @Slot(SlideWidget)
     def previewSelectedMedia(self, slide):
@@ -1595,7 +1651,7 @@ class ImproTronControlBoard(QObject):
             if self.mediaPlayer.isPlaying():
                 self.mediaPlayer.stop()
 
-    # Preferences and Hot Buttons
+    # Preferences and Hot Buttons configuration settings
     @Slot()
     def clearHotButtonsClicked(self):
         for button in range(self.hotButtonNumber):
@@ -1635,14 +1691,14 @@ class ImproTronControlBoard(QObject):
                 json.dump(button_data, json_file, indent=2)
 
     @Slot()
-    def startupSlides(self):
-        fileName = QFileDialog.getOpenFileName(self.ui, "Startup Slideshow",
-                                    self._settings.getConfigDir(),
-                                    "Slide Shows (*.ssh)")
+    def selectPromosDirectory(self):
+        setDir = QFileDialog.getExistingDirectory(self.ui,
+                "Select the Promos Directory",
+                self._settings.getPromosDirectory(), QFileDialog.ShowDirsOnly)
 
         # If the user cancels then the filename will be blank and that is what will be stored as a flag to
         # not play any startup slides
-        self._settings.setStartupSlideShow(fileName[0])
+        self._settings.setPromosDirectory(setDir)
 
     @Slot()
     def startupImage(self):
@@ -1739,3 +1795,32 @@ class ImproTronControlBoard(QObject):
             videoDeviceItem.setData(Qt.UserRole, cameraDevice)
             if cameraDevice == self.m_devices.defaultVideoInput():
                 videoDeviceItem.setSelected(True)
+
+    # Touch Portal message handlers
+
+    # Handle a request to click a button
+    @Slot(str)
+    def onTouchPortalButtonAction(self, buttonID):
+        #print(f"Handled signal from button: {buttonID}")
+        button = self.findWidget(QPushButton, buttonID)
+        if button != None:
+            button.click()
+
+    # Handle a request to display an image or animation
+    @Slot(str, str)
+    def onTouchPortalMediaAction(self, file, monitor):
+        print(f"Show {file} on {monitor}")
+        if monitor == "Main" or monitor == "Both":
+            self.showMediaOnMain(file)
+
+        if monitor == "Aux" or monitor == "Both":
+            self.showMediaOnAux(file)
+
+    # Handle a request to display an image or animation
+    @Slot(str)
+    def onTouchPortalSoundAction(self, file):
+        print(f"Play {file}")
+        if QFileInfo.exists(file):
+            self.mediaPlayer.setSource(QUrl.fromLocalFile(file))
+            self.mediaPlayer.setPosition(0)
+            self.mediaPlayer.play()

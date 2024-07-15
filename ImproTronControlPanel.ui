@@ -89,41 +89,23 @@
         <item>
          <layout class="QHBoxLayout" name="leftScoreHL">
           <item>
-           <widget class="QLabel" name="leftScoreLbl">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Score</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="teamScoreLeft">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
+           <widget class="QDoubleSpinBox" name="teamScoreLeft">
             <property name="font">
              <font>
               <pointsize>20</pointsize>
              </font>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
             <property name="buttonSymbols">
              <enum>QAbstractSpinBox::PlusMinus</enum>
             </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>-1000000.000000000000000</double>
+            </property>
             <property name="maximum">
-             <number>999</number>
+             <double>1000000.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -466,6 +448,12 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                  </item>
                  <item>
                   <widget class="QCheckBox" name="timerVisibleMainCB">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>Show</string>
                    </property>
@@ -579,41 +567,23 @@ font: 12pt &quot;Segoe UI&quot;;</string>
         <item>
          <layout class="QHBoxLayout" name="rightScoreHL">
           <item>
-           <widget class="QLabel" name="rightScoreLbl">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Score</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="teamScoreRight">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
+           <widget class="QDoubleSpinBox" name="teamScoreRight">
             <property name="font">
              <font>
               <pointsize>20</pointsize>
              </font>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
             <property name="buttonSymbols">
              <enum>QAbstractSpinBox::PlusMinus</enum>
             </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>-1000000.000000000000000</double>
+            </property>
             <property name="maximum">
-             <number>999</number>
+             <double>1000000.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -829,7 +799,7 @@ background-color: rgb(0, 0, 0);</string>
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>7</number>
       </property>
       <property name="iconSize">
        <size>
@@ -2554,6 +2524,18 @@ background-color: rgb(255, 255, 0);</string>
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="startPromosPB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Promos</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
@@ -4052,14 +4034,14 @@ background-color: rgb(255, 255, 0);</string>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="startupSlidesPB">
+              <widget class="QPushButton" name="promosDirPB">
                <property name="font">
                 <font>
                  <pointsize>12</pointsize>
                 </font>
                </property>
                <property name="text">
-                <string>Startup Slides</string>
+                <string>Promos Directory</string>
                </property>
               </widget>
              </item>
@@ -4522,99 +4504,136 @@ background-color: rgb(255, 255, 0);</string>
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="buttonManGB">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="title">
-           <string>Hot Button List</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_6">
-           <item>
-            <layout class="QVBoxLayout" name="buttonListsVL">
+         <layout class="QVBoxLayout" name="buttonListsVL">
+          <item>
+           <widget class="QGroupBox" name="hotButtonListsGB">
+            <property name="title">
+             <string>Hot Button Configuration</string>
+            </property>
+            <layout class="QVBoxLayout" name="hotButtonListsVL">
              <item>
-              <widget class="QGroupBox" name="hotButtonListsGB">
-               <property name="title">
-                <string>Hot Button Lists</string>
-               </property>
-               <layout class="QVBoxLayout" name="hotButtonListsVL">
-                <item>
-                 <widget class="QPushButton" name="hotButtonLoadPB">
-                  <property name="font">
-                   <font>
-                    <pointsize>12</pointsize>
-                   </font>
-                  </property>
-                  <property name="text">
-                   <string>Load List</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="hotButtonSavePB">
-                  <property name="font">
-                   <font>
-                    <pointsize>12</pointsize>
-                   </font>
-                  </property>
-                  <property name="text">
-                   <string>Save List</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="hotButtonClearPB">
-                  <property name="font">
-                   <font>
-                    <pointsize>12</pointsize>
-                   </font>
-                  </property>
-                  <property name="text">
-                   <string>Clear List</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <spacer name="buttonVS">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="aboutPB">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
+              <widget class="QPushButton" name="hotButtonLoadPB">
                <property name="font">
                 <font>
                  <pointsize>12</pointsize>
                 </font>
                </property>
                <property name="text">
-                <string>About</string>
+                <string>Load List</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="hotButtonSavePB">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Save List</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="hotButtonClearPB">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Clear List</string>
                </property>
               </widget>
              </item>
             </layout>
-           </item>
-          </layout>
-         </widget>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="featureToggleGB">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="title">
+             <string>Features</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QPushButton" name="touchPanelConPB">
+               <property name="text">
+                <string>Connect Touch Panel</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="copytoAuxCB">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Duplicate to Aux</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="testMousePressPB">
+               <property name="text">
+                <string>Test MousePress</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <spacer name="buttonVS">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="aboutPB">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>About</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -4672,8 +4691,6 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>saveSlideShowPB</tabstop>
   <tabstop>hotPB2</tabstop>
   <tabstop>teamNameRight</tabstop>
-  <tabstop>teamScoreRight</tabstop>
-  <tabstop>teamScoreLeft</tabstop>
   <tabstop>pasteImageMainPB</tabstop>
   <tabstop>loadImageMainPB</tabstop>
   <tabstop>blackoutBothPB</tabstop>

@@ -43,8 +43,8 @@ class Settings:
             self.setMainLocation(primaryLocation.topLeft())
             self.setAuxLocation(primaryLocation.topLeft())
 
-            # Set Initial Slide Show and default startup image
-            self.setStartupSlideShow("")
+            # Set promos directory and default startup image
+            self.setPromosDirectory("")
             self.setStartupImage("")
 
             # Set intial slide show delay
@@ -88,11 +88,15 @@ class Settings:
     def getRightTeamName(self):
         return self._settings['rightTeamName']
 
-    def setStartupSlideShow(self, name):
-        self._settings['startupSlideshow'] = name
+    def setPromosDirectory(self, name):
+        self._settings['promosDirectory'] = name
 
-    def getStartupSlideShow(self):
-        return self._settings['startupSlideshow']
+    def getPromosDirectory(self):
+        try:
+            _promosDir = self._settings['promosDirectory']
+        except:
+            _promosDir = ""
+        return _promosDir
 
     def setSlideshowDelay(self, value):
         self._settings['slideshowDelay'] = value
