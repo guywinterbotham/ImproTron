@@ -6,6 +6,7 @@ from PySide6.QtNetwork import QTcpSocket
 
 class TouchPortal(QObject):
     buttonAction = Signal(str)    # Custom signal with a string argument of a touch portal button matching the UI ID
+    spinBoxAction = Signal(str, int)   # Custom signal with a string UI ID of a Spin Box and the delta. 0 = reset to zero
     mediaAction = Signal(str,str) # Custom signal with a string arguments for the file and target monitor
     soundAction = Signal(str)     # Custom signal with a string argument for a sound file
 
@@ -65,6 +66,16 @@ class TouchPortal(QObject):
                         if item["id"] == "improtron.media.monitor.data":
                             monitor = item["value"]
                     self.mediaAction.emit(file, monitor)
+                elif json_obj["actionId"] == "improtron.spinbox.action":
+                    buttonID = ""
+                    change = 0
+                    for item in json_obj['data']:
+                        if item["id"] == "improtron.spinbox.id":
+                            buttonID = item["value"]
+
+                        if item["id"] == "improtron.spinbox.changevalue":
+                            change = int(item["value"])
+                    self.spinBoxAction.emit(buttonID, change)
                 elif json_obj["actionId"] == "improtron.sound.action":
                     file = json_obj["data"][0]["value"]
                     self.soundAction.emit(file)

@@ -2,8 +2,8 @@
 import json
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QImage
-from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox,
-                                QApplication, QPushButton, QStyle, QListWidgetItem, QSizePolicy)
+from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QWidget,
+                                QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
 from PySide6.QtCore import (QObject, QStandardPaths, Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir,
                                 QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator,
                                 QPoint, QRegularExpression, QSize, QModelIndex, QThread)
@@ -22,7 +22,7 @@ from MediaFileDatabase import MediaFileDatabase
 from TouchPortal import TouchPortal
 import ImproTronIcons
 
-class ImproTronControlBoard(QObject):
+class ImproTronControlBoard(QWidget):
     slideLoadSignal = Signal(str)
     def __init__(self, parent=None):
         super(ImproTronControlBoard,self).__init__()
@@ -395,6 +395,7 @@ class ImproTronControlBoard(QObject):
 
         # Connect the Touch Portal custom signals to a slot
         self.touchPortalClient.buttonAction.connect(self.onTouchPortalButtonAction)
+        self.touchPortalClient.spinBoxAction.connect(self.onTouchPortalSpinBoxAction)
         self.touchPortalClient.mediaAction.connect(self.onTouchPortalMediaAction)
         self.touchPortalClient.soundAction.connect(self.onTouchPortalSoundAction)
 
@@ -1805,6 +1806,22 @@ class ImproTronControlBoard(QObject):
         button = self.findWidget(QPushButton, buttonID)
         if button != None:
             button.click()
+        else:
+            print(f"QPushButton: {buttonID} not found")
+
+    # Handle a request to increment or reset a QSpinbox like that used for scoring
+    @Slot(str, int)
+    def onTouchPortalSpinBoxAction(self, buttonID, changeValue):
+        #print(f"Handled signal from SpinBox: {buttonID} by amount {changeValue}")
+        spinBox = self.findWidget(QDoubleSpinBox, buttonID)
+        if spinBox != None:
+            if changeValue == 0:
+                spinBox.setValue(0.0)
+            else:
+                spinBox.setValue(spinBox.value() + changeValue) # change can be positive or negative
+        else:
+            print(f"QDoubleSpinBox: {buttonID} not found")
+
 
     # Handle a request to display an image or animation
     @Slot(str, str)
