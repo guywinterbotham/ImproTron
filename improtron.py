@@ -1,6 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import sys
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
 from ImproTronControlBoard import ImproTronControlBoard
 from PySide6.QtMultimedia import (QAudioInput, QCamera, QCameraDevice,
                                     QImageCapture, QMediaCaptureSession,

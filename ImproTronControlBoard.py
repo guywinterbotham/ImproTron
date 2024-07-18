@@ -104,12 +104,17 @@ class ImproTronControlBoard(QWidget):
         self.ui.showRightTextMainPB.clicked.connect(self.showRightTextMain)
         self.ui.showRightTextAuxiliaryPB.clicked.connect(self.showRightTextAuxiliary)
         self.ui.showRightTextBothPB.clicked.connect(self.showRightTextBoth)
+
+        self.ui.clearLeftTextPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowLeft))
         self.ui.clearLeftTextPB.clicked.connect(self.clearLeftText)
+        self.ui.clearRightTextPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
         self.ui.clearRightTextPB.clicked.connect(self.clearRightText)
-        self.ui.clearBothTextPB.clicked.connect(self.clearBothText)
-        self.ui.loadTextboxBothPB.clicked.connect(self.loadTextboxBoth)
+
+        self.ui.loadTextboxLeftPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowLeft))
         self.ui.loadTextboxLeftPB.clicked.connect(self.loadTextboxLeft)
+        self.ui.loadTextboxRightPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
         self.ui.loadTextboxRightPB.clicked.connect(self.loadTextboxRight)
+
         self.ui.loadImageMainPB.clicked.connect(self.getImageFileMain)
         self.ui.loadImageAuxiliaryPB.clicked.connect(self.getImageFileAuxiliary)
         self.ui.pasteImageMainPB.clicked.connect(self.pasteImageMain)
@@ -391,7 +396,7 @@ class ImproTronControlBoard(QWidget):
 
         # Touch Portal Connect
         self.touchPortalClient = TouchPortal('127.0.0.1', 12136)
-        self.ui.touchPanelConPB.clicked.connect(self.touchPortalClient.connectTouchPanel)
+        self.ui.touchPortalConCB. checkStateChanged.connect(self.connectTouchPortal)
 
         # Connect the Touch Portal custom signals to a slot
         self.touchPortalClient.buttonAction.connect(self.onTouchPortalButtonAction)
@@ -443,7 +448,7 @@ class ImproTronControlBoard(QWidget):
         return super(ImproTronControlBoard, self).eventFilter(obj, event)
 
     def shutdown(self):
-        self.touchPortalClient.disconnect()
+        self.touchPortalClient.disconnectTouchPortal()
         self.thread.quit()
         self.ui.removeEventFilter(self)
         QApplication.quit()
@@ -792,13 +797,6 @@ class ImproTronControlBoard(QWidget):
             self.ui.rightTextBox.setText(textToLoad)
 
     @Slot()
-    def loadTextboxBoth(self):
-        textToLoad = self.getTextFile()
-        if textToLoad != None:
-            self.ui.leftTextBox.setText(textToLoad)
-            self.ui.rightTextBox.setText(textToLoad)
-
-    @Slot()
     def showScoresMain(self):
         self.mainDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
 
@@ -893,11 +891,6 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def clearRightText(self):
         self.ui.rightTextBox.clear()
-
-    @Slot()
-    def clearBothText(self):
-        self.clearLeftText()
-        self.clearRightText()
 
     # Unlock the Improtron Displays so they can be moved. Lock them to maximize
     # on th screen they subsequently reside on.
@@ -1798,6 +1791,12 @@ class ImproTronControlBoard(QWidget):
                 videoDeviceItem.setSelected(True)
 
     # Touch Portal message handlers
+    @Slot()
+    def connectTouchPortal(self):
+        if self.ui.touchPortalConCB.isChecked():
+            self.touchPortalClient.connectTouchPortal()
+        else:
+            self.touchPortalClient.disconnectTouchPortal()
 
     # Handle a request to click a button
     @Slot(str)

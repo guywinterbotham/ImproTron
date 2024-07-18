@@ -20,7 +20,7 @@ class TouchPortal(QObject):
         self.socket.errorOccurred.connect(self.on_error)
         self.socket.disconnected.connect(self.on_disconnected)
 
-    def connectTouchPanel(self):
+    def connectTouchPortal(self):
         self.socket.connectToHost(self.host, self.port, QIODevice.ReadWrite)
 
     def on_connected(self):
@@ -33,16 +33,15 @@ class TouchPortal(QObject):
     def on_disconnected(self):
         print("Disconnected from Touch Portal")
 
-    def disconnect(self):
+    def disconnectTouchPortal(self):
         if self.socket.state() == QTcpSocket.ConnectedState:
             self.close()
 
     def send_message(self, message):
         if self.socket.state() == QTcpSocket.ConnectedState:
             self.socket.write((json.dumps(message)+'\n').encode())
-            print(f"Sent message: {message}")
         else:
-            print("Not connected")
+            print("Not connected to Touch Portal")
 
     @Slot()
     def receive_message(self):
@@ -82,7 +81,7 @@ class TouchPortal(QObject):
                 else:
                     print(f"Unknown Action: {json_obj}")
             else:
-                print(f"Received: {json_obj}")
+                print(f"Unhandled inbound message: {json_obj}")
 
     def close(self):
         self.socket.disconnectFromHost()

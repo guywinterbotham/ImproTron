@@ -32,6 +32,8 @@ excluded_qml_plugins =
 wheel_pyside = 
 # path to shiboken wheel
 wheel_shiboken = 
+modules = Network,UiTools,Widgets,Core,MultimediaWidgets,Gui,Multimedia
+plugins = multimedia,generic,platforms,xcbglintegrations,platformthemes,networkinformation,platforminputcontexts,iconengines,platforms/darwin,networkaccess,imageformats,tls,styles,accessiblebridge,egldeviceintegrations
 
 [nuitka]
 # (str) specify any extra nuitka arguments

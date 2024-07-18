@@ -65,7 +65,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Team Name</string>
+             <string>Left Team:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -543,7 +543,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
              </font>
             </property>
             <property name="text">
-             <string>Team Name</string>
+             <string>Right Team:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1061,27 +1061,6 @@ background-color: rgb(0, 0, 0);</string>
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/left</normaloff>:/icons/left</iconset>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="loadTextboxBothPB">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/both</normaloff>:/icons/both</iconset>
-              </property>
              </widget>
             </item>
             <item>
@@ -1094,10 +1073,6 @@ background-color: rgb(0, 0, 0);</string>
               </property>
               <property name="text">
                <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/right</normaloff>:/icons/right</iconset>
               </property>
              </widget>
             </item>
@@ -1131,27 +1106,6 @@ background-color: rgb(0, 0, 0);</string>
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/left</normaloff>:/icons/left</iconset>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="clearBothTextPB">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/both</normaloff>:/icons/both</iconset>
-              </property>
              </widget>
             </item>
             <item>
@@ -1164,10 +1118,6 @@ background-color: rgb(0, 0, 0);</string>
               </property>
               <property name="text">
                <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="ImproTronIcons.qrc">
-                <normaloff>:/icons/right</normaloff>:/icons/right</iconset>
               </property>
              </widget>
             </item>
@@ -4574,7 +4524,7 @@ background-color: rgb(255, 255, 0);</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
-              <widget class="QPushButton" name="touchPanelConPB">
+              <widget class="QCheckBox" name="touchPortalConCB">
                <property name="text">
                 <string>Connect Touch Panel</string>
                </property>
@@ -4589,13 +4539,6 @@ background-color: rgb(255, 255, 0);</string>
                </property>
                <property name="text">
                 <string>Duplicate to Aux</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="testMousePressPB">
-               <property name="text">
-                <string>Test MousePress</string>
                </property>
               </widget>
              </item>
@@ -4658,10 +4601,8 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>leftFontSize</tabstop>
   <tabstop>leftTextColorPB</tabstop>
   <tabstop>clearLeftTextPB</tabstop>
-  <tabstop>clearBothTextPB</tabstop>
   <tabstop>clearRightTextPB</tabstop>
   <tabstop>loadTextboxLeftPB</tabstop>
-  <tabstop>loadTextboxBothPB</tabstop>
   <tabstop>loadTextboxRightPB</tabstop>
   <tabstop>fontComboBoxRight</tabstop>
   <tabstop>rightFontSize</tabstop>
