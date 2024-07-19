@@ -6,6 +6,7 @@
         "MediaFileDatabase.py",
         "Settings.py",
         "Timer.py",
-        "TouchPortal.py"
+        "TouchPortal.py",
+        "ImproTron.spec"
     ]
 }

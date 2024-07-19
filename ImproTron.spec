@@ -18,7 +18,7 @@ python_path = C:\Users\guywi\OneDrive\Documents\git\ImproTron\venv\Scripts\pytho
 # python packages to install
 # ordered-set = increase compile time performance of nuitka packaging
 # zstandard = provides final executable size optimization
-packages = nuitka==2.0,ordered_set,zstandard
+packages = nuitka==2.3,ordered_set,zstandard
 # buildozer = for deploying Android application
 android_packages = buildozer==1.5.0,cython==0.29.33
 
@@ -32,7 +32,7 @@ excluded_qml_plugins =
 wheel_pyside = 
 # path to shiboken wheel
 wheel_shiboken = 
-modules = Gui,UiTools,MultimediaWidgets,Network,Core,Multimedia,Widgets
+modules = Network,Gui,MultimediaWidgets,Widgets,UiTools,Multimedia,Core
 plugins = multimedia,generic,platforms,xcbglintegrations,platformthemes,networkinformation,platforminputcontexts,iconengines,platforms/darwin,networkaccess,imageformats,tls,styles,accessiblebridge,egldeviceintegrations
 
 [nuitka]

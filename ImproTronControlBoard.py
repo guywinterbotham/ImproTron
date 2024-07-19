@@ -1813,7 +1813,6 @@ class ImproTronControlBoard(QWidget):
     # Handle a request to click a button
     @Slot(str)
     def onTouchPortalButtonAction(self, buttonID):
-        #print(f"Handled signal from button: {buttonID}")
         button = self.findWidget(QPushButton, buttonID)
         if button != None:
             button.click()
@@ -1823,7 +1822,6 @@ class ImproTronControlBoard(QWidget):
     # Handle a request to increment or reset a QSpinbox like that used for scoring
     @Slot(str, int)
     def onTouchPortalSpinBoxAction(self, buttonID, changeValue):
-        #print(f"Handled signal from SpinBox: {buttonID} by amount {changeValue}")
         spinBox = self.findWidget(QDoubleSpinBox, buttonID)
         if spinBox != None:
             if changeValue == 0:
@@ -1837,7 +1835,6 @@ class ImproTronControlBoard(QWidget):
     # Handle a request to display an image or animation
     @Slot(str, str)
     def onTouchPortalMediaAction(self, file, monitor):
-        print(f"Show {file} on {monitor}")
         if monitor == "Main" or monitor == "Both":
             self.showMediaOnMain(file)
 
@@ -1847,7 +1844,6 @@ class ImproTronControlBoard(QWidget):
     # Handle a request to display an image or animation
     @Slot(str)
     def onTouchPortalSoundAction(self, file):
-        print(f"Play {file}")
         if QFileInfo.exists(file):
             self.mediaPlayer.setSource(QUrl.fromLocalFile(file))
             self.mediaPlayer.setPosition(0)
