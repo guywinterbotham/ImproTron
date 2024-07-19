@@ -20,6 +20,8 @@ class ImproTron(QMainWindow):
         self.ui.setupUi(self)
 
         self.media = QPixmap()
+        self.movie = QMovie() # Keep the memory allocated
+        self.movie.setSpeed(100)
 
         self.updateScores(0.0, 0.0) # Force a font scaling
 
@@ -59,12 +61,14 @@ class ImproTron(QMainWindow):
 
         # Clear the display to black
     def blackout(self):
+        self.movie.stop()
         self.ui.textDisplay.setStyleSheet("background:black; color:white")
         self.ui.textDisplay.clear()
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show Text on the display
     def showText(self, text_msg, style=None, font=None):
+        self.movie.stop()
         if font != None:
             self.ui.textDisplay.setFont(font)
 
@@ -119,6 +123,7 @@ class ImproTron(QMainWindow):
 
     # Show an static slide on the display
     def showSlide(self, image, stretch = True):
+        self.movie.stop()
         if image:
             self.blackout() # Clears the display and sets it to the current tab
             if stretch:
@@ -128,6 +133,7 @@ class ImproTron(QMainWindow):
 
     # Show an image on the display
     def showImage(self, fileName, stretch = True):
+        self.movie.stop()
         if len(fileName) >0:
             reader = QImageReader(fileName)
             reader.setAutoTransform(True)
@@ -142,6 +148,7 @@ class ImproTron(QMainWindow):
 
     # Show an image on the from the clipboard
     def pasteImage(self, stretch = True):
+        self.movie.stop()
         pixmap = QGuiApplication.clipboard().pixmap()
         if pixmap != None:
             self.blackout() # Clears the display and sets it to the current tab
@@ -153,12 +160,12 @@ class ImproTron(QMainWindow):
     # Show an movie on the disaply
     def showMovie(self, movieFile):
         if len(movieFile) > 0:
+            self.movie.stop()
             self.blackout() # Clears the display and sets it to the current tab
-            movie = QMovie(movieFile)
-            movie.setSpeed(100)
-            movie.setScaledSize(self.ui.textDisplay.size())
-            self.ui.textDisplay.setMovie(movie)
-            movie.start()
+            self.movie.setFileName(movieFile)
+            self.movie.setScaledSize(self.ui.textDisplay.size())
+            self.ui.textDisplay.setMovie(self.movie)
+            self.movie.start()
 
     # Find the optimal width for the team name
     def find_optimal_team_font_size(self, nameLabel):

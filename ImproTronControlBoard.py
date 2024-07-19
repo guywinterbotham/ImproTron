@@ -43,6 +43,14 @@ class ImproTronControlBoard(QWidget):
         self.mainDisplay.setLocation(self._settings.getMainLocation())
         self.mainDisplay.maximize()
 
+        # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
+        self.mainPreviewMovie = QMovie()
+        self.mainPreviewMovie.setSpeed(100)
+        self.auxPreviewMovie = QMovie()
+        self.auxPreviewMovie.setSpeed(100)
+        self.searchPreviewMovie = QMovie()
+        self.searchPreviewMovie.setSpeed(100)
+
         # Camera Configuration
         # Wire camera controls
         self.ui.cameraStartPB.clicked.connect(self.startCamera)
@@ -388,7 +396,6 @@ class ImproTronControlBoard(QWidget):
             for button in range(self.hotButtonNumber):
                 self.hot_buttons[button].load(button_data)
 
-
         # Set a slot for the clear, load and save buttons
         self.ui.hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
         self.ui.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
@@ -397,6 +404,8 @@ class ImproTronControlBoard(QWidget):
         # Touch Portal Connect
         self.touchPortalClient = TouchPortal('127.0.0.1', 12136)
         self.ui.touchPortalConCB. checkStateChanged.connect(self.connectTouchPortal)
+        tpFlag = self._settings.getTouchPortalConnect()
+        self.ui.touchPortalConCB.setChecked(tpFlag)
 
         # Connect the Touch Portal custom signals to a slot
         self.touchPortalClient.buttonAction.connect(self.onTouchPortalButtonAction)
@@ -410,6 +419,13 @@ class ImproTronControlBoard(QWidget):
         self.ui.startupImagePB.clicked.connect(self.startupImage)
         self.ui.promosDirPB.clicked.connect(self.selectPromosDirectory)
 
+        # Display the default images if they exist
+        self.showMediaOnMain(self._settings.getStartupImage())
+        self.showMediaOnAux(self._settings.getStartupImage())
+        # Force the default feature tab on start up to the Text Display
+        self.ui.featureTabs.setCurrentWidget(self.ui.textDisplayTab)
+
+        # Then override with the promos if the promo directory has been set up
         _promosDirectory = self._settings.getPromosDirectory()
         if len(_promosDirectory) >0:
             self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
@@ -418,16 +434,10 @@ class ImproTronControlBoard(QWidget):
             # Force the default feature tab on start up to the Slide Show to make it quicker to stop for the show.
             self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
 
-        else:
-            self.showMediaOnMain(self._settings.getStartupImage())
-            self.showMediaOnAux(self._settings.getStartupImage())
-
-            # Force the default feature tab on start up to the Text Display
-            self.ui.featureTabs.setCurrentWidget(self.ui.textDisplayTab)
-
         # Set up an event filter to handle the orderly shutdown of the app.
         self.ui.installEventFilter(self)
 
+        # Set up the chrome of the control board
         self.ui.setWindowFlags(
             Qt.Window |
             Qt.WindowMinMaxButtonsHint |
@@ -435,6 +445,7 @@ class ImproTronControlBoard(QWidget):
             Qt.WindowTitleHint
             )
 
+        # Let the fun begin!
         self.ui.show()
 # ################################################################################################
 # ####################### Slots and more
@@ -495,13 +506,13 @@ class ImproTronControlBoard(QWidget):
             if QFileInfo.exists(fileName):
 
                 mediaInfo = QFileInfo(fileName)
+                self.mainPreviewMovie.stop()
                 if bytes(mediaInfo.suffix().lower(),"ascii") in QMovie.supportedFormats():
-                    movie = QMovie(fileName)
-                    if movie.isValid():
-                        movie.setSpeed(100)
-                        movie.setScaledSize(self.ui.imagePreviewMain.size())
-                        self.ui.imagePreviewMain.setMovie(movie)
-                        movie.start()
+                    self.mainPreviewMovie.setFileName(fileName)
+                    if self.mainPreviewMovie.isValid():
+                        self.mainPreviewMovie.setScaledSize(self.ui.imagePreviewMain.size())
+                        self.ui.imagePreviewMain.setMovie(self.mainPreviewMovie)
+                        self.mainPreviewMovie.start()
                         self.mainDisplay.showMovie(fileName)
                 else:
                     reader = QImageReader(fileName)
@@ -519,13 +530,13 @@ class ImproTronControlBoard(QWidget):
         if len(fileName) > 0:
             if QFileInfo.exists(fileName):
                 mediaInfo = QFileInfo(fileName)
+                self.auxPreviewMovie.stop()
                 if bytes(mediaInfo.suffix().lower(),"ascii") in QMovie.supportedFormats():
-                    movie = QMovie(fileName)
-                    if movie.isValid():
-                        movie.setSpeed(100)
-                        movie.setScaledSize(self.ui.imagePreviewAuxiliary.size())
-                        self.ui.imagePreviewAuxiliary.setMovie(movie)
-                        movie.start()
+                    self.auxPreviewMovie.setFileName(fileName)
+                    if self.auxPreviewMovie.isValid():
+                        self.auxPreviewMovie.setScaledSize(self.ui.imagePreviewAuxiliary.size())
+                        self.ui.imagePreviewAuxiliary.setMovie(self.auxPreviewMovie)
+                        self.auxPreviewMovie.start()
                         self.auxiliaryDisplay.showMovie(fileName)
                 else:
                     reader = QImageReader(fileName)
@@ -541,7 +552,7 @@ class ImproTronControlBoard(QWidget):
 
     def getTextFile(self):
         fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self._settings.getDocumentDir() , "Text File (*.txt)")
-        if fileName[0] != None:
+        if len(fileName[0]) > 0:
             fileInfo = QFileInfo(fileName[0])
             self._settings.setDocumentDir(fileInfo.absolutePath())
 
@@ -1365,13 +1376,13 @@ class ImproTronControlBoard(QWidget):
     def previewSelectedMedia(self, slide):
         mediaInfo = slide.fileInfo()
         self.ui.mediaFileNameLBL.setText(slide.imagePath())
+        self.searchPreviewMovie.stop()
         if mediaInfo.suffix().lower() == 'gif':
-            movie = QMovie(slide.imagePath())
-            if movie.isValid():
-                movie.setSpeed(100)
-                movie.setScaledSize(self.ui.mediaSearchPreviewLBL.size())
-                self.ui.mediaSearchPreviewLBL.setMovie(movie)
-                movie.start()
+            self.searchPreviewMovie.setFileName(slide.imagePath())
+            if self.searchPreviewMovie.isValid():
+                self.searchPreviewMovie.setScaledSize(self.ui.mediaSearchPreviewLBL.size())
+                self.ui.mediaSearchPreviewLBL.setMovie(self.searchPreviewMovie)
+                self.searchPreviewMovie.start()
         else:
             reader = QImageReader(slide.imagePath())
             reader.setAutoTransform(True)
@@ -1793,6 +1804,7 @@ class ImproTronControlBoard(QWidget):
     # Touch Portal message handlers
     @Slot()
     def connectTouchPortal(self):
+        self._settings.setTouchPortalConnect(self.ui.touchPortalConCB.isChecked()) # Remember for the next session
         if self.ui.touchPortalConCB.isChecked():
             self.touchPortalClient.connectTouchPortal()
         else:

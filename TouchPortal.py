@@ -28,7 +28,7 @@ class TouchPortal(QObject):
         self.pair()
 
     def on_error(self, socket_error):
-        print(f"Connection error: {socket_error}")
+        print(f"Touch Portal Connection error: {socket_error}")
 
     def on_disconnected(self):
         print("Disconnected from Touch Portal")
@@ -80,6 +80,13 @@ class TouchPortal(QObject):
                     self.soundAction.emit(file)
                 else:
                     print(f"Unknown Action: {json_obj}")
+
+            elif json_obj["type"] == "broadcast":
+                pass # Ingnore broadcasts for now. These are things like page changes
+
+            elif json_obj["type"] == "info":
+                pass # Ingnore info for now. These are things like connnection messages and versioning
+
             else:
                 print(f"Unhandled inbound message: {json_obj}")
 
