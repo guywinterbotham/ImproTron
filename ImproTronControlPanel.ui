@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1056</width>
-    <height>749</height>
+    <height>747</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -644,6 +644,9 @@ font: 12pt &quot;Segoe UI&quot;;</string>
             <pointsize>12</pointsize>
            </font>
           </property>
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
           <property name="styleSheet">
            <string notr="true">color: rgb(255, 255, 255);
 background-color: rgb(0, 0, 0);</string>
@@ -968,6 +971,9 @@ background-color: rgb(0, 0, 0);</string>
             <property name="acceptRichText">
              <bool>false</bool>
             </property>
+            <property name="placeholderText">
+             <string>Type text to display</string>
+            </property>
            </widget>
           </item>
           <item>
@@ -1269,6 +1275,9 @@ background-color: rgb(0, 0, 0);</string>
             <property name="acceptRichText">
              <bool>false</bool>
             </property>
+            <property name="placeholderText">
+             <string>Type text to display</string>
+            </property>
            </widget>
           </item>
           <item>
@@ -1359,7 +1368,16 @@ background-color: rgb(0, 0, 0);</string>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="mediaSearchTagsLE"/>
+           <widget class="QLineEdit" name="mediaSearchTagsLE">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="placeholderText">
+             <string>Type tags to search for ...</string>
+            </property>
+           </widget>
           </item>
           <item>
            <layout class="QHBoxLayout" name="searchStatsHL">
@@ -1621,6 +1639,18 @@ background-color: rgb(0, 0, 0);</string>
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="setGameToImagePB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Game Image</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="imageSearchVS">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -1735,6 +1765,9 @@ background-color: rgb(0, 0, 0);</string>
              <font>
               <pointsize>12</pointsize>
              </font>
+            </property>
+            <property name="placeholderText">
+             <string>Type Thing here then hit the &lt;Enter&gt; key</string>
             </property>
            </widget>
           </item>
@@ -1994,6 +2027,9 @@ background-color: rgb(0, 0, 0);</string>
               <pointsize>12</pointsize>
              </font>
             </property>
+            <property name="placeholderText">
+             <string>Type the elements of the thing that change</string>
+            </property>
            </widget>
           </item>
           <item>
@@ -2068,7 +2104,7 @@ background-color: rgb(0, 0, 0);</string>
        <attribute name="title">
         <string>Slide Show</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <layout class="QHBoxLayout" name="slideShowHL">
         <item>
          <layout class="QVBoxLayout" name="ssFileTreeVL">
           <property name="sizeConstraint">
@@ -2122,7 +2158,61 @@ background-color: rgb(0, 0, 0);</string>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="addSlidePB">
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QPushButton" name="addSlidePB">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Add to List</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="setGameToSlidePB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Game Image</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Minimum</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="slideDisplayControlsHL">
+            <item>
+             <widget class="QPushButton" name="showSlideMainPB">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -2135,22 +2225,45 @@ background-color: rgb(0, 0, 0);</string>
                </font>
               </property>
               <property name="text">
-               <string>Add to List</string>
+               <string>Slide Main</string>
               </property>
              </widget>
             </item>
             <item>
-             <spacer name="slidePreviewSP">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+             <widget class="QPushButton" name="showSlideAuxiliaryPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
               </property>
-             </spacer>
+              <property name="text">
+               <string>Slide Auxiliary</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="showSlideBothPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Slide Both</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -2231,9 +2344,9 @@ background-color: rgb(0, 0, 0);</string>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="WhammyHL">
+           <layout class="QHBoxLayout" name="whammyHL">
             <item>
-             <widget class="QLabel" name="secPerWhanLBL">
+             <widget class="QLabel" name="secPerWhamLBL">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -2293,7 +2406,7 @@ background-color: rgb(0, 0, 0);</string>
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox">
+             <widget class="QSpinBox" name="whammysSB">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -2321,64 +2434,6 @@ background-color: rgb(255, 255, 0);</string>
               </property>
               <property name="text">
                <string>WHAMMY!</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="slideDisplayControlsHL">
-            <item>
-             <widget class="QPushButton" name="showSlideMainPB">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Slide Main</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="showSlideAuxiliaryPB">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Slide Auxiliary</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="showSlideBothPB">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Slide Both</string>
               </property>
              </widget>
             </item>
@@ -2534,7 +2589,16 @@ background-color: rgb(255, 255, 0);</string>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="soundSearchTagsLE"/>
+           <widget class="QLineEdit" name="soundSearchTagsLE">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="placeholderText">
+             <string>Type tags to search for ...</string>
+            </property>
+           </widget>
           </item>
           <item>
            <layout class="QHBoxLayout" name="soundStatsHL">
@@ -3869,6 +3933,379 @@ background-color: rgb(255, 255, 0);</string>
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="gamesTab">
+       <attribute name="title">
+        <string>Games</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <layout class="QVBoxLayout" name="gamesTreeViewVL">
+          <item>
+           <layout class="QHBoxLayout" name="searchGameHL">
+            <item>
+             <widget class="QLineEdit" name="gameSearchLE">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="placeholderText">
+               <string>Start typing game...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="searchGamePB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Search</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QTreeView" name="gamesTreeView"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="gameArrowVL">
+          <item>
+           <spacer name="gameArrowBottomSPR">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="gametoListPB">
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="removeGamePB">
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="gameArrowTopSPR">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="gameListVL">
+          <item>
+           <widget class="QListWidget" name="gamesLW"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="gameRHSVL">
+          <item>
+           <layout class="QHBoxLayout" name="gameFontHL">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QLabel" name="gameFontLBL">
+              <property name="text">
+               <string>Font:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFontComboBox" name="gameTextFontCB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="gameTextColorPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Color ...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="gameSliderHL">
+            <item>
+             <layout class="QVBoxLayout" name="gameImageVL">
+              <item>
+               <widget class="QLabel" name="gameBackgroundLBL">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>360</width>
+                  <height>202</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>360</width>
+                  <height>202</height>
+                 </size>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::Box</enum>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="gameTextSLD">
+                <property name="minimum">
+                 <number>10</number>
+                </property>
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="value">
+                 <number>10</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="whammyHL_2">
+                <item>
+                 <widget class="QLabel" name="secPerGameWhamLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Seconds/Wham</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="secsPerGameWhamCB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="currentIndex">
+                   <number>-1</number>
+                  </property>
+                  <property name="maxVisibleItems">
+                   <number>3</number>
+                  </property>
+                  <property name="minimumContentsLength">
+                   <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="whamsLBL_2">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Whams</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="margin">
+                   <number>4</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="gameWhammysSB">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="gameWhammyPB">
+                  <property name="font">
+                   <font>
+                    <family>Segoe UI</family>
+                    <pointsize>12</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(0, 0, 255);
+font: 700 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 0);</string>
+                  </property>
+                  <property name="text">
+                   <string>WHAMMY!</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="gameShowVL">
+              <item>
+               <widget class="QPushButton" name="loadBackgroundPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Background</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="gameToMainShowPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Show Main</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="gameToAuxShowPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Show Auxiliary</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="gameToBothShowPB">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Show Both</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="gameShowSPR">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="preferencesTab">
        <property name="minimumSize">
         <size>
@@ -4542,6 +4979,13 @@ background-color: rgb(255, 255, 0);</string>
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QPushButton" name="setGamesListPB">
+               <property name="text">
+                <string>Set Games List</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -4621,7 +5065,6 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>showThingMainPB</tabstop>
   <tabstop>showThingAuxiliaryPB</tabstop>
   <tabstop>slideShowFilesTreeView</tabstop>
-  <tabstop>addSlidePB</tabstop>
   <tabstop>showSlideAuxiliaryPB</tabstop>
   <tabstop>slideListLW</tabstop>
   <tabstop>slideMoveUpPB</tabstop>

@@ -220,3 +220,14 @@ class Settings:
             _touchPortalConnect = self._settings['touchPortalConnect']
 
         return _touchPortalConnect
+
+    def setGamesFile(self, name):
+        self._settings['gamesFile'] = name
+
+    def getGamesFile(self):
+        try:
+            _promosDir = self._settings['gamesFile']
+        except:
+            self._settings['gamesFile'] = _promosDir = ""
+
+        return _promosDir

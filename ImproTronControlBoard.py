@@ -1,7 +1,9 @@
 # This Python file uses the following encoding: utf-8
 import json
+import csv
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QImage
+from PySide6.QtGui import (QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QImage, QStandardItemModel,
+                                QStandardItem, QPainter, QFont, QFontMetrics)
 from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
 from PySide6.QtCore import (QObject, QStandardPaths, Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir,
@@ -60,6 +62,9 @@ class ImproTronControlBoard(QWidget):
         self.ui.camerasLW.itemClicked.connect(self.updateCameraDevice)
 
         self.mediaPlayer = QMediaPlayer()
+
+        # Connect the media player to retrieve duration after the file is loaded
+        self.mediaPlayer.durationChanged.connect(self.updateDuration)
 
         self.videoFile = None
 
@@ -434,6 +439,50 @@ class ImproTronControlBoard(QWidget):
             # Force the default feature tab on start up to the Slide Show to make it quicker to stop for the show.
             self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
 
+        # Games List Management Wiring
+        self.gamesBackGroundFile = "" # The name of the last background will need to be stored so start as a zero length name
+        self.gamesBackGround = None
+        self.gameColorSelected = QColor("black")
+        self.gameBackgroundSize = self.ui.gameBackgroundLBL.size()
+        self.ui.setGamesListPB.clicked.connect(self.setGamesList)
+        self.ui.loadBackgroundPB.clicked.connect(self.loadBackground)
+        self.ui.gameTextColorPB.clicked.connect(self.pickGameTextColor)
+        self.ui.gameTextSLD.valueChanged.connect(self.gameFontSliderChanged)
+        self.ui.gameTextFontCB.currentIndexChanged.connect(self.gameFontChanged)
+        self.ui.gamesLW.currentRowChanged.connect(self.gameGameChanged)
+        self.ui.gameToMainShowPB.clicked.connect(self.showGameMain)
+        self.ui.gameToAuxShowPB.clicked.connect(self.showGameAux)
+        self.ui.gameToBothShowPB.clicked.connect(self.showGameBoth)
+
+        # A double click on a list item will copy it to the list of game
+        self.ui.gamesTreeView.doubleClicked.connect(self.add_to_games)
+        self.ui.gametoListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
+        self.ui.gametoListPB.clicked.connect(self.add_selected_to_games)
+        self.ui.removeGamePB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowLeft))
+        self.ui.removeGamePB.clicked.connect(self.remove_selected_games)
+
+        # Connect game search
+        self.ui.gameSearchLE.returnPressed.connect(self.searchGameTree)
+        self.ui.searchGamePB.clicked.connect(self.searchGameTree)
+
+        # Maintain a model View of the games
+        self.gamesTreeView = self.ui.gamesTreeView
+        self.gamesModel = QStandardItemModel(self.gamesTreeView)
+        self.gamesTreeView.setModel(self.gamesModel)
+        self.readGames()
+
+        # Selection changes will trigger a slot
+        selectionModel = self.gamesTreeView.selectionModel()
+        #selectionModel.selectionChanged.connect(self.gameSelected)
+
+        # Game Whammy seconds settings
+        self.ui.secsPerGameWhamCB.addItems(['0.5', '1.0', '1.5', '2.0'])
+        self.ui.gameWhammyPB.clicked.connect(self.startGameWhamming)
+        self.gameWhammyTimer = QTimer()
+        self.gameWhams = 0
+        self.gameWhammyTimer.timeout.connect(self.nextGameWham)
+
+
         # Set up an event filter to handle the orderly shutdown of the app.
         self.ui.installEventFilter(self)
 
@@ -497,58 +546,86 @@ class ImproTronControlBoard(QWidget):
         return selectedFileName[0]
 
     def selectVideoFile(self):
-        selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Video", self._settings.getVideoDir() , "Video Files (*.mp4)")
+        selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Video", self._settings.getVideoDir() , "Video Files (*.mp4 *.m4v *.mp4v *.wmv)")
 
         return selectedFileName[0]
 
-    def showMediaOnMain(self, fileName):
+    # Checks on various media types
+    def isAnimatedGIF(self, fileName):
         if len(fileName) > 0:
             if QFileInfo.exists(fileName):
-
                 mediaInfo = QFileInfo(fileName)
-                self.mainPreviewMovie.stop()
-                if bytes(mediaInfo.suffix().lower(),"ascii") in QMovie.supportedFormats():
-                    self.mainPreviewMovie.setFileName(fileName)
-                    if self.mainPreviewMovie.isValid():
-                        self.mainPreviewMovie.setScaledSize(self.ui.imagePreviewMain.size())
-                        self.ui.imagePreviewMain.setMovie(self.mainPreviewMovie)
-                        self.mainPreviewMovie.start()
-                        self.mainDisplay.showMovie(fileName)
-                else:
-                    reader = QImageReader(fileName)
-                    reader.setAutoTransform(True)
-                    newImage = reader.read()
-                    if newImage:
-                        if self.ui.stretchMainCB.isChecked():
-                            self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewMain.size())))
-                        else:
-                            self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewMain.size().height())))
+                return bytes(mediaInfo.suffix().lower(),"ascii") in QMovie.supportedFormats()
+            else:
+                return False
+        else:
+            return False
 
-                    self.mainDisplay.showImage(fileName, self.ui.stretchMainCB.isChecked())
+    def isImage(self, fileName):
+        if len(fileName) > 0:
+            if QFileInfo.exists(fileName):
+                mediaInfo = QFileInfo(fileName)
+                return bytes(mediaInfo.suffix().lower(),"ascii") in  QImageReader.supportedImageFormats()
+            else:
+                return False
+        else:
+            return False
+
+    def isVideo(self, fileName):
+        if len(fileName) > 0:
+            if QFileInfo.exists(fileName):
+                mediaInfo = QFileInfo(fileName)
+                return mediaInfo.suffix().lower() in  ['mp4', 'm4v', 'mp4v', 'wmv']
+            else:
+                return False
+        else:
+            return False
+
+    def showMediaOnMain(self, fileName):
+        self.mainPreviewMovie.stop()
+        if self.isAnimatedGIF(fileName):
+            self.mainPreviewMovie.setFileName(fileName)
+            if self.mainPreviewMovie.isValid():
+                self.mainPreviewMovie.setScaledSize(self.ui.imagePreviewMain.size())
+                self.ui.imagePreviewMain.setMovie(self.mainPreviewMovie)
+                self.mainPreviewMovie.start()
+                self.mainDisplay.showMovie(fileName)
+        elif self.isImage(fileName):
+            reader = QImageReader(fileName)
+            reader.setAutoTransform(True)
+            newImage = reader.read()
+            if newImage:
+                if self.ui.stretchMainCB.isChecked():
+                    self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewMain.size())))
+                else:
+                    self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewMain.size().height())))
+
+            self.mainDisplay.showImage(fileName, self.ui.stretchMainCB.isChecked())
+        else:
+            print("Unsupported media for main:", fileName)
 
     def showMediaOnAux(self, fileName):
-        if len(fileName) > 0:
-            if QFileInfo.exists(fileName):
-                mediaInfo = QFileInfo(fileName)
-                self.auxPreviewMovie.stop()
-                if bytes(mediaInfo.suffix().lower(),"ascii") in QMovie.supportedFormats():
-                    self.auxPreviewMovie.setFileName(fileName)
-                    if self.auxPreviewMovie.isValid():
-                        self.auxPreviewMovie.setScaledSize(self.ui.imagePreviewAuxiliary.size())
-                        self.ui.imagePreviewAuxiliary.setMovie(self.auxPreviewMovie)
-                        self.auxPreviewMovie.start()
-                        self.auxiliaryDisplay.showMovie(fileName)
+        self.auxPreviewMovie.stop()
+        if self.isAnimatedGIF(fileName):
+            self.auxPreviewMovie.setFileName(fileName)
+            if self.auxPreviewMovie.isValid():
+                self.auxPreviewMovie.setScaledSize(self.ui.imagePreviewAuxiliary.size())
+                self.ui.imagePreviewAuxiliary.setMovie(self.auxPreviewMovie)
+                self.auxPreviewMovie.start()
+                self.auxiliaryDisplay.showMovie(fileName)
+        elif self.isImage(fileName):
+            reader = QImageReader(fileName)
+            reader.setAutoTransform(True)
+            newImage = reader.read()
+            if newImage:
+                if self.ui.stretchAuxCB.isChecked():
+                    self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewAuxiliary.size())))
                 else:
-                    reader = QImageReader(fileName)
-                    reader.setAutoTransform(True)
-                    newImage = reader.read()
-                    if newImage:
-                        if self.ui.stretchAuxCB.isChecked():
-                            self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewAuxiliary.size())))
-                        else:
-                            self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewAuxiliary.size().height())))
+                    self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewAuxiliary.size().height())))
 
-                        self.auxiliaryDisplay.showImage(fileName, self.ui.stretchAuxCB.isChecked())
+                self.auxiliaryDisplay.showImage(fileName, self.ui.stretchAuxCB.isChecked())
+        else:
+            print("Unsupported media on aux:", fileName)
 
     def getTextFile(self):
         fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self._settings.getDocumentDir() , "Text File (*.txt)")
@@ -788,12 +865,10 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def getVideoFile(self):
         self.videoFile = self.selectVideoFile()
-        if len(self.videoFile) > 0:
-            if QFileInfo.exists(self.videoFile):
-
-                mediaInfo = QFileInfo(self.videoFile)
-                if mediaInfo.suffix().lower() == 'mp4':
-                    self.mediaPlayer.setSource(QUrl(self.videoFile))
+        if self.isVideo(self.videoFile):
+            self.mediaPlayer.setSource(QUrl(self.videoFile))
+        else:
+            print("Unsupported Video File selected:",self.videoFile)
 
     @Slot()
     def loadTextboxLeft(self):
@@ -1174,7 +1249,7 @@ class ImproTronControlBoard(QWidget):
         _promosDirectory = self._settings.getPromosDirectory()
         if len(_promosDirectory) > 0:
             self.ui.slideListLW.clear()
-            for file_info in QDir(_promosDirectory).entryInfoList("*.jpg", QDir.Files, QDir.Name):
+            for file_info in QDir(_promosDirectory).entryInfoList("*.jpg *.png", QDir.Files, QDir.Name):
                 SlideWidget(file_info, self.ui.slideListLW)
 
     @Slot()
@@ -1205,18 +1280,38 @@ class ImproTronControlBoard(QWidget):
     # Slots for handling the Slide Show Player
     @Slot()
     def nextSlide(self):
+        # Force the media player to stop just in case there is video play back occuring
+        self.mediaPlayer.stop()
+
+        # Have a default timeout. This will get overridden for videos.
+        self.slideShowTimer.setInterval(self._settings.getSlideshowDelay()*1000)
+
         # Resample the promos directory once the current cycle is done
         if self.promosMode and self.currentSlide == 0:
             self.loadPromosSlides()
 
         # Progress the slide show if there are now slides to show in the list
-        self.currentSlide += 1
         slideCount = self.ui.slideListLW.count()
         if slideCount > 0:
             self.currentSlide = self.currentSlide % slideCount
             self.ui.slideListLW.setCurrentRow(self.currentSlide)
 
-            self.showSlideMain()
+            # Determine the file type so as to correcty set the timeout to the default or video length
+            fileName = self.ui.slideListLW.currentItem().imagePath()
+            if self.isAnimatedGIF(fileName) or self.isImage(fileName):
+                self.showSlideMain()
+            elif self.isVideo(fileName):
+                self.slideShowTimer.setInterval(1000)
+                self.mediaPlayer.setSource(QUrl(fileName))
+                self.mediaPlayer.setVideoOutput(self.mainDisplay.showVideo())
+                self.mediaPlayer.setPosition(0)
+                self.mediaPlayer.play()
+
+            else:
+                print("Unsupported Media Type:",fileName)
+
+            self.currentSlide += 1 # Move onto the next slide
+
         else:
             self.currentSlide = 0
             print("Missing Slides:",self.currentSlide)
@@ -1244,20 +1339,27 @@ class ImproTronControlBoard(QWidget):
         if not self.paused:
             self.currentSlide = 0
         self.paused = False
-        self.slideShowTimer.setInterval(self._settings.getSlideshowDelay()*1000)
+
         self.ui.slideListLW.setCurrentRow(self.currentSlide)
         self.mainDisplay.blackout() # removes and text colors
-        self.showSlideMain()
+
+        #self.slideShowTimer.setInterval(self._settings.getSlideshowDelay()*1000)
+        # A short delay to allow th timer to tigger and the the length to be drtmied by the media type to be shown
+        self.slideShowTimer.setInterval(1000)
         self.slideShowTimer.start()
 
     @Slot()
     def slideShowPause(self):
         self.slideShowTimer.stop()
+        if self.mediaPlayer.isPlaying():
+            self.mediaPlayer.pause()
         self.paused = True
 
     @Slot()
     def slideShowStop(self):
         self.slideShowTimer.stop()
+        if self.mediaPlayer.isPlaying():
+            self.mediaPlayer.stop()
         self.paused = False
         self.promosMode = False # Cancel the promo behavior on a stop
         self.currentSlide = 0
@@ -1301,10 +1403,9 @@ class ImproTronControlBoard(QWidget):
 
         whammyDelay = int(float(self.ui.secsPerWhamCB.currentText())*1000)
         self.whammyTimer.setInterval(whammyDelay)
-        self.whams = self.ui.spinBox.value()
+        self.whams = self.ui.whammysSB.value()
 
-        nextSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
-        self.ui.slideListLW.setCurrentRow(nextSlide)
+        self.ui.slideListLW.setCurrentRow(self.whammyRandomizer.bounded(0, slideCount))
         self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
         self.whammyTimer.start()
 
@@ -1328,7 +1429,6 @@ class ImproTronControlBoard(QWidget):
         nextSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
         self.ui.slideListLW.setCurrentRow(nextSlide)
         self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
-
 
     # Media Search Slots
     @Slot()
@@ -1437,7 +1537,7 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def soundPlay(self):
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
+        if self.mediaPlayer.isPaused():
             self.mediaPlayer.play()
             return
 
@@ -1448,7 +1548,7 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def soundPause(self):
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
+        if self.mediaPlayer.isPaused():
             self.mediaPlayer.play()
             return
 
@@ -1618,7 +1718,7 @@ class ImproTronControlBoard(QWidget):
 
     # Video Player Controler
     def videoPlay(self):
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
+        if self.mediaPlayer.isPaused:
             self.mediaPlayer.play()
             return
 
@@ -1636,7 +1736,7 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def videoPause(self):
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
+        if self.mediaPlayer.isPaused:
             self.mediaPlayer.play()
             return
 
@@ -1655,6 +1755,13 @@ class ImproTronControlBoard(QWidget):
             self.mediaPlayer.setLoops(QMediaPlayer.Once)
             if self.mediaPlayer.isPlaying():
                 self.mediaPlayer.stop()
+
+    # Slide Timer interval setting for videos: QMediaPlayer does not have the duration available on load
+    # but does so when playing commences. If the slide timer is active this slot changes the interval to match
+    @Slot(int)
+    def updateDuration(self, duration):
+        if self.slideShowTimer.isActive():
+            self.slideShowTimer.setInterval(duration + 100) # Add a little buffer
 
     # Preferences and Hot Buttons configuration settings
     @Slot()
@@ -1848,3 +1955,239 @@ class ImproTronControlBoard(QWidget):
             self.mediaPlayer.setSource(QUrl.fromLocalFile(file))
             self.mediaPlayer.setPosition(0)
             self.mediaPlayer.play()
+
+    # Games List Management
+    @Slot()
+    def setGamesList(self):
+        # Open file dialog to select a CSV file
+        fileName = QFileDialog.getOpenFileName(self.ui, "Set Games List",
+                                    self._settings.getConfigDir(),
+                                    "Games Files (*.csv)")
+        if len(fileName[0]) > 0:
+            self._settings.setGamesFile(fileName[0])
+            self.readGames()
+
+    # Read the games file. Trigger on setting it and also at startup
+    def readGames(self):
+        self.gamesModel.clear()
+        self.gamesModel.setHorizontalHeaderLabels(["Category/Name", "Description"])
+
+        # Dictionary to track categories and their items
+        categories = {}
+
+        # Read the CSV file and add the first and second columns to the list view
+        gamesFile = self._settings.getGamesFile()
+        if len(gamesFile) >0:
+            with open(gamesFile, newline='', encoding='utf-8') as csvfile:
+                reader = csv.reader(csvfile)
+                next(reader)  # Skip header
+
+                for row in reader:
+                    if len(row) < 3:
+                        continue  # Skip rows without enough columns
+
+                    category, name, description = row[0], row[1], row[2]
+
+                    # Check if category exists in dictionary; if not, create it
+                    if category not in categories:
+                        category_item = QStandardItem(category)
+                        category_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                        self.gamesModel.appendRow([category_item, QStandardItem("")])
+                        categories[category] = category_item
+
+                    # Create the item for Name and set its description as data
+                    name_item = QStandardItem(name)
+                    name_item.setData(description, Qt.UserRole)  # Store description in UserRole
+                    name_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+
+                    # Add name item under the category
+                    categories[category].appendRow([name_item, QStandardItem(description)])
+
+            # Expand all items for better view
+            self.gamesTreeView.expandAll()
+
+    @Slot()
+    def add_to_games(self, index):
+        # Get the item clicked in the tree view
+        item = self.gamesModel.itemFromIndex(index)
+
+        if item:
+            if item.hasChildren():  # If the item has children, it is a category
+                # Iterate over all child items and add them to the games list
+                for row in range(item.rowCount()):
+                    list_item = QListWidgetItem(item.child(row).text())
+                    self.ui.gamesLW.addItem(list_item)
+            elif item.parent():  # If the item has a parent, it is a name
+                description = item.data(Qt.UserRole)
+                list_item = QListWidgetItem(item.text())
+                self.ui.gamesLW.addItem(list_item)
+
+    @Slot()
+    def searchGameTree(self):
+        # Perform a search using the keyboardSearch function
+        search_text = self.ui.gameSearchLE.text()
+        if search_text:
+            self.gamesTreeView.keyboardSearch(search_text)
+
+    @Slot()
+    def add_selected_to_games(self):
+        # Get the currently selected item in the tree view
+        selected_indexes = self.gamesTreeView.selectionModel().selectedIndexes()
+
+        if selected_indexes:
+            index = selected_indexes[0]  # Use the first selected index
+            item = self.gamesModel.itemFromIndex(index)
+
+            if item:
+                if item.hasChildren():  # If the item has children, it is a category
+                    for row in range(item.rowCount()):
+                        list_item = QListWidgetItem(item.child(row).text())
+                        self.ui.gamesLW.addItem(list_item)
+                elif item.parent():  # If the item has a parent, it is a name
+                    list_item = QListWidgetItem(item.text())
+                    self.ui.gamesLW.addItem(list_item)
+    @Slot()
+    def remove_selected_games(self):
+        # Get all selected items in the gamesLW
+        selected_items = self.ui.gamesLW.selectedItems()
+
+        # Remove each selected item
+        for item in selected_items:
+            self.ui.gamesLW.takeItem(self.ui.gamesLW.row(item))
+
+    # Scale the text whenever the slider moves
+    @Slot(int)
+    def gameFontSliderChanged(self, value):
+        self.drawGamesSlide()
+
+    # Trigger a redraw on font change
+    @Slot(int)
+    def gameFontChanged(self, index):
+        self.drawGamesSlide()
+
+    # Trigger a redraw on game name change
+    @Slot(int)
+    def gameGameChanged(self, row):
+        self.drawGamesSlide()
+
+    # Select the color for the text
+    @Slot()
+    def pickGameTextColor(self):
+        color_chooser = QColorDialog(self.ui)
+        self.gameColorSelected = color_chooser.getColor(title = 'Pick the game text color')
+
+        # Update the presets incase one was changed while picking a color
+        self.setPresetColors()
+
+        if self.gameColorSelected != None:
+            style = self.styleSheet(self.gameColorSelected)
+            self.setTextBoxColor(self.ui.gameTextColorPB, style)
+            self.drawGamesSlide()
+
+    @Slot()
+    def loadBackground(self):
+        self.gamesBackGroundFile = self.selectImageFile()
+        self.gameBackgroundSize = self.ui.gameBackgroundLBL.size() # resample the label size incase the screen was resized
+
+        if self.isImage(self.gamesBackGroundFile):
+          reader = QImageReader(self.gamesBackGroundFile)
+          reader.setAutoTransform(True)
+          self.gamesBackGround = reader.read()
+          self.drawGamesSlide()
+
+    @Slot()
+    def showGameMain(self):
+        gameRow = self.ui.gamesLW.currentRow()
+        if gameRow >= 0:
+            # Get the text of the first selected item
+            text = self.ui.gamesLW.currentItem().text()
+        else:
+            # Default text if no item is selected
+            text = "No game selected"
+
+        font = self.ui.gameTextFontCB.currentFont()
+        font.setPixelSize(36)
+
+        self.mainDisplay.showGame(self.gamesBackGround, text, font, self.ui.gameTextSLD.value(), self.gameColorSelected)
+
+    @Slot()
+    def showGameAux(self):
+        gameRow = self.ui.gamesLW.currentRow()
+        if gameRow >= 0:
+            # Get the text of the first selected item
+            text = self.ui.gamesLW.currentItem().text()
+        else:
+            # Default text if no item is selected
+            text = "No game selected"
+
+        font = self.ui.gameTextFontCB.currentFont()
+        font.setPixelSize(36)
+
+        self.auxiliaryDisplay.showGame(self.gamesBackGround, text, font, self.ui.gameTextSLD.value(), self.gameColorSelected)
+
+    @Slot()
+    def showGameBoth(self):
+        self.showGameMain()
+        self.showGameAux()
+
+    def drawGamesSlide(self):
+        # Fetch the text
+        gameRow = self.ui.gamesLW.currentRow()
+        if gameRow >= 0:
+            # Get the text of the first selected item
+            text = self.ui.gamesLW.currentItem().text()
+        else:
+            # Default text if no item is selected
+            text = "No game selected"
+
+        # Use a fresh copy of the background
+        if self.gamesBackGround:
+            pixmap = QPixmap(QPixmap.fromImage(self.gamesBackGround.scaled(self.ui.gameBackgroundLBL.size())))
+            # Create a QPainter to draw text on the image
+            painter = QPainter(pixmap)
+            painter.setPen(self.gameColorSelected)  # Set text color
+
+            # Scale the the text so that it its width is the percentage given by the slider. Use 36 pixels
+            # just to get a text length to scale with using a number that has lots of integer divisions.
+            font = self.ui.gameTextFontCB.currentFont()
+            font.setPixelSize(36)
+            fontMetrics = QFontMetrics(font)
+            pixelsWide = fontMetrics.horizontalAdvance(text) # Get text length at baseline pixel setting
+
+            # Now we need k such that k*(pw/bw) = slider/100 since slider was set up to represent a percent
+            # Therefore k = (slider*bw)/(pw*100). This is used to adjust the font setting
+            newFontPixelSize = int(36.0 * (self.ui.gameTextSLD.value()*self.gameBackgroundSize.width())/(100.0*pixelsWide))
+            font.setPixelSize(newFontPixelSize)
+            painter.setFont(font)    # Use the selected game text font
+            painter.drawText(pixmap.rect(), Qt.AlignCenter, text)  # Draw text centered
+            painter.end()
+            self.ui.gameBackgroundLBL.setPixmap(pixmap)
+
+    # Game Whammy Controls
+    @Slot()
+    def startGameWhamming(self):
+        slideCount = self.ui.gamesLW.count()
+
+        if slideCount == 0:
+            return
+
+        whammyDelay = int(float(self.ui.secsPerGameWhamCB.currentText())*1000)
+        self.gameWhammyTimer.setInterval(whammyDelay)
+        self.gameWhams = self.ui.gameWhammysSB.value()
+
+        self.ui.gamesLW.setCurrentRow(self.whammyRandomizer.bounded(0, slideCount))
+        self.drawGamesSlide()
+        self.showGameMain()
+        self.gameWhammyTimer.start()
+
+    @Slot()
+    def nextGameWham(self):
+
+        self.gameWhams -= 1
+        if self.gameWhams <= 0:
+            self.gameWhammyTimer.stop()
+            return
+
+        self.ui.gamesLW.setCurrentRow(self.whammyRandomizer.bounded(0, self.ui.gamesLW.count()))
+        self.drawGamesSlide()
+        self.showGameMain()

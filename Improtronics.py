@@ -1,9 +1,9 @@
 # The display is a container for all the possible features that can be displayed
 # This Python file uses the following encoding: utf-8
 
-from PySide6.QtWidgets import QPushButton, QCheckBox, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow
+from PySide6.QtWidgets import QPushButton, QCheckBox, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow, QWidget
 from PySide6.QtCore import Slot, Qt, QUrl, QObject
-from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QFont
+from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QFont, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect
 from Timer import CountdownTimer
 from ui_ImproTron import Ui_ImproTron
@@ -130,6 +130,30 @@ class ImproTron(QMainWindow):
                 self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaled(self.ui.textDisplay.size())))
             else:
                 self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.ui.textDisplay.size().height())))
+
+    # Show a background then over lay text using a font and ratio to the display
+    def showGame(self, image, text, font, scale, textColor = QColor("black")):
+        self.movie.stop()
+        if image:
+            self.blackout() # Clears the display and sets it to the current tab
+            pixmap = QPixmap.fromImage(image.scaled(self.ui.textDisplay.size()))
+            # Create a QPainter to draw text on the image
+            painter = QPainter(pixmap)
+            painter.setPen(textColor)  # Set text color
+            baseFontWidth = float(font.pixelSize())
+
+            # Scale the the text so that it its width is the percentage given by the slider.
+            fontMetrics = QFontMetrics(font)
+            pixelsWide = fontMetrics.horizontalAdvance(text) # Get text length at baseline pixel setting
+
+            # Now we need k such that k*(pw/bw) = slider/100 since slider was set up to represent a percent
+            # Therefore k = (slider*bw)/(pw*100). This is used to adjust the font setting
+            newFontPixelSize = int(baseFontWidth * (scale*self.ui.textDisplay.rect().width())/(100.0*pixelsWide))
+            font.setPixelSize(newFontPixelSize)
+            painter.setFont(font)    # Use the selected game text font
+            painter.drawText(pixmap.rect(), Qt.AlignCenter, text)  # Draw text centered
+            painter.end()
+            self.ui.textDisplay.setPixmap(pixmap)
 
     # Show an image on the display
     def showImage(self, fileName, stretch = True):
@@ -263,11 +287,13 @@ class ImproTron(QMainWindow):
 
     # Flip to the video player and return the widget to connect the video play to
     def showVideo(self):
+        self.movie.stop() # Stop a GIF if it is playing
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayVideo)
         return self.ui.videoPlayer
 
     # Flip to the video player and return the widget to connect the video play to
     def showCamera(self):
+        self.movie.stop() # Stop a GIF if it is playing
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayCamera)
         return self.ui.cameraPlayer
 
