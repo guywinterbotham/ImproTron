@@ -177,9 +177,9 @@ class ImproTronControlBoard(QWidget):
         self.ui.thingzListLW.itemChanged.connect(self.titleEdited)
 
         self.ui.addThingPB.clicked.connect(self.addThingtoList)
-        self.ui.toggleTeamPB.clicked.connect(self.toggleTeam)
-
         self.ui.thingNameTxt.returnPressed.connect(self.addThingtoList)
+
+        self.ui.toggleTeamPB.clicked.connect(self.toggleTeam)
 
         self.ui.removeThingPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCloseButton))
         self.ui.removeThingPB.clicked.connect(self.removeThingfromList)
@@ -443,7 +443,6 @@ class ImproTronControlBoard(QWidget):
         self.gamesBackGroundFile = "" # The name of the last background will need to be stored so start as a zero length name
         self.gamesBackGround = None
         self.gameColorSelected = QColor("black")
-        self.gameBackgroundSize = self.ui.gameBackgroundLBL.size()
         self.ui.setGamesListPB.clicked.connect(self.setGamesList)
         self.ui.loadBackgroundPB.clicked.connect(self.loadBackground)
         self.ui.gameTextColorPB.clicked.connect(self.pickGameTextColor)
@@ -453,13 +452,19 @@ class ImproTronControlBoard(QWidget):
         self.ui.gameToMainShowPB.clicked.connect(self.showGameMain)
         self.ui.gameToAuxShowPB.clicked.connect(self.showGameAux)
         self.ui.gameToBothShowPB.clicked.connect(self.showGameBoth)
+        self.ui.addGamePB.clicked.connect(self.addGametoList)
+        self.ui.addGameLE.returnPressed.connect(self.addGametoList)
 
         # A double click on a list item will copy it to the list of game
         self.ui.gamesTreeView.doubleClicked.connect(self.add_to_games)
-        self.ui.gametoListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
         self.ui.gametoListPB.clicked.connect(self.add_selected_to_games)
-        self.ui.removeGamePB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowLeft))
+        self.ui.gametoListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
+
         self.ui.removeGamePB.clicked.connect(self.remove_selected_games)
+        self.ui.removeGamePB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCloseButton))
+
+        self.ui.removeAllGamesPB.clicked.connect(self.removeAllGames)
+        self.ui.removeAllGamesPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogDiscardButton))
 
         # Connect game search
         self.ui.gameSearchLE.returnPressed.connect(self.searchGameTree)
@@ -473,7 +478,7 @@ class ImproTronControlBoard(QWidget):
 
         # Selection changes will trigger a slot
         selectionModel = self.gamesTreeView.selectionModel()
-        #selectionModel.selectionChanged.connect(self.gameSelected)
+        selectionModel.selectionChanged.connect(self.gameSelected)
 
         # Game Whammy seconds settings
         self.ui.secsPerGameWhamCB.addItems(['0.5', '1.0', '1.5', '2.0'])
@@ -481,7 +486,6 @@ class ImproTronControlBoard(QWidget):
         self.gameWhammyTimer = QTimer()
         self.gameWhams = 0
         self.gameWhammyTimer.timeout.connect(self.nextGameWham)
-
 
         # Set up an event filter to handle the orderly shutdown of the app.
         self.ui.installEventFilter(self)
@@ -1537,7 +1541,7 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def soundPlay(self):
-        if self.mediaPlayer.isPaused():
+        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
             self.mediaPlayer.play()
             return
 
@@ -1548,7 +1552,7 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def soundPause(self):
-        if self.mediaPlayer.isPaused():
+        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
             self.mediaPlayer.play()
             return
 
@@ -1718,7 +1722,7 @@ class ImproTronControlBoard(QWidget):
 
     # Video Player Controler
     def videoPlay(self):
-        if self.mediaPlayer.isPaused:
+        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
             self.mediaPlayer.play()
             return
 
@@ -1736,7 +1740,7 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def videoPause(self):
-        if self.mediaPlayer.isPaused:
+        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
             self.mediaPlayer.play()
             return
 
@@ -1970,7 +1974,7 @@ class ImproTronControlBoard(QWidget):
     # Read the games file. Trigger on setting it and also at startup
     def readGames(self):
         self.gamesModel.clear()
-        self.gamesModel.setHorizontalHeaderLabels(["Category/Name", "Description"])
+        self.gamesModel.setHorizontalHeaderLabels(["Category/Name"])
 
         # Dictionary to track categories and their items
         categories = {}
@@ -1992,7 +1996,7 @@ class ImproTronControlBoard(QWidget):
                     if category not in categories:
                         category_item = QStandardItem(category)
                         category_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                        self.gamesModel.appendRow([category_item, QStandardItem("")])
+                        self.gamesModel.appendRow([category_item])
                         categories[category] = category_item
 
                     # Create the item for Name and set its description as data
@@ -2001,7 +2005,7 @@ class ImproTronControlBoard(QWidget):
                     name_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 
                     # Add name item under the category
-                    categories[category].appendRow([name_item, QStandardItem(description)])
+                    categories[category].appendRow([name_item])
 
             # Expand all items for better view
             self.gamesTreeView.expandAll()
@@ -2058,17 +2062,17 @@ class ImproTronControlBoard(QWidget):
     # Scale the text whenever the slider moves
     @Slot(int)
     def gameFontSliderChanged(self, value):
-        self.drawGamesSlide()
+        self.drawGamesSlide(self.ui.gameBackgroundLBL)
 
     # Trigger a redraw on font change
     @Slot(int)
     def gameFontChanged(self, index):
-        self.drawGamesSlide()
+        self.drawGamesSlide(self.ui.gameBackgroundLBL)
 
     # Trigger a redraw on game name change
     @Slot(int)
     def gameGameChanged(self, row):
-        self.drawGamesSlide()
+        self.drawGamesSlide(self.ui.gameBackgroundLBL)
 
     # Select the color for the text
     @Slot()
@@ -2082,18 +2086,17 @@ class ImproTronControlBoard(QWidget):
         if self.gameColorSelected != None:
             style = self.styleSheet(self.gameColorSelected)
             self.setTextBoxColor(self.ui.gameTextColorPB, style)
-            self.drawGamesSlide()
+            self.drawGamesSlide(self.ui.gameBackgroundLBL)
 
     @Slot()
     def loadBackground(self):
         self.gamesBackGroundFile = self.selectImageFile()
-        self.gameBackgroundSize = self.ui.gameBackgroundLBL.size() # resample the label size incase the screen was resized
 
         if self.isImage(self.gamesBackGroundFile):
           reader = QImageReader(self.gamesBackGroundFile)
           reader.setAutoTransform(True)
           self.gamesBackGround = reader.read()
-          self.drawGamesSlide()
+          self.drawGamesSlide(self.ui.gameBackgroundLBL)
 
     @Slot()
     def showGameMain(self):
@@ -2107,8 +2110,8 @@ class ImproTronControlBoard(QWidget):
 
         font = self.ui.gameTextFontCB.currentFont()
         font.setPixelSize(36)
-
         self.mainDisplay.showGame(self.gamesBackGround, text, font, self.ui.gameTextSLD.value(), self.gameColorSelected)
+        self.drawGamesSlide(self.ui.imagePreviewMain)
 
     @Slot()
     def showGameAux(self):
@@ -2122,15 +2125,15 @@ class ImproTronControlBoard(QWidget):
 
         font = self.ui.gameTextFontCB.currentFont()
         font.setPixelSize(36)
-
         self.auxiliaryDisplay.showGame(self.gamesBackGround, text, font, self.ui.gameTextSLD.value(), self.gameColorSelected)
+        self.drawGamesSlide(self.ui.imagePreviewAuxiliary)
 
     @Slot()
     def showGameBoth(self):
         self.showGameMain()
         self.showGameAux()
 
-    def drawGamesSlide(self):
+    def drawGamesSlide(self, label):
         # Fetch the text
         gameRow = self.ui.gamesLW.currentRow()
         if gameRow >= 0:
@@ -2142,7 +2145,7 @@ class ImproTronControlBoard(QWidget):
 
         # Use a fresh copy of the background
         if self.gamesBackGround:
-            pixmap = QPixmap(QPixmap.fromImage(self.gamesBackGround.scaled(self.ui.gameBackgroundLBL.size())))
+            pixmap = QPixmap(QPixmap.fromImage(self.gamesBackGround.scaled(label.size())))
             # Create a QPainter to draw text on the image
             painter = QPainter(pixmap)
             painter.setPen(self.gameColorSelected)  # Set text color
@@ -2156,12 +2159,12 @@ class ImproTronControlBoard(QWidget):
 
             # Now we need k such that k*(pw/bw) = slider/100 since slider was set up to represent a percent
             # Therefore k = (slider*bw)/(pw*100). This is used to adjust the font setting
-            newFontPixelSize = int(36.0 * (self.ui.gameTextSLD.value()*self.gameBackgroundSize.width())/(100.0*pixelsWide))
+            newFontPixelSize = int(36.0 * (self.ui.gameTextSLD.value()*label.width())/(100.0*pixelsWide))
             font.setPixelSize(newFontPixelSize)
             painter.setFont(font)    # Use the selected game text font
             painter.drawText(pixmap.rect(), Qt.AlignCenter, text)  # Draw text centered
             painter.end()
-            self.ui.gameBackgroundLBL.setPixmap(pixmap)
+            label.setPixmap(pixmap)
 
     # Game Whammy Controls
     @Slot()
@@ -2176,7 +2179,7 @@ class ImproTronControlBoard(QWidget):
         self.gameWhams = self.ui.gameWhammysSB.value()
 
         self.ui.gamesLW.setCurrentRow(self.whammyRandomizer.bounded(0, slideCount))
-        self.drawGamesSlide()
+        self.drawGamesSlide(self.ui.gameBackgroundLBL)
         self.showGameMain()
         self.gameWhammyTimer.start()
 
@@ -2189,5 +2192,26 @@ class ImproTronControlBoard(QWidget):
             return
 
         self.ui.gamesLW.setCurrentRow(self.whammyRandomizer.bounded(0, self.ui.gamesLW.count()))
-        self.drawGamesSlide()
+        self.drawGamesSlide(self.ui.gameBackgroundLBL)
         self.showGameMain()
+
+    @Slot()
+    def addGametoList(self):
+        if len(self.ui.addGameLE.text())> 0:
+            list_item = QListWidgetItem(self.ui.addGameLE.text())
+            self.ui.gamesLW.addItem(list_item)
+            self.ui.addGameLE.setText("")
+            self.ui.addGameLE.setFocus()
+
+    @Slot()
+    def removeAllGames(self):
+        self.ui.gamesLW.clear()
+
+    # When an item in the games tree is selected then attempt to dereference the item so that it's decription
+    # can be copied to the description display
+    @Slot(QItemSelection, QItemSelection)
+    def gameSelected(self, selected, deselected):
+        indexes = selected.indexes()
+        item = indexes[0]
+        description = item.data(Qt.UserRole)
+        self.ui.gameDescriptionTE.setText(description)
