@@ -67,7 +67,7 @@ class ImproTron(QMainWindow):
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show Text on the display
-    def showText(self, text_msg, style=None, font=None):
+    def show_text(self, text_msg, style=None, font=None):
         self.movie.stop()
         if font != None:
             self.ui.textDisplay.setFont(font)
@@ -313,7 +313,7 @@ class ImproTron(QMainWindow):
 
     # Restore and move the alloted screen
     def restore(self):
-        self.showText(self._display_name)
+        self.show_text(self._display_name)
         self.setWindowTitle(self._display_name)
 
         flags = Qt.Window

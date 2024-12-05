@@ -4007,6 +4007,10 @@ background-color: rgb(255, 255, 0);</string>
                <height>202</height>
               </size>
              </property>
+             <property name="styleSheet">
+              <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(0, 0, 0);</string>
+             </property>
              <property name="frameShape">
               <enum>QFrame::Box</enum>
              </property>
@@ -4196,7 +4200,7 @@ background-color: rgb(255, 255, 0);</string>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>9</x>
@@ -4269,7 +4273,7 @@ background-color: rgb(255, 255, 0);</string>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>280</x>
@@ -4361,7 +4365,7 @@ background-color: rgb(255, 255, 0);</string>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>340</x>

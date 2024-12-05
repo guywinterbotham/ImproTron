@@ -1,9 +1,8 @@
 # This Python file uses the following encoding: utf-8
 import json
-import csv
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import (QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QImage, QStandardItemModel,
-                                QStandardItem, QPainter, QFont, QFontMetrics)
+                                QStandardItem, QFont, QFontMetrics)
 from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
 from PySide6.QtCore import (QObject, QStandardPaths, Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir,
@@ -20,6 +19,9 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 from Settings import Settings
 from Improtronics import ImproTron, ThingzWidget, SlideWidget, SoundFX, HotButton, SlideLoaderThread
 
+from games_feature import games_feature
+from text_feature import text_feature
+import utilities
 from MediaFileDatabase import MediaFileDatabase
 from TouchPortal import TouchPortal
 import ImproTronIcons
@@ -44,6 +46,10 @@ class ImproTronControlBoard(QWidget):
         self.mainDisplay.restore()
         self.mainDisplay.setLocation(self._settings.getMainLocation())
         self.mainDisplay.maximize()
+
+        # Instantiate Features
+        self.games_feature = games_feature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
+        self.text_feature = text_feature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
 
         # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
         self.mainPreviewMovie = QMovie()
@@ -110,55 +116,14 @@ class ImproTronControlBoard(QWidget):
         self.ui.add23PB.clicked.connect(self.quickAdd23) # Add 2 to Left, 3 to Right
         self.ui.add05PB.clicked.connect(self.quickAdd05) # Add 5 to Right team
 
-        # Connect info (text and images) message updates
-        self.ui.showLeftTextMainPB.clicked.connect(self.showLeftTextMain)
-        self.ui.showLeftTextAuxiliaryPB.clicked.connect(self.showLeftTextAuxiliary)
-        self.ui.showLeftTextBothPB.clicked.connect(self.showLeftTextBoth)
-        self.ui.showRightTextMainPB.clicked.connect(self.showRightTextMain)
-        self.ui.showRightTextAuxiliaryPB.clicked.connect(self.showRightTextAuxiliary)
-        self.ui.showRightTextBothPB.clicked.connect(self.showRightTextBoth)
-
-        self.ui.clearLeftTextPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowLeft))
-        self.ui.clearLeftTextPB.clicked.connect(self.clearLeftText)
-        self.ui.clearRightTextPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
-        self.ui.clearRightTextPB.clicked.connect(self.clearRightText)
-
-        self.ui.loadTextboxLeftPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowLeft))
-        self.ui.loadTextboxLeftPB.clicked.connect(self.loadTextboxLeft)
-        self.ui.loadTextboxRightPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
-        self.ui.loadTextboxRightPB.clicked.connect(self.loadTextboxRight)
-
+        # Image load, paste and blackout
         self.ui.loadImageMainPB.clicked.connect(self.getImageFileMain)
         self.ui.loadImageAuxiliaryPB.clicked.connect(self.getImageFileAuxiliary)
         self.ui.pasteImageMainPB.clicked.connect(self.pasteImageMain)
         self.ui.pasteImageAuxiliaryPB.clicked.connect(self.pasteImageAuxiliary)
-
-        # Ininialize preset color boxes from dialog custom colors.
-        self.setPresetColors()
-        self.ui.leftColorPreset1.clicked.connect(self.useLeftColorPreset1)
-        self.ui.leftColorPreset2.clicked.connect(self.useLeftColorPreset2)
-        self.ui.leftColorPreset3.clicked.connect(self.useLeftColorPreset3)
-        self.ui.leftColorPreset4.clicked.connect(self.useLeftColorPreset4)
-        self.ui.leftColorPreset5.clicked.connect(self.useLeftColorPreset5)
-        self.ui.leftColorPreset6.clicked.connect(self.useLeftColorPreset6)
-        self.ui.leftColorPreset7.clicked.connect(self.useLeftColorPreset7)
-        self.ui.leftColorPreset8.clicked.connect(self.useLeftColorPreset8)
-
-        self.ui.rightColorPreset1.clicked.connect(self.useRightColorPreset1)
-        self.ui.rightColorPreset2.clicked.connect(self.useRightColorPreset2)
-        self.ui.rightColorPreset3.clicked.connect(self.useRightColorPreset3)
-        self.ui.rightColorPreset4.clicked.connect(self.useRightColorPreset4)
-        self.ui.rightColorPreset5.clicked.connect(self.useRightColorPreset5)
-        self.ui.rightColorPreset6.clicked.connect(self.useRightColorPreset6)
-        self.ui.rightColorPreset7.clicked.connect(self.useRightColorPreset7)
-        self.ui.rightColorPreset8.clicked.connect(self.useRightColorPreset8)
-
-        # Connect Show Text Config elements
-        self.ui.rightTextColorPB.clicked.connect(self.pickRightTextColor)
-        self.ui.leftTextColorPB.clicked.connect(self.pickLeftTextColor)
-        self.ui.blackoutMainPB.clicked.connect(self.blackoutMain)
-        self.ui.blackoutAuxPB.clicked.connect(self.blackoutAux)
-        self.ui.blackoutBothPB.clicked.connect(self.blackoutBoth)
+        self.ui.blackoutMainPB.clicked.connect(self.blackout_main)
+        self.ui.blackoutAuxPB.clicked.connect(self.blackout_aux)
+        self.ui.blackoutBothPB.clicked.connect(self.blackout_both)
 
         # Countdown timer controls
         self.ui.startTimerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
@@ -439,53 +404,6 @@ class ImproTronControlBoard(QWidget):
             # Force the default feature tab on start up to the Slide Show to make it quicker to stop for the show.
             self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
 
-        # Games List Management Wiring
-        self.gamesBackGroundFile = "" # The name of the last background will need to be stored so start as a zero length name
-        self.gamesBackGround = None
-        self.gameColorSelected = QColor("black")
-        self.ui.setGamesListPB.clicked.connect(self.setGamesList)
-        self.ui.loadBackgroundPB.clicked.connect(self.loadBackground)
-        self.ui.gameTextColorPB.clicked.connect(self.pickGameTextColor)
-        self.ui.gameTextSLD.valueChanged.connect(self.gameFontSliderChanged)
-        self.ui.gameTextFontCB.currentIndexChanged.connect(self.gameFontChanged)
-        self.ui.gamesLW.currentRowChanged.connect(self.gameGameChanged)
-        self.ui.gameToMainShowPB.clicked.connect(self.showGameMain)
-        self.ui.gameToAuxShowPB.clicked.connect(self.showGameAux)
-        self.ui.gameToBothShowPB.clicked.connect(self.showGameBoth)
-        self.ui.addGamePB.clicked.connect(self.addGametoList)
-        self.ui.addGameLE.returnPressed.connect(self.addGametoList)
-
-        # A double click on a list item will copy it to the list of game
-        self.ui.gamesTreeView.doubleClicked.connect(self.add_to_games)
-        self.ui.gametoListPB.clicked.connect(self.add_selected_to_games)
-        self.ui.gametoListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
-
-        self.ui.removeGamePB.clicked.connect(self.remove_selected_games)
-        self.ui.removeGamePB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCloseButton))
-
-        self.ui.removeAllGamesPB.clicked.connect(self.removeAllGames)
-        self.ui.removeAllGamesPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogDiscardButton))
-
-        # Connect game search
-        self.ui.gameSearchLE.returnPressed.connect(self.searchGameTree)
-        self.ui.searchGamePB.clicked.connect(self.searchGameTree)
-
-        # Maintain a model View of the games
-        self.gamesTreeView = self.ui.gamesTreeView
-        self.gamesModel = QStandardItemModel(self.gamesTreeView)
-        self.gamesTreeView.setModel(self.gamesModel)
-        self.readGames()
-
-        # Selection changes will trigger a slot
-        selectionModel = self.gamesTreeView.selectionModel()
-        selectionModel.selectionChanged.connect(self.gameSelected)
-
-        # Game Whammy seconds settings
-        self.ui.secsPerGameWhamCB.addItems(['0.5', '1.0', '1.5', '2.0'])
-        self.ui.gameWhammyPB.clicked.connect(self.startGameWhamming)
-        self.gameWhammyTimer = QTimer()
-        self.gameWhams = 0
-        self.gameWhammyTimer.timeout.connect(self.nextGameWham)
 
         # Set up an event filter to handle the orderly shutdown of the app.
         self.ui.installEventFilter(self)
@@ -506,6 +424,11 @@ class ImproTronControlBoard(QWidget):
     def eventFilter(self, obj, event):
         if obj is self.ui and event.type() == QEvent.Close:
             self._settings.save()
+
+            # Delete feature obejcts to hopefully avoid the app staying open if they trigger a crash
+            del self.games_feature
+            del self.text_feature
+
             self.shutdown()
             event.ignore()
             return True
@@ -520,29 +443,6 @@ class ImproTronControlBoard(QWidget):
     # Utility encapsulating the ui code to find widgets by name
     def findWidget(self, type, widgetName):
         return self.ui.findChild(type, widgetName)
-
-    # Populate the preset color buttons with the presets defined in the color dialog
-    def setPresetColors(self):
-        leftPresets = QRegularExpression('leftColorPreset')
-        rightPresets = QRegularExpression('rightColorPreset')
-
-        # Use the index provided by the QColorDialog. Cap at the max number of buttons
-        maxColorPresets = QColorDialog.customCount()
-
-        colorIndex = 0
-        for colorButton in self.ui.textDisplayTab.findChildren(QPushButton, leftPresets):
-            if colorIndex < maxColorPresets:
-                colorButton.setStyleSheet(self.styleSheet(QColorDialog.customColor(colorIndex)))
-
-            colorIndex += 1
-
-        colorIndex = 0
-        for colorButton in self.ui.textDisplayTab.findChildren(QPushButton, rightPresets):
-            if colorIndex < maxColorPresets:
-                colorButton.setStyleSheet(self.styleSheet(QColorDialog.customColor(colorIndex)))
-
-            colorIndex += 1
-
 
     def selectImageFile(self):
         selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Media", self._settings.getMediaDir() , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
@@ -631,36 +531,6 @@ class ImproTronControlBoard(QWidget):
         else:
             print("Unsupported media on aux:", fileName)
 
-    def getTextFile(self):
-        fileName = QFileDialog.getOpenFileName(self.ui, "Open Text File", self._settings.getDocumentDir() , "Text File (*.txt)")
-        if len(fileName[0]) > 0:
-            fileInfo = QFileInfo(fileName[0])
-            self._settings.setDocumentDir(fileInfo.absolutePath())
-
-            file = QFile(fileName[0])
-            if not file.open(QIODevice.ReadOnly | QIODevice.Text):
-                return
-            text = ""
-            linecount = 0
-
-            # To avoid reading in large files which couldn't be displayed anyway,
-            # limit the lines to something reasonable
-            while (linecount < 10) and (not file.atEnd()):
-                text += file.readLine()
-                linecount += 1
-            return text
-        else:
-            return None
-
-    def styleSheet(self, color):
-        style = f"background: rgb({color.red()},{color.green()},{color.blue()}); color:"
-        if(color.red()*0.299 + color.green()*0.587 + color.blue()*0.114) < 186:
-            style += "white"
-        else:
-            style += "black"
-
-        return style
-
     def teamFont(self, color):
         if(color.red()*0.299 + color.green()*0.587 + color.blue()*0.114) < 186:
             return QColor(Qt.white)
@@ -668,7 +538,7 @@ class ImproTronControlBoard(QWidget):
         return QColor(Qt.black)
 
     def setLeftTeamColors(self, colorSelected):
-        style = self.styleSheet(colorSelected)
+        style = utilities.styleSheet(colorSelected)
 
         self.ui.teamNameLeft.setStyleSheet(style)
         self.ui.leftThingTeamRB.setStyleSheet(style)
@@ -676,7 +546,7 @@ class ImproTronControlBoard(QWidget):
         self.auxiliaryDisplay.colorizeLeftScore(style)
 
     def setRightTeamColors(self, colorSelected):
-        style = self.styleSheet(colorSelected)
+        style = utilities.styleSheet(colorSelected)
 
         self.ui.teamNameRight.setStyleSheet(style)
         self.ui.rightThingTeamRB.setStyleSheet(style)
@@ -697,141 +567,19 @@ class ImproTronControlBoard(QWidget):
             self._settings.setRightTeamColor(colorSelected)
             self.setRightTeamColors(colorSelected)
 
-    # Text box color mamagement
-    def setTextBoxColor(self, coloredButton, colorStyle):
-        coloredButton.setStyleSheet(colorStyle)
-
-    # Left side preset colors
     @Slot()
-    def useLeftColorPreset1(self):
-        style = self.ui.leftColorPreset1.styleSheet()
-        self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-    @Slot()
-    def useLeftColorPreset1(self):
-        style = self.ui.leftColorPreset1.styleSheet()
-        self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-    @Slot()
-    def useLeftColorPreset2(self):
-        style = self.ui.leftColorPreset2.styleSheet()
-        self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-    @Slot()
-    def useLeftColorPreset3(self):
-        style = self.ui.leftColorPreset3.styleSheet()
-        self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-    @Slot()
-    def useLeftColorPreset4(self):
-        style = self.ui.leftColorPreset4.styleSheet()
-        self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-    @Slot()
-    def useLeftColorPreset5(self):
-        style = self.ui.leftColorPreset5.styleSheet()
-        self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-    @Slot()
-    def useLeftColorPreset6(self):
-        style = self.ui.leftColorPreset6.styleSheet()
-        self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-    @Slot()
-    def useLeftColorPreset7(self):
-        style = self.ui.leftColorPreset7.styleSheet()
-        self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-    @Slot()
-    def useLeftColorPreset8(self):
-        style = self.ui.leftColorPreset8.styleSheet()
-        self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-
-    @Slot()
-    def pickLeftTextColor(self):
-        color_chooser = QColorDialog(self.ui)
-        colorSelected = color_chooser.getColor(title = 'Pick Left Text Box Color')
-
-        # Update the presets incase one was changed while picking a color
-        self.setPresetColors()
-
-        if colorSelected != None:
-            style = self.styleSheet(colorSelected)
-            self.setTextBoxColor(self.ui.leftTextColorPB, style)
-
-    # Right side preset colors
-    @Slot()
-    def useRightColorPreset1(self):
-        style = self.ui.rightColorPreset1.styleSheet()
-        self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-    @Slot()
-    def useRightColorPreset1(self):
-        style = self.ui.rightColorPreset1.styleSheet()
-        self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-    @Slot()
-    def useRightColorPreset2(self):
-        style = self.ui.rightColorPreset2.styleSheet()
-        self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-    @Slot()
-    def useRightColorPreset3(self):
-        style = self.ui.rightColorPreset3.styleSheet()
-        self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-    @Slot()
-    def useRightColorPreset4(self):
-        style = self.ui.rightColorPreset4.styleSheet()
-        self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-    @Slot()
-    def useRightColorPreset5(self):
-        style = self.ui.rightColorPreset5.styleSheet()
-        self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-    @Slot()
-    def useRightColorPreset6(self):
-        style = self.ui.rightColorPreset6.styleSheet()
-        self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-    @Slot()
-    def useRightColorPreset7(self):
-        style = self.ui.rightColorPreset7.styleSheet()
-        self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-    @Slot()
-    def useRightColorPreset8(self):
-        style = self.ui.rightColorPreset8.styleSheet()
-        self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-
-    @Slot()
-    def pickRightTextColor(self):
-        color_chooser = QColorDialog(self.ui)
-        colorSelected = color_chooser.getColor(title = 'Pick Right Text Box Color')
-
-        # Update the presets incase one was changed while picking a color
-        self.setPresetColors()
-
-        if colorSelected.isValid():
-            style = self.styleSheet(colorSelected)
-            self.setTextBoxColor(self.ui.rightTextColorPB, style)
-
-    @Slot()
-    def blackoutBoth(self):
+    def blackout_both(self):
         self.blackoutMain()
         self.blackoutAux()
 
     @Slot()
-    def blackoutMain(self):
+    def blackout_main(self):
         self.ui.imagePreviewMain.clear()
         self.ui.imagePreviewMain.setStyleSheet("background:black; color:black")
         self.mainDisplay.blackout()
 
     @Slot()
-    def blackoutAux(self):
+    def blackout_aux(self):
         self.ui.imagePreviewAuxiliary.clear()
         self.ui.imagePreviewAuxiliary.setStyleSheet("background:black; color:black")
         self.auxiliaryDisplay.blackout()
@@ -873,18 +621,6 @@ class ImproTronControlBoard(QWidget):
             self.mediaPlayer.setSource(QUrl(self.videoFile))
         else:
             print("Unsupported Video File selected:",self.videoFile)
-
-    @Slot()
-    def loadTextboxLeft(self):
-        textToLoad = self.getTextFile()
-        if textToLoad != None:
-            self.ui.leftTextBox.setText(textToLoad)
-
-    @Slot()
-    def loadTextboxRight(self):
-        textToLoad = self.getTextFile()
-        if textToLoad != None:
-            self.ui.rightTextBox.setText(textToLoad)
 
     @Slot()
     def showScoresMain(self):
@@ -936,51 +672,6 @@ class ImproTronControlBoard(QWidget):
         self.ui.rightThingTeamRB.setText(teamName)
         self._settings.setRightTeamName(teamName)
 
-    @Slot()
-    def showLeftTextMain(self):
-        font = self.ui.fontComboBoxLeft.currentFont()
-        font.setPointSize(self.ui.leftFontSize.value())
-        self.mainDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
-        self.ui.imagePreviewMain.clear()
-
-    @Slot()
-    def showLeftTextAuxiliary(self):
-        font = self.ui.fontComboBoxLeft.currentFont()
-        font.setPointSize(self.ui.leftFontSize.value())
-        self.auxiliaryDisplay.showText(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
-        self.ui.imagePreviewAuxiliary.clear()
-
-    @Slot()
-    def showLeftTextBoth(self):
-        self.showLeftTextMain()
-        self.showLeftTextAuxiliary()
-
-    @Slot()
-    def showRightTextMain(self):
-        font = self.ui.fontComboBoxRight.currentFont()
-        font.setPointSize(self.ui.rightFontSize.value())
-        self.mainDisplay.showText(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
-        self.ui.imagePreviewMain.clear()
-
-    @Slot()
-    def showRightTextAuxiliary(self):
-        font = self.ui.fontComboBoxRight.currentFont()
-        font.setPointSize(self.ui.rightFontSize.value())
-        self.auxiliaryDisplay.showText(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
-        self.ui.imagePreviewAuxiliary.clear()
-
-    @Slot()
-    def showRightTextBoth(self):
-        self.showRightTextMain()
-        self.showRightTextAuxiliary()
-
-    @Slot()
-    def clearLeftText(self):
-        self.ui.leftTextBox.clear()
-
-    @Slot()
-    def clearRightText(self):
-        self.ui.rightTextBox.clear()
 
     # Unlock the Improtron Displays so they can be moved. Lock them to maximize
     # on th screen they subsequently reside on.
@@ -1030,7 +721,7 @@ class ImproTronControlBoard(QWidget):
         if currentThing != None:
             thingFont = self.ui.thingFontFCB.currentFont()
             thingFont.setPointSize(self.ui.thingFontSizeSB.value())
-            self.mainDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()), thingFont)
+            self.mainDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), utilities.styleSheet(currentThing.background().color()), thingFont)
 
     @Slot()
     def showThingAuxiliary(self):
@@ -1038,7 +729,7 @@ class ImproTronControlBoard(QWidget):
         if currentThing != None:
             thingFont = self.ui.thingFontFCB.currentFont()
             thingFont.setPointSize(self.ui.thingFontSizeSB.value())
-            self.auxiliaryDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), self.styleSheet(currentThing.background().color()), thingFont)
+            self.auxiliaryDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), utilities.styleSheet(currentThing.background().color()), thingFont)
 
     @Slot()
     def showThingBoth(self):
@@ -1430,8 +1121,8 @@ class ImproTronControlBoard(QWidget):
             self.whammyTimer.stop()
             return
 
-        nextSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
-        self.ui.slideListLW.setCurrentRow(nextSlide)
+        randomSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
+        self.ui.slideListLW.setCurrentRow(randomSlide)
         self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
 
     # Media Search Slots
@@ -1960,258 +1651,6 @@ class ImproTronControlBoard(QWidget):
             self.mediaPlayer.setPosition(0)
             self.mediaPlayer.play()
 
-    # Games List Management
-    @Slot()
-    def setGamesList(self):
-        # Open file dialog to select a CSV file
-        fileName = QFileDialog.getOpenFileName(self.ui, "Set Games List",
-                                    self._settings.getConfigDir(),
-                                    "Games Files (*.csv)")
-        if len(fileName[0]) > 0:
-            self._settings.setGamesFile(fileName[0])
-            self.readGames()
 
-    # Read the games file. Trigger on setting it and also at startup
-    def readGames(self):
-        self.gamesModel.clear()
-        self.gamesModel.setHorizontalHeaderLabels(["Category/Name"])
 
-        # Dictionary to track categories and their items
-        categories = {}
 
-        # Read the CSV file and add the first and second columns to the list view
-        gamesFile = self._settings.getGamesFile()
-        if len(gamesFile) >0:
-            with open(gamesFile, newline='', encoding='utf-8') as csvfile:
-                reader = csv.reader(csvfile)
-                next(reader)  # Skip header
-
-                for row in reader:
-                    if len(row) < 3:
-                        continue  # Skip rows without enough columns
-
-                    category, name, description = row[0], row[1], row[2]
-
-                    # Check if category exists in dictionary; if not, create it
-                    if category not in categories:
-                        category_item = QStandardItem(category)
-                        category_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                        self.gamesModel.appendRow([category_item])
-                        categories[category] = category_item
-
-                    # Create the item for Name and set its description as data
-                    name_item = QStandardItem(name)
-                    name_item.setData(description, Qt.UserRole)  # Store description in UserRole
-                    name_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-
-                    # Add name item under the category
-                    categories[category].appendRow([name_item])
-
-            # Expand all items for better view
-            self.gamesTreeView.expandAll()
-
-    @Slot()
-    def add_to_games(self, index):
-        # Get the item clicked in the tree view
-        item = self.gamesModel.itemFromIndex(index)
-
-        if item:
-            if item.hasChildren():  # If the item has children, it is a category
-                # Iterate over all child items and add them to the games list
-                for row in range(item.rowCount()):
-                    list_item = QListWidgetItem(item.child(row).text())
-                    self.ui.gamesLW.addItem(list_item)
-            elif item.parent():  # If the item has a parent, it is a name
-                description = item.data(Qt.UserRole)
-                list_item = QListWidgetItem(item.text())
-                self.ui.gamesLW.addItem(list_item)
-
-    @Slot()
-    def searchGameTree(self):
-        # Perform a search using the keyboardSearch function
-        search_text = self.ui.gameSearchLE.text()
-        if search_text:
-            self.gamesTreeView.keyboardSearch(search_text)
-
-    @Slot()
-    def add_selected_to_games(self):
-        # Get the currently selected item in the tree view
-        selected_indexes = self.gamesTreeView.selectionModel().selectedIndexes()
-
-        if selected_indexes:
-            index = selected_indexes[0]  # Use the first selected index
-            item = self.gamesModel.itemFromIndex(index)
-
-            if item:
-                if item.hasChildren():  # If the item has children, it is a category
-                    for row in range(item.rowCount()):
-                        list_item = QListWidgetItem(item.child(row).text())
-                        self.ui.gamesLW.addItem(list_item)
-                elif item.parent():  # If the item has a parent, it is a name
-                    list_item = QListWidgetItem(item.text())
-                    self.ui.gamesLW.addItem(list_item)
-    @Slot()
-    def remove_selected_games(self):
-        # Get all selected items in the gamesLW
-        selected_items = self.ui.gamesLW.selectedItems()
-
-        # Remove each selected item
-        for item in selected_items:
-            self.ui.gamesLW.takeItem(self.ui.gamesLW.row(item))
-
-    # Scale the text whenever the slider moves
-    @Slot(int)
-    def gameFontSliderChanged(self, value):
-        self.drawGamesSlide(self.ui.gameBackgroundLBL)
-
-    # Trigger a redraw on font change
-    @Slot(int)
-    def gameFontChanged(self, index):
-        self.drawGamesSlide(self.ui.gameBackgroundLBL)
-
-    # Trigger a redraw on game name change
-    @Slot(int)
-    def gameGameChanged(self, row):
-        self.drawGamesSlide(self.ui.gameBackgroundLBL)
-
-    # Select the color for the text
-    @Slot()
-    def pickGameTextColor(self):
-        color_chooser = QColorDialog(self.ui)
-        self.gameColorSelected = color_chooser.getColor(title = 'Pick the game text color')
-
-        # Update the presets incase one was changed while picking a color
-        self.setPresetColors()
-
-        if self.gameColorSelected != None:
-            style = self.styleSheet(self.gameColorSelected)
-            self.setTextBoxColor(self.ui.gameTextColorPB, style)
-            self.drawGamesSlide(self.ui.gameBackgroundLBL)
-
-    @Slot()
-    def loadBackground(self):
-        self.gamesBackGroundFile = self.selectImageFile()
-
-        if self.isImage(self.gamesBackGroundFile):
-          reader = QImageReader(self.gamesBackGroundFile)
-          reader.setAutoTransform(True)
-          self.gamesBackGround = reader.read()
-          self.drawGamesSlide(self.ui.gameBackgroundLBL)
-
-    @Slot()
-    def showGameMain(self):
-        gameRow = self.ui.gamesLW.currentRow()
-        if gameRow >= 0:
-            # Get the text of the first selected item
-            text = self.ui.gamesLW.currentItem().text()
-        else:
-            # Default text if no item is selected
-            text = "No game selected"
-
-        font = self.ui.gameTextFontCB.currentFont()
-        font.setPixelSize(36)
-        self.mainDisplay.showGame(self.gamesBackGround, text, font, self.ui.gameTextSLD.value(), self.gameColorSelected)
-        self.drawGamesSlide(self.ui.imagePreviewMain)
-
-    @Slot()
-    def showGameAux(self):
-        gameRow = self.ui.gamesLW.currentRow()
-        if gameRow >= 0:
-            # Get the text of the first selected item
-            text = self.ui.gamesLW.currentItem().text()
-        else:
-            # Default text if no item is selected
-            text = "No game selected"
-
-        font = self.ui.gameTextFontCB.currentFont()
-        font.setPixelSize(36)
-        self.auxiliaryDisplay.showGame(self.gamesBackGround, text, font, self.ui.gameTextSLD.value(), self.gameColorSelected)
-        self.drawGamesSlide(self.ui.imagePreviewAuxiliary)
-
-    @Slot()
-    def showGameBoth(self):
-        self.showGameMain()
-        self.showGameAux()
-
-    def drawGamesSlide(self, label):
-        # Fetch the text
-        gameRow = self.ui.gamesLW.currentRow()
-        if gameRow >= 0:
-            # Get the text of the first selected item
-            text = self.ui.gamesLW.currentItem().text()
-        else:
-            # Default text if no item is selected
-            text = "No game selected"
-
-        # Use a fresh copy of the background
-        if self.gamesBackGround:
-            pixmap = QPixmap(QPixmap.fromImage(self.gamesBackGround.scaled(label.size())))
-            # Create a QPainter to draw text on the image
-            painter = QPainter(pixmap)
-            painter.setPen(self.gameColorSelected)  # Set text color
-
-            # Scale the the text so that it its width is the percentage given by the slider. Use 36 pixels
-            # just to get a text length to scale with using a number that has lots of integer divisions.
-            font = self.ui.gameTextFontCB.currentFont()
-            font.setPixelSize(36)
-            fontMetrics = QFontMetrics(font)
-            pixelsWide = fontMetrics.horizontalAdvance(text) # Get text length at baseline pixel setting
-
-            # Now we need k such that k*(pw/bw) = slider/100 since slider was set up to represent a percent
-            # Therefore k = (slider*bw)/(pw*100). This is used to adjust the font setting
-            newFontPixelSize = int(36.0 * (self.ui.gameTextSLD.value()*label.width())/(100.0*pixelsWide))
-            font.setPixelSize(newFontPixelSize)
-            painter.setFont(font)    # Use the selected game text font
-            painter.drawText(pixmap.rect(), Qt.AlignCenter, text)  # Draw text centered
-            painter.end()
-            label.setPixmap(pixmap)
-
-    # Game Whammy Controls
-    @Slot()
-    def startGameWhamming(self):
-        slideCount = self.ui.gamesLW.count()
-
-        if slideCount == 0:
-            return
-
-        whammyDelay = int(float(self.ui.secsPerGameWhamCB.currentText())*1000)
-        self.gameWhammyTimer.setInterval(whammyDelay)
-        self.gameWhams = self.ui.gameWhammysSB.value()
-
-        self.ui.gamesLW.setCurrentRow(self.whammyRandomizer.bounded(0, slideCount))
-        self.drawGamesSlide(self.ui.gameBackgroundLBL)
-        self.showGameMain()
-        self.gameWhammyTimer.start()
-
-    @Slot()
-    def nextGameWham(self):
-
-        self.gameWhams -= 1
-        if self.gameWhams <= 0:
-            self.gameWhammyTimer.stop()
-            return
-
-        self.ui.gamesLW.setCurrentRow(self.whammyRandomizer.bounded(0, self.ui.gamesLW.count()))
-        self.drawGamesSlide(self.ui.gameBackgroundLBL)
-        self.showGameMain()
-
-    @Slot()
-    def addGametoList(self):
-        if len(self.ui.addGameLE.text())> 0:
-            list_item = QListWidgetItem(self.ui.addGameLE.text())
-            self.ui.gamesLW.addItem(list_item)
-            self.ui.addGameLE.setText("")
-            self.ui.addGameLE.setFocus()
-
-    @Slot()
-    def removeAllGames(self):
-        self.ui.gamesLW.clear()
-
-    # When an item in the games tree is selected then attempt to dereference the item so that it's decription
-    # can be copied to the description display
-    @Slot(QItemSelection, QItemSelection)
-    def gameSelected(self, selected, deselected):
-        indexes = selected.indexes()
-        item = indexes[0]
-        description = item.data(Qt.UserRole)
-        self.ui.gameDescriptionTE.setText(description)

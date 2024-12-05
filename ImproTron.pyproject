@@ -1,12 +1,15 @@
 {
     "files": [
-        "improtron.py",
+        "main.py",
         "ImproTronControlBoard.py",
         "Improtronics.py",
         "MediaFileDatabase.py",
         "Settings.py",
         "Timer.py",
         "TouchPortal.py",
-        "ImproTron.spec"
+        "ImproTron.spec",
+        "games_feature.py",
+        "text_feature.py",
+        "utilities.py"
     ]
 }
