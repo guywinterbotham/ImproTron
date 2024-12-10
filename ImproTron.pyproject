@@ -10,6 +10,7 @@
         "ImproTron.spec",
         "games_feature.py",
         "text_feature.py",
-        "utilities.py"
+        "utilities.py",
+        "media_features.py"
     ]
 }

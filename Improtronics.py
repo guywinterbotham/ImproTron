@@ -416,7 +416,7 @@ class SoundFX():
 
     # Assumes a value btween 0-1
     @Slot(str)
-    def setFXVolume(self, value):
+    def set_fx_volume(self, value):
         self.soundFX.setVolume(value)
 
     @Slot(str)

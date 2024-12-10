@@ -21,8 +21,8 @@ from Improtronics import ImproTron, ThingzWidget, SlideWidget, SoundFX, HotButto
 
 from games_feature import games_feature
 from text_feature import text_feature
+from media_features import media_features
 import utilities
-from MediaFileDatabase import MediaFileDatabase
 from TouchPortal import TouchPortal
 import ImproTronIcons
 
@@ -32,13 +32,32 @@ class ImproTronControlBoard(QWidget):
         super(ImproTronControlBoard,self).__init__()
         self._settings = Settings()
 
-        self.mainDisplay = ImproTron("Main")
-        self.auxiliaryDisplay = ImproTron("Auxiliary")
-
         loader = QUiLoader()
         self.ui = loader.load("ImproTronControlPanel.ui")
 
-        # Relocate the Screens
+        # MediaPlayer and audio setup for movies, webcams, and sound
+        self.mediaPlayer = QMediaPlayer()
+        self.audioOutput = QAudioOutput()
+        self.mediaPlayer.setAudioOutput(self.audioOutput)
+        self.audioOutput.setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
+        self.m_devices = QMediaDevices()
+        self.m_devices.videoInputsChanged.connect(self.updateCameras)
+        self.updateCameras()
+        self.videoFile = None
+
+        self.m_captureSession = QMediaCaptureSession()
+        self.setCamera(QMediaDevices.defaultVideoInput())
+
+        # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
+        self.mainPreviewMovie = QMovie()
+        self.mainPreviewMovie.setSpeed(100)
+        self.auxPreviewMovie = QMovie()
+        self.auxPreviewMovie.setSpeed(100)
+
+        # Create Screens and relocate. Main done second so it is on top
+        self.mainDisplay = ImproTron("Main")
+        self.auxiliaryDisplay = ImproTron("Auxiliary")
+
         self.auxiliaryDisplay.restore()
         self.auxiliaryDisplay.setLocation(self._settings.getAuxLocation())
         self.auxiliaryDisplay.maximize()
@@ -50,14 +69,11 @@ class ImproTronControlBoard(QWidget):
         # Instantiate Features
         self.games_feature = games_feature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.text_feature = text_feature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
+        self.media_features = media_features(self.ui, self._settings, self.mediaPlayer)
 
-        # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
-        self.mainPreviewMovie = QMovie()
-        self.mainPreviewMovie.setSpeed(100)
-        self.auxPreviewMovie = QMovie()
-        self.auxPreviewMovie.setSpeed(100)
-        self.searchPreviewMovie = QMovie()
-        self.searchPreviewMovie.setSpeed(100)
+        # Custom Signals allows the media feature to leave screen control encapulated in the control panel
+        self.media_features.mainMediaShow.connect(self.showMediaOnMain)
+        self.media_features.auxMediaShow.connect(self.showMediaOnAux)
 
         # Camera Configuration
         # Wire camera controls
@@ -67,34 +83,11 @@ class ImproTronControlBoard(QWidget):
         # Fetch and configure camera devices
         self.ui.camerasLW.itemClicked.connect(self.updateCameraDevice)
 
-        self.mediaPlayer = QMediaPlayer()
-
         # Connect the media player to retrieve duration after the file is loaded
         self.mediaPlayer.durationChanged.connect(self.updateDuration)
 
-        self.videoFile = None
-
-        self.audioOutput = QAudioOutput()
-        self.mediaPlayer.setAudioOutput(self.audioOutput)
-        self.audioOutput.setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
-        self.m_devices = QMediaDevices()
-        self.m_devices.videoInputsChanged.connect(self.updateCameras)
-        self.updateCameras()
-
-        self.m_captureSession = QMediaCaptureSession()
-        self.setCamera(QMediaDevices.defaultVideoInput())
-
-        # In memory database configuration
-        self.mediaFileDatabase = MediaFileDatabase()
-        mediaCount = self.mediaFileDatabase.indexMedia(self._settings.getMediaDir())
-        self.ui.mediaFilesCountLBL.setText(str(mediaCount))
-
-        self.mediaModel = QFileSystemModel()
-        self.mediaModel.setRootPath(self._settings.getMediaDir())
-
-        # Sound Setup
-        soundCount = self.mediaFileDatabase.indexSounds(self._settings.getSoundDir())
-        self.ui.soundFilesCountLBL.setText(str(soundCount))
+        # Set up volume control
+        self.ui.soundVolumeSL.valueChanged.connect(self.set_sound_volume)
 
         # Recall Team names and colors then connect Score related signals to slots
         self.ui.teamNameLeft.textChanged.connect(self.showLeftTeam)
@@ -167,6 +160,9 @@ class ImproTronControlBoard(QWidget):
         self.ui.showThingzBothPB.clicked.connect(self.showThingzListBoth)
 
         # Slide Show Management
+        self.mediaModel = QFileSystemModel()
+        self.mediaModel.setRootPath(self._settings.getMediaDir())
+
         self.imageTreeView = self.ui.slideShowFilesTreeView
         self.imageTreeView.setModel(self.mediaModel)
         self.imageTreeView.setRootIndex(self.mediaModel.index(self._settings.getMediaDir()))
@@ -179,6 +175,7 @@ class ImproTronControlBoard(QWidget):
         selectionModel.selectionChanged.connect(self.imageSelectedfromDir)
 
         # Connect Slide Show Management
+        self.ui.searchtoSlideShowPB.clicked.connect(self.searchtoSlideShow) # On Image search but part of this feature
         self.ui.slideListLW.itemClicked.connect(self.previewSelectedSlide)
         self.ui.slideListLW.itemDoubleClicked.connect(self.showSlideMain)
         self.ui.addSlidePB.clicked.connect(self.addSlidetoList)
@@ -256,72 +253,6 @@ class ImproTronControlBoard(QWidget):
         self.whams = 0
         self.whammyTimer.timeout.connect(self.nextWham)
 
-        # Image Search Connections
-        self.ui.searchMediaPB.clicked.connect(self.searchMedia)
-        self.ui.mediaSearchTagsLE.returnPressed.connect(self.searchMedia)
-        self.ui.mediaSearchResultsLW.itemClicked.connect(self.previewSelectedMedia)
-        self.ui.setMediaLibraryPB.clicked.connect(self.setMediaLibrary)
-
-        self.ui.mediaSearchResultsLW.itemDoubleClicked.connect(self.showMediaPreviewMain)
-        self.ui.searchToMainShowPB.clicked.connect(self.searchToMainShow)
-        self.ui.searchToAuxShowPB.clicked.connect(self.searchToAuxShow)
-        self.ui.searchtoSlideShowPB.clicked.connect(self.searchtoSlideShow)
-
-        # Sound Search Connections
-        self.ui.searchSoundsPB.clicked.connect(self.searchSounds)
-        self.ui.soundSearchTagsLE.returnPressed.connect(self.searchSounds)
-        self.ui.setSoundLibraryPB.clicked.connect(self.setSoundLibrary)
-
-        self.ui.soundPlayPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
-        self.ui.soundPlayPB.clicked.connect(self.soundPlay)
-
-        self.ui.soundPausePB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPause))
-        self.ui.soundPausePB.clicked.connect(self.soundPause)
-
-        self.ui.soundStopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaStop))
-        self.ui.soundStopPB.clicked.connect(self.soundStop)
-
-        self.ui.soundLoopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_BrowserReload))
-        self.ui.soundLoopPB.clicked.connect(self.soundLoop)
-
-        self.ui.soundVolumeSL.valueChanged.connect(self.setSoundVolume)
-        #self.mediaPlayer.errorOccurred.connect(self.playerError)
-
-        self.ui.loadSoundQueuePB.clicked.connect(self.loadSoundQueue)
-        self.ui.saveSoundQueuePB.clicked.connect(self.saveSoundQueue)
-        self.ui.saveSoundFXPallettePB.clicked.connect(self.saveSoundFXPallette)
-        self.ui.clearSoundQueuePB.clicked.connect(self.clearSoundQueue)
-        self.ui.soundFXVolumeHS.valueChanged.connect(self.setFXVolume)
-
-        self.ui.soundMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
-        self.ui.soundMoveUpPB.clicked.connect(self.soundMoveUp)
-
-        self.ui.soundMoveDownPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowDown))
-        self.ui.soundMoveDownPB.clicked.connect(self.soundMoveDown)
-
-        self.ui.soundAddToListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
-        self.ui.soundAddToListPB.clicked.connect(self.soundAddToList)
-
-        self.ui.soundRemoveFromListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowBack))
-        self.ui.soundRemoveFromListPB.clicked.connect(self.soundRemoveFromList)
-
-        # Sound Pallette Wiring
-        self.sfx_buttons = [] #empty array
-        self.soundFXNumber = 25      #number of soundeffects for a pallette
-
-        _volume = self.ui.soundFXVolumeHS.value()/self.ui.soundFXVolumeHS.maximum()
-        for button in range(self.soundFXNumber):
-            sfx_button = self.ui.findChild(QPushButton, "soundFXPB" +str(button+1))
-            _soundFX = SoundFX(sfx_button)
-            _soundFX.setFXVolume(_volume)
-            self.sfx_buttons.append(_soundFX)
-
-        # Set a slot for the clear, load and save buttons
-        self.palletteSelect = self.ui.soundPalettesCB
-        self.palletteSelect.currentIndexChanged.connect(self.loadSoundEffects)
-
-        self.loadSoundPallettes()
-
         # Video Player Wiring
 
         # The Video Widget is not support by the designer so it is created here
@@ -349,27 +280,6 @@ class ImproTronControlBoard(QWidget):
         self.ui.videoLoopPB.clicked.connect(self.videoLoop)
 
         self.ui.loadVideoPB.clicked.connect(self.getVideoFile)
-
-        # Hot Buttons Wiring
-        self.hot_buttons = [] #empty array
-        self.hotButtonNumber = 10      #number of hotbuttons
-
-        for button in range(self.hotButtonNumber):
-            self.hot_buttons.append(HotButton(button+1, self))
-
-        # Load the last saved hotbutton file
-        lastHotButtons = self._settings.getLastHotButtonFile()
-        if lastHotButtons != None:
-            with open(lastHotButtons, 'r') as json_file:
-                button_data = json.load(json_file)
-
-            for button in range(self.hotButtonNumber):
-                self.hot_buttons[button].load(button_data)
-
-        # Set a slot for the clear, load and save buttons
-        self.ui.hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
-        self.ui.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
-        self.ui.hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
 
         # Touch Portal Connect
         self.touchPortalClient = TouchPortal('127.0.0.1', 12136)
@@ -405,6 +315,27 @@ class ImproTronControlBoard(QWidget):
             self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
 
 
+            # Hot Buttons Wiring
+            self.hot_buttons = [] #empty array
+            self.hotButtonNumber = 10      #number of hotbuttons
+
+            for button in range(self.hotButtonNumber):
+                self.hot_buttons.append(HotButton(button+1, self))
+
+            # Load the last saved hotbutton file
+            lastHotButtons = self._settings.getLastHotButtonFile()
+            if lastHotButtons != None:
+                with open(lastHotButtons, 'r') as json_file:
+                    button_data = json.load(json_file)
+
+                for button in range(self.hotButtonNumber):
+                    self.hot_buttons[button].load(button_data)
+
+            # Set a slot for the clear, load and save buttons
+            self.ui.hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
+            self.ui.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
+            self.ui.hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
+
         # Set up an event filter to handle the orderly shutdown of the app.
         self.ui.installEventFilter(self)
 
@@ -424,17 +355,16 @@ class ImproTronControlBoard(QWidget):
     def eventFilter(self, obj, event):
         if obj is self.ui and event.type() == QEvent.Close:
             self._settings.save()
-
-            # Delete feature obejcts to hopefully avoid the app staying open if they trigger a crash
-            del self.games_feature
-            del self.text_feature
-
             self.shutdown()
             event.ignore()
             return True
         return super(ImproTronControlBoard, self).eventFilter(obj, event)
 
     def shutdown(self):
+        # Delete feature obejcts to hopefully avoid the app staying open if they trigger a crash
+        del self.games_feature
+        del self.text_feature
+        print("Normal Shutdown")
         self.touchPortalClient.disconnectTouchPortal()
         self.thread.quit()
         self.ui.removeEventFilter(self)
@@ -444,10 +374,6 @@ class ImproTronControlBoard(QWidget):
     def findWidget(self, type, widgetName):
         return self.ui.findChild(type, widgetName)
 
-    def selectImageFile(self):
-        selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Media", self._settings.getMediaDir() , "Media Files (*.png *.jpg *.bmp *.gif *.webp)")
-
-        return selectedFileName[0]
 
     def selectVideoFile(self):
         selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Video", self._settings.getVideoDir() , "Video Files (*.mp4 *.m4v *.mp4v *.wmv)")
@@ -465,16 +391,6 @@ class ImproTronControlBoard(QWidget):
         else:
             return False
 
-    def isImage(self, fileName):
-        if len(fileName) > 0:
-            if QFileInfo.exists(fileName):
-                mediaInfo = QFileInfo(fileName)
-                return bytes(mediaInfo.suffix().lower(),"ascii") in  QImageReader.supportedImageFormats()
-            else:
-                return False
-        else:
-            return False
-
     def isVideo(self, fileName):
         if len(fileName) > 0:
             if QFileInfo.exists(fileName):
@@ -485,6 +401,8 @@ class ImproTronControlBoard(QWidget):
         else:
             return False
 
+    # Note: This is both a local call but a slot for images emitted from the media features
+    @Slot(str)
     def showMediaOnMain(self, fileName):
         self.mainPreviewMovie.stop()
         if self.isAnimatedGIF(fileName):
@@ -494,7 +412,7 @@ class ImproTronControlBoard(QWidget):
                 self.ui.imagePreviewMain.setMovie(self.mainPreviewMovie)
                 self.mainPreviewMovie.start()
                 self.mainDisplay.showMovie(fileName)
-        elif self.isImage(fileName):
+        elif self.media_features.isImage(fileName):
             reader = QImageReader(fileName)
             reader.setAutoTransform(True)
             newImage = reader.read()
@@ -508,6 +426,8 @@ class ImproTronControlBoard(QWidget):
         else:
             print("Unsupported media for main:", fileName)
 
+    # Note: This is both a local call but a slot for images emitted from the media features
+    @Slot(str)
     def showMediaOnAux(self, fileName):
         self.auxPreviewMovie.stop()
         if self.isAnimatedGIF(fileName):
@@ -517,7 +437,7 @@ class ImproTronControlBoard(QWidget):
                 self.ui.imagePreviewAuxiliary.setMovie(self.auxPreviewMovie)
                 self.auxPreviewMovie.start()
                 self.auxiliaryDisplay.showMovie(fileName)
-        elif self.isImage(fileName):
+        elif self.media_features.isImage(fileName):
             reader = QImageReader(fileName)
             reader.setAutoTransform(True)
             newImage = reader.read()
@@ -569,8 +489,8 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def blackout_both(self):
-        self.blackoutMain()
-        self.blackoutAux()
+        self.blackout_main()
+        self.blackout_aux()
 
     @Slot()
     def blackout_main(self):
@@ -608,11 +528,11 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def getImageFileMain(self):
-        self.showMediaOnMain(self.selectImageFile())
+        self.showMediaOnMain(self.media_features.selectImageFile())
 
     @Slot()
     def getImageFileAuxiliary(self):
-        self.showMediaOnAux(self.selectImageFile())
+        self.showMediaOnAux(self.media_features.selectImageFile())
 
     @Slot()
     def getVideoFile(self):
@@ -671,7 +591,6 @@ class ImproTronControlBoard(QWidget):
         self.auxiliaryDisplay.showRightTeam(teamName)
         self.ui.rightThingTeamRB.setText(teamName)
         self._settings.setRightTeamName(teamName)
-
 
     # Unlock the Improtron Displays so they can be moved. Lock them to maximize
     # on th screen they subsequently reside on.
@@ -993,7 +912,7 @@ class ImproTronControlBoard(QWidget):
 
             # Determine the file type so as to correcty set the timeout to the default or video length
             fileName = self.ui.slideListLW.currentItem().imagePath()
-            if self.isAnimatedGIF(fileName) or self.isImage(fileName):
+            if self.isAnimatedGIF(fileName) or self.media_features.isImage(fileName):
                 self.showSlideMain()
             elif self.isVideo(fileName):
                 self.slideShowTimer.setInterval(1000)
@@ -1125,212 +1044,11 @@ class ImproTronControlBoard(QWidget):
         self.ui.slideListLW.setCurrentRow(randomSlide)
         self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
 
-    # Media Search Slots
-    @Slot()
-    def touchPortal(self):
-        self.ui.mediaSearchResultsLW.clear()
-        self.ui.mediaSearchPreviewLBL.clear()
-        self.ui.mediaFileNameLBL.clear()
-        foundMedia = self.mediaFileDatabase.searchMedia(self.ui.mediaSearchTagsLE.text(), self.ui.allMediaTagsCB.isChecked())
-        if len(foundMedia) > 0:
-            for media in foundMedia:
-                SlideWidget(QFileInfo(media), self.ui.mediaSearchResultsLW)
-        else:
-            reply = QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
-    @Slot()
-    def searchMedia(self):
-        self.ui.mediaSearchResultsLW.clear()
-        self.ui.mediaSearchPreviewLBL.clear()
-        self.ui.mediaFileNameLBL.clear()
-        foundMedia = self.mediaFileDatabase.searchMedia(self.ui.mediaSearchTagsLE.text(), self.ui.allMediaTagsCB.isChecked())
-        if len(foundMedia) > 0:
-            for media in foundMedia:
-                SlideWidget(QFileInfo(media), self.ui.mediaSearchResultsLW)
-        else:
-            reply = QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
-
-    @Slot()
-    def setMediaLibrary(self):
-        setDir = QFileDialog.getExistingDirectory(self.ui,
-                "Select the Media Library location",
-                self._settings.getMediaDir(), QFileDialog.ShowDirsOnly)
-        if setDir:
-            self._settings.setMediaDir(setDir)
-            mediaCount = self.mediaFileDatabase.indexMedia(setDir)
-            self.ui.mediaFilesCountLBL.setText(str(mediaCount))
-
-            # The Media Library is also part of the Media mediaModel so reset it
-            self.imageTreeView = self.ui.slideShowFilesTreeView
-            self.imageTreeView.setModel(self.mediaModel)
-            self.imageTreeView.setRootIndex(self.mediaModel.index(setDir))
-            for i in range(1, self.mediaModel.columnCount()):
-                self.imageTreeView.header().hideSection(i)
-            self.imageTreeView.setHeaderHidden(True)
-
-    @Slot(SlideWidget)
-    def previewSelectedMedia(self, slide):
-        mediaInfo = slide.fileInfo()
-        self.ui.mediaFileNameLBL.setText(slide.imagePath())
-        self.searchPreviewMovie.stop()
-        if mediaInfo.suffix().lower() == 'gif':
-            self.searchPreviewMovie.setFileName(slide.imagePath())
-            if self.searchPreviewMovie.isValid():
-                self.searchPreviewMovie.setScaledSize(self.ui.mediaSearchPreviewLBL.size())
-                self.ui.mediaSearchPreviewLBL.setMovie(self.searchPreviewMovie)
-                self.searchPreviewMovie.start()
-        else:
-            reader = QImageReader(slide.imagePath())
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-            if newImage:
-                if self.ui.stretchMainCB.isChecked():
-                    self.ui.mediaSearchPreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.mediaSearchPreviewLBL.size())))
-                else:
-                    self.ui.mediaSearchPreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.mediaSearchPreviewLBL.size().height())))
-
-    @Slot(SlideWidget)
-    def showMediaPreviewMain(self, slide):
-        self.showMediaOnMain(slide.imagePath())
-
-    @Slot()
-    def searchToMainShow(self):
-        if self.ui.mediaSearchResultsLW.currentItem() != None:
-            slide = self.ui.mediaSearchResultsLW.currentItem()
-            self.showMediaOnMain(slide.imagePath())
-    @Slot()
-    def searchToAuxShow(self):
-        if self.ui.mediaSearchResultsLW.currentItem() != None:
-            slide = self.ui.mediaSearchResultsLW.currentItem()
-            self.showMediaOnAux(slide.imagePath())
-
-    @Slot()
+    @Slot() # Relocate to Slide show as it involves SlideWidgets
     def searchtoSlideShow(self):
         if self.ui.mediaSearchResultsLW.currentItem() != None:
             SlideWidget(QFileInfo(self.ui.mediaSearchResultsLW.currentItem().imagePath()), self.ui.slideListLW)
 
-    # Sound Search Slots
-    @Slot()
-    def searchSounds(self):
-        self.ui.soundSearchResultsLW.clear()
-        foundSounds = self.mediaFileDatabase.searchSounds(self.ui.soundSearchTagsLE.text(), self.ui.allsoundTagsCB.isChecked())
-        if len(foundSounds) > 0:
-            for sound in foundSounds:
-                SlideWidget(QFileInfo(sound), self.ui.soundSearchResultsLW)
-        else:
-            QMessageBox.information(self.ui, 'No Search Results', 'No sounds with those tags found.')
-
-
-    @Slot()
-    def setSoundLibrary(self):
-        setDir = QFileDialog.getExistingDirectory(self.ui,
-                "Select the Sound Library location",
-                self._settings.getSoundDir(), QFileDialog.ShowDirsOnly)
-        if setDir:
-            self._settings.setSoundDir(setDir)
-            soundsCount = self.mediaFileDatabase.indexSounds(setDir)
-            self.ui.soundFilesCountLBL.setText(str(soundsCount))
-
-    @Slot()
-    def soundPlay(self):
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
-            self.mediaPlayer.play()
-            return
-
-        if self.ui.soundSearchResultsLW.currentItem() != None:
-            self.mediaPlayer.setSource(QUrl.fromLocalFile(self.ui.soundSearchResultsLW.currentItem().imagePath()))
-            self.mediaPlayer.setPosition(0)
-            self.mediaPlayer.play()
-
-    @Slot()
-    def soundPause(self):
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
-            self.mediaPlayer.play()
-            return
-
-        if self.mediaPlayer.isPlaying():
-            self.mediaPlayer.pause()
-
-    @Slot()
-    def soundStop(self):
-        self.mediaPlayer.stop()
-
-    @Slot()
-    def soundLoop(self):
-        if self.ui.soundLoopPB.isChecked():
-            self.mediaPlayer.setLoops(QMediaPlayer.Infinite)
-        else:
-            self.mediaPlayer.setLoops(QMediaPlayer.Once)
-            if self.mediaPlayer.isPlaying():
-                self.mediaPlayer.stop()
-
-    @Slot(int)
-    def setSoundVolume(self, value):
-        self.audioOutput.setVolume(value/self.ui.soundVolumeSL.maximum())
-
-    @Slot()
-    def loadSoundQueue(self):
-        if self.ui.soundQueueLW.count() > 0:
-            reply = QMessageBox.question(self.ui, 'Replace Sounds', 'Are you sure you want replace the current queue?',
-                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-            if reply == QMessageBox.No:
-                return
-
-        self.ui.soundQueueLW.clear()
-
-        fileName = QFileDialog.getOpenFileName(self.ui, "Load Sound Queue",
-                                self._settings.getConfigDir(),
-                                "Sound Queue Files(*.sfx *.sdq)")
-
-        # Read the JSON data from the file
-        if len(fileName[0]) > 0:
-            with open(fileName[0], 'r') as json_file:
-                sound_data = json.load(json_file)
-
-            for sound in sound_data.items():
-                file = QFileInfo(sound[1])
-                SlideWidget(file, self.ui.soundQueueLW)
-
-    @Slot()
-    def saveSoundQueue(self):
-        fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
-                                   self._settings.getConfigDir(),
-                                   "Sound Queue Files(*.sdq)")
-
-        if len(fileName[0]) > 0:
-            sound_data = {}
-            for sound in range(self.ui.soundQueueLW.count()):
-                soundName = "sound"+str(sound)
-                sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
-
-            # Write the JSON string to a file
-            with open(fileName[0], 'w', encoding='utf8') as json_file:
-                json.dump(sound_data, json_file, indent=2)
-
-    @Slot()
-    def saveSoundFXPallette(self):
-        fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
-                                   self._settings.getConfigDir(),
-                                   "Sound Queue Files(*.sfx)")
-
-        if len(fileName[0]) > 0:
-            sound_data = {}
-            for sound in range(self.ui.soundQueueLW.count()):
-                soundName = "sound"+str(sound)
-                sound_data[soundName] = self.ui.soundQueueLW.item(sound).imagePath()
-
-            # Write the JSON string to a file
-            with open(fileName[0], 'w', encoding='utf8') as json_file:
-                json.dump(sound_data, json_file, indent=2)
-
-        # Trigger a refresh of the combo box of Palletes
-        self.loadSoundPallettes()
-
-    @Slot()
-    def clearSoundQueue(self):
-        reply = QMessageBox.question(self.ui, 'Clear Sounds', 'Are you sure you want clear all sounds?',
-                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            self.ui.soundQueueLW.clear()
 
 
     @Slot()
@@ -1341,75 +1059,6 @@ class ImproTronControlBoard(QWidget):
         sound = self.ui.soundQueueLW.takeItem(soundRow)
         self.ui.soundQueueLW.insertItem(soundRow-1,sound)
         self.ui.soundQueueLW.setCurrentRow(soundRow-1)
-
-    @Slot()
-    def soundMoveDown(self):
-        soundRow = self.ui.soundQueueLW.currentRow()
-        if soundRow < 0:
-            return
-        sound = self.ui.soundQueueLW.takeItem(soundRow)
-        self.ui.soundQueueLW.insertItem(soundRow+1,sound)
-        self.ui.soundQueueLW.setCurrentRow(soundRow+1)
-
-    @Slot()
-    def soundAddToList(self):
-        if self.ui.soundSearchResultsLW.currentItem() != None:
-            sound = self.ui.soundSearchResultsLW.takeItem(self.ui.soundSearchResultsLW.currentRow())
-            self.ui.soundQueueLW.addItem(sound)
-
-    @Slot()
-    def soundRemoveFromList(self):
-        if self.ui.soundQueueLW.currentItem() != None:
-            sound = self.ui.soundQueueLW.takeItem(self.ui.soundQueueLW.currentRow())
-            self.ui.soundSearchResultsLW.addItem(sound)
-
-    @Slot(QMediaPlayer.Error, str)
-    def playerError(self, error, error_string):
-        QMessageBox.critical(self.ui, "Media Player Error", error_string)
-
-    # Sound Palletes
-    @Slot(int)
-    def loadSoundPallettes(self):
-        self.palletteSelect.clear()
-        palletteIter = QDirIterator(self._settings.getConfigDir(),{"*.sfx"})
-        while palletteIter.hasNext():
-            palletteFileInfo = palletteIter.nextFileInfo()
-            palletteFileName = palletteFileInfo.completeBaseName()
-            self.palletteSelect.addItem(palletteFileName, palletteFileInfo)
-
-    @Slot(int)
-    def loadSoundEffects(self, index):
-        # During initialization, a negative index is sent. Use that as a trigger
-        # to diable all buttons in the case no files exist
-        buttonNumber = 0
-        if index >= 0 :
-            palletteFileInfo = self.palletteSelect.itemData(index)
-            with open(palletteFileInfo.absoluteFilePath(), 'r') as json_file:
-                soundButton_data = json.load(json_file)
-
-            # Loop through all the buttons to either set them based on the file
-            # or clear and disable
-            for sound in soundButton_data.items():
-                if buttonNumber < self.soundFXNumber:
-                    if QFileInfo.exists(sound[1]): # The file still exists
-                        file = QFileInfo(sound[1])
-                        if file.suffix() == "wav": # Only wav files are supported for sound effect
-                            self.sfx_buttons[buttonNumber].loadSoundEffect(file)
-                        else:
-                            self.sfx_buttons[buttonNumber].disable()
-                    else:
-                        self.sfx_buttons[buttonNumber].disable()
-
-                buttonNumber += 1
-
-        for disabledButton in range(buttonNumber, self.soundFXNumber):
-            self.sfx_buttons[disabledButton].disable()
-
-    @Slot(int)
-    def setFXVolume(self, value):
-        sliderMax = self.ui.soundFXVolumeHS.maximum()
-        for sound in self.sfx_buttons:
-            sound.setFXVolume(value/sliderMax)
 
     # Video Player Controler
     def videoPlay(self):
@@ -1509,7 +1158,7 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def startupImage(self):
-        self._settings.setStartupImage(self.selectImageFile())
+        self._settings.setStartupImage(self.media_features.selectImageFile())
 
     @Slot()
     def about(self):
@@ -1603,6 +1252,11 @@ class ImproTronControlBoard(QWidget):
             if cameraDevice == self.m_devices.defaultVideoInput():
                 videoDeviceItem.setSelected(True)
 
+    # Respond to the request to change volume
+    @Slot(int)
+    def set_sound_volume(self, value):
+        self.audioOutput.setVolume(value/self.ui.soundVolumeSL.maximum())
+
     # Touch Portal message handlers
     @Slot()
     def connectTouchPortal(self):
@@ -1633,7 +1287,6 @@ class ImproTronControlBoard(QWidget):
         else:
             print(f"QDoubleSpinBox: {buttonID} not found")
 
-
     # Handle a request to display an image or animation
     @Slot(str, str)
     def onTouchPortalMediaAction(self, file, monitor):
@@ -1650,7 +1303,3 @@ class ImproTronControlBoard(QWidget):
             self.mediaPlayer.setSource(QUrl.fromLocalFile(file))
             self.mediaPlayer.setPosition(0)
             self.mediaPlayer.play()
-
-
-
-
