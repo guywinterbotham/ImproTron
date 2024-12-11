@@ -10,12 +10,12 @@ import utilities
 import json
 
 # Module to encapsulate image and media search along with the media database management
-class media_features(QObject):
+class MediaFeatures(QObject):
     mainMediaShow = Signal(str)    # Custom signal that decouples the media display from controlboard
     auxMediaShow  = Signal(str)    # Custom signal that decouples the media display from controlboard
 
     def __init__(self, ui, settings, media_player):
-        super(media_features,self).__init__()
+        super(MediaFeatures, self).__init__()
 
         self.ui = ui
         self._settings = settings
@@ -63,6 +63,7 @@ class media_features(QObject):
 
         self.connect_slots()
 
+    # Set up audio visual connections
     def connect_slots(self):
         # Image Search Connections
         self.ui.searchMediaPB.clicked.connect(self.search_media)

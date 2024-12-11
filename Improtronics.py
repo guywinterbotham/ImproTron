@@ -432,34 +432,7 @@ class SoundFX():
         else:
             self.soundFX.play()
 
-# Subclass to maintain the additional substitutes information associated with a Thing
-class ThingzWidget(QListWidgetItem):
-    def __init__(self, title, isLeftSideTeam, parent=None):
-        super().__init__(title, parent)
-
-        self._substitutes = ""
-        self._isLeftSideTeam = isLeftSideTeam
-
-    def substitutes(self):
-        return self._substitutes
-
-    def thingData(self):
-        return self.text() + "\n" + self._substitutes
-
-    def updateSubstitutes(self, substitutesText):
-        self._substitutes = substitutesText
-
-    def isLeftSideTeam(self):
-        return self._isLeftSideTeam
-
-    def toggleTeam(self):
-        self._isLeftSideTeam = not self._isLeftSideTeam
-
-# To Do
-# Have file model filter for all supported image file types
-# implement the show fwd reverse functions
-# do a json file file save and load, although the load could be fun without the file info.
-# add some try excpet handling around the load for when files have been removed
+# Class to hold Slide info useful in maintaining list of images
 class SlideWidget(QListWidgetItem):
     def __init__(self, imageFileInfo, parent=None):
         super().__init__(imageFileInfo.fileName(), parent)

@@ -11,6 +11,7 @@
         "games_feature.py",
         "text_feature.py",
         "utilities.py",
-        "media_features.py"
+        "media_features.py",
+        "thingz_feature.py"
     ]
 }

@@ -17,11 +17,12 @@ from PySide6.QtNetwork import QTcpSocket
 from PySide6.QtMultimediaWidgets import QVideoWidget
 
 from Settings import Settings
-from Improtronics import ImproTron, ThingzWidget, SlideWidget, SoundFX, HotButton, SlideLoaderThread
+from Improtronics import ImproTron, SlideWidget, HotButton, SlideLoaderThread
 
-from games_feature import games_feature
-from text_feature import text_feature
-from media_features import media_features
+from games_feature import GamesFeature
+from text_feature import TextFeature
+from media_features import MediaFeatures
+from thingz_feature import ThingzFeature
 import utilities
 from TouchPortal import TouchPortal
 import ImproTronIcons
@@ -67,9 +68,10 @@ class ImproTronControlBoard(QWidget):
         self.mainDisplay.maximize()
 
         # Instantiate Features
-        self.games_feature = games_feature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
-        self.text_feature = text_feature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
-        self.media_features = media_features(self.ui, self._settings, self.mediaPlayer)
+        self.games_feature = GamesFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
+        self.text_feature = TextFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
+        self.thingz_feature = ThingzFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
+        self.media_features = MediaFeatures(self.ui, self._settings, self.mediaPlayer)
 
         # Custom Signals allows the media feature to leave screen control encapulated in the control panel
         self.media_features.mainMediaShow.connect(self.showMediaOnMain)
@@ -129,35 +131,6 @@ class ImproTronControlBoard(QWidget):
         self.ui.pauseTimerPB.clicked.connect(self.pauseTimerPB)
 
         self.ui.timerVisibleMainCB.stateChanged.connect(self.timerVisibleMain)
-
-        # Connect Thingz Management
-        self.ui.thingzListLW.itemClicked.connect(self.showSelectedThing)
-        self.ui.thingzListLW.itemChanged.connect(self.titleEdited)
-
-        self.ui.addThingPB.clicked.connect(self.addThingtoList)
-        self.ui.thingNameTxt.returnPressed.connect(self.addThingtoList)
-
-        self.ui.toggleTeamPB.clicked.connect(self.toggleTeam)
-
-        self.ui.removeThingPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCloseButton))
-        self.ui.removeThingPB.clicked.connect(self.removeThingfromList)
-
-        self.ui.clearThingzPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogDiscardButton))
-        self.ui.clearThingzPB.clicked.connect(self.clearThingzList)
-
-        self.ui.thingzMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
-        self.ui.thingzMoveUpPB.clicked.connect(self.thingzMoveUp)
-
-        self.ui.thingzMoveDownPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowDown))
-        self.ui.thingzMoveDownPB.clicked.connect(self.thingzMoveDown)
-
-        self.ui.thingTextEdit.textChanged.connect(self.updateThingsText)
-        self.ui.showThingMainPB.clicked.connect(self.showThingMain)
-        self.ui.showThingAuxiliaryPB.clicked.connect(self.showThingAuxiliary)
-        self.ui.showThingBothPB.clicked.connect(self.showThingBoth)
-        self.ui.showThingzMainPB.clicked.connect(self.showThingzListMain)
-        self.ui.showThingzAuxiliaryPB.clicked.connect(self.showThingzListAuxiliary)
-        self.ui.showThingzBothPB.clicked.connect(self.showThingzListBoth)
 
         # Slide Show Management
         self.mediaModel = QFileSystemModel()
@@ -364,7 +337,9 @@ class ImproTronControlBoard(QWidget):
         # Delete feature obejcts to hopefully avoid the app staying open if they trigger a crash
         del self.games_feature
         del self.text_feature
-        print("Normal Shutdown")
+        del self.thingz_feature
+        del self.media_features
+
         self.touchPortalClient.disconnectTouchPortal()
         self.thread.quit()
         self.ui.removeEventFilter(self)
@@ -451,14 +426,8 @@ class ImproTronControlBoard(QWidget):
         else:
             print("Unsupported media on aux:", fileName)
 
-    def teamFont(self, color):
-        if(color.red()*0.299 + color.green()*0.587 + color.blue()*0.114) < 186:
-            return QColor(Qt.white)
-
-        return QColor(Qt.black)
-
     def setLeftTeamColors(self, colorSelected):
-        style = utilities.styleSheet(colorSelected)
+        style = utilities.style_sheet(colorSelected)
 
         self.ui.teamNameLeft.setStyleSheet(style)
         self.ui.leftThingTeamRB.setStyleSheet(style)
@@ -466,7 +435,7 @@ class ImproTronControlBoard(QWidget):
         self.auxiliaryDisplay.colorizeLeftScore(style)
 
     def setRightTeamColors(self, colorSelected):
-        style = utilities.styleSheet(colorSelected)
+        style = utilities.style_sheet(colorSelected)
 
         self.ui.teamNameRight.setStyleSheet(style)
         self.ui.rightThingTeamRB.setStyleSheet(style)
@@ -606,151 +575,6 @@ class ImproTronControlBoard(QWidget):
             # Order matters so the main displays on top
             self.auxiliaryDisplay.maximize()
             self.mainDisplay.maximize()
-
-    # Things Tab Management
-    def listThingz(self):
-        listText = "Empty"
-        if self.ui.thingzListLW.count() > 0:
-            listText = ""
-            for thingRow in range(self.ui.thingzListLW.count()):
-                listText += self.ui.thingzListLW.item(thingRow).text() + "\n"
-
-        return listText
-
-    @Slot()
-    def showThingzListMain(self):
-        thingFont = self.ui.thingFontFCB.currentFont()
-        thingFont.setPointSize(self.ui.thingFontSizeSB.value())
-        self.mainDisplay.showText(self.listThingz(), font = thingFont)
-
-    @Slot()
-    def showThingzListAuxiliary(self):
-        thingFont = self.ui.thingFontFCB.currentFont()
-        thingFont.setPointSize(self.ui.thingFontSizeSB.value())
-        self.auxiliaryDisplay.showText(self.listThingz(), font = thingFont)
-
-    @Slot()
-    def showThingzListBoth(self):
-        self.showThingzListMain()
-        self.showThingzListAuxiliary()
-
-    @Slot()
-    def showThingMain(self):
-        currentThing = self.ui.thingzListLW.currentItem()
-        if currentThing != None:
-            thingFont = self.ui.thingFontFCB.currentFont()
-            thingFont.setPointSize(self.ui.thingFontSizeSB.value())
-            self.mainDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), utilities.styleSheet(currentThing.background().color()), thingFont)
-
-    @Slot()
-    def showThingAuxiliary(self):
-        currentThing = self.ui.thingzListLW.currentItem()
-        if currentThing != None:
-            thingFont = self.ui.thingFontFCB.currentFont()
-            thingFont.setPointSize(self.ui.thingFontSizeSB.value())
-            self.auxiliaryDisplay.showText(self.ui.thingzListLW.currentItem().thingData(), utilities.styleSheet(currentThing.background().color()), thingFont)
-
-    @Slot()
-    def showThingBoth(self):
-        self.showThingMain()
-        self.showThingAuxiliary()
-
-    @Slot()
-    def updateThingsText(self):
-        currentThing = self.ui.thingzListLW.currentItem()
-
-        if currentThing != None:
-            self.ui.thingzListLW.currentItem().updateSubstitutes(self.ui.thingTextEdit.toPlainText())
-
-    @Slot()
-    def toggleTeam(self):
-        currentThing = self.ui.thingzListLW.currentItem()
-        if currentThing != None:
-            if currentThing.isLeftSideTeam():
-                currentThing.setBackground(self._settings.getRightTeamColor())
-                currentThing.setForeground(self.teamFont(self._settings.getRightTeamColor()))
-            else:
-                currentThing.setBackground(self._settings.getLeftTeamColor())
-                currentThing.setForeground(self.teamFont(self._settings.getLeftTeamColor()))
-
-            currentThing.toggleTeam()
-
-    @Slot(ThingzWidget)
-    def showSelectedThing(self, thing):
-        # Display selected item's title and text in the editor
-        self.ui.thingFocusLBL.setText(thing.text())
-        self.ui.thingTextEdit.setPlainText(thing.substitutes())
-
-    @Slot(ThingzWidget)
-    def titleEdited(self, thing):
-        # Display selected item's title and text in the editor
-        self.ui.thingFocusLBL.setText(thing.text())
-
-    @Slot()
-    def addThingtoList(self):
-        thingStr = self.ui.thingNameTxt.text()
-        if len(thingStr) > 0:
-
-            # Determine which team is being entered from the radio buttons
-            # and color the thing appropriately
-            if self.ui.leftThingTeamRB.isChecked():
-                newThing = ThingzWidget(thingStr, True, self.ui.thingzListLW)
-                newThing.setBackground(self._settings.getLeftTeamColor())
-                newThing.setForeground(self.teamFont(self._settings.getLeftTeamColor()))
-                self.ui.rightThingTeamRB.setChecked(True)
-            else: # Right Team Color
-                newThing = ThingzWidget(thingStr, False, self.ui.thingzListLW)
-                newThing.setBackground(self._settings.getRightTeamColor())
-                newThing.setForeground(self.teamFont(self._settings.getRightTeamColor()))
-                self.ui.leftThingTeamRB.setChecked(True)
-
-            newThingFont = newThing.font()
-            newThingFont.setPointSize(12)
-            newThing.setFont(newThingFont)
-            newThing.setFlags(newThing.flags() | Qt.ItemIsEditable)
-
-            self.ui.thingNameTxt.setText("")
-            self.ui.thingNameTxt.setFocus()
-            self.ui.thingzListLW.setCurrentItem(newThing)
-            self.ui.thingTextEdit.clear()
-
-    @Slot()
-    def thingzMoveDown(self):
-        thingRow = self.ui.thingzListLW.currentRow()
-        if thingRow < 0:
-            return
-        thing = self.ui.thingzListLW.takeItem(thingRow)
-        self.ui.thingzListLW.insertItem(thingRow+1,thing)
-        self.ui.thingzListLW.setCurrentRow(thingRow+1)
-
-    @Slot()
-    def thingzMoveUp(self):
-        thingRow = self.ui.thingzListLW.currentRow()
-        if thingRow < 0:
-            return
-        thing = self.ui.thingzListLW.takeItem(thingRow)
-        self.ui.thingzListLW.insertItem(thingRow-1,thing)
-        self.ui.thingzListLW.setCurrentRow(thingRow-1)
-
-    @Slot()
-    def removeThingfromList(self):
-        self.ui.thingzListLW.takeItem(self.ui.thingzListLW.row(self.ui.thingzListLW.currentItem()))
-        if self.ui.thingzListLW.currentItem() != None:
-            self.showSelectedThing(self.ui.thingzListLW.currentItem())
-        else:
-            self.ui.thingFocusLBL.clear()
-            self.ui.thingTextEdit.clear()
-
-
-    @Slot()
-    def clearThingzList(self):
-        reply = QMessageBox.question(self.ui, 'Clear Thingz', 'Are you sure you want clear all Thingz?',
-                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            self.ui.thingzListLW.clear()
-            self.ui.leftThingTeamRB.setChecked(True)
-            self.ui.thingFocusLBL.clear()
-            self.ui.thingTextEdit.clear()
 
     # Slideshow Management
     @Slot(int)

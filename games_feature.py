@@ -5,8 +5,9 @@ from PySide6.QtCore import QObject, Slot, QItemSelection, Qt, QTimer, QFileInfo,
 from PySide6.QtGui import QImageReader, QPixmap, QColor, QStandardItem, QStandardItemModel, QPainter, QFontMetrics
 from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QListWidgetItem
 
-class games_feature(QObject):
+class GamesFeature(QObject):
     def __init__(self, ui, settings, mainDisplay, auxiliaryDisplay):
+        super(GamesFeature, self).__init__()
 
         self.ui = ui
         self._settings = settings
