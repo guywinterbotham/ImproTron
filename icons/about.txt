@@ -1,8 +1,7 @@
 ImproTron Dual Monitor
-Version 0.4 Release July, 2024
+Version 1.0 Release January, 2025
 by Improv Jester
 
-This is an Alpha release software.
 Currently Virus Scanners hate it so exclude the installation directory and the Temp directory created when it runs if necessary.
 
 This program may only be used if you can figure out how to work it!

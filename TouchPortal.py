@@ -1,8 +1,11 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import json
+import logging
 from PySide6.QtCore import QObject, QIODevice, Slot, Signal
 from PySide6.QtNetwork import QTcpSocket
+
+logger = logging.getLogger(__name__)
 
 class TouchPortal(QObject):
     buttonAction = Signal(str)    # Custom signal with a string argument of a touch portal button matching the UI ID
@@ -24,14 +27,14 @@ class TouchPortal(QObject):
         self.socket.connectToHost(self.host, self.port, QIODevice.ReadWrite)
 
     def on_connected(self):
-        print(f"Connected to Touch Portal at {self.host}:{self.port}")
+        logger.info(f"Connected to Touch Portal at {self.host}:{self.port}")
         self.pair()
 
     def on_error(self, socket_error):
-        print(f"Touch Portal Connection error: {socket_error}")
+        logger.info(f"Touch Portal enabled but failed to connect. Connection error: {socket_error}")
 
     def on_disconnected(self):
-        print("Disconnected from Touch Portal")
+        logger.info(f"Disconnected from Touch Portal.")
 
     def disconnectTouchPortal(self):
         if self.socket.state() == QTcpSocket.ConnectedState:
@@ -41,7 +44,7 @@ class TouchPortal(QObject):
         if self.socket.state() == QTcpSocket.ConnectedState:
             self.socket.write((json.dumps(message)+'\n').encode())
         else:
-            print("Not connected to Touch Portal")
+            logger.info(f"Not connected to Touch Portal")
 
     @Slot()
     def receive_message(self):
@@ -79,7 +82,7 @@ class TouchPortal(QObject):
                     file = json_obj["data"][0]["value"]
                     self.soundAction.emit(file)
                 else:
-                    print(f"Unknown Action: {json_obj}")
+                    logger.info(f"Unknown Action: {json_obj}")
 
             elif json_obj["type"] == "broadcast":
                 pass # Ingnore broadcasts for now. These are things like page changes
@@ -88,11 +91,11 @@ class TouchPortal(QObject):
                 pass # Ingnore info for now. These are things like connnection messages and versioning
 
             else:
-                print(f"Unhandled inbound message: {json_obj}")
+                logger.warning(f"Unhandled inbound message: {json_obj}")
 
     def close(self):
+        logger.info(f"Disconnected from port")
         self.socket.disconnectFromHost()
-        print("Connection closed")
 
     # Touch Panel Message Methods
     def pair(self):

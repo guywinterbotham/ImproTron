@@ -1,9 +1,12 @@
 # games_feature.py
 # This Python file uses the following encoding: utf-8
 import csv
+import logging
 from PySide6.QtCore import QObject, Slot, QItemSelection, Qt, QTimer, QFileInfo, QRandomGenerator
 from PySide6.QtGui import QImageReader, QPixmap, QColor, QStandardItem, QStandardItemModel, QPainter, QFontMetrics
 from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QListWidgetItem
+
+logger = logging.getLogger(__name__)
 
 class GamesFeature(QObject):
     def __init__(self, ui, settings, mainDisplay, auxiliaryDisplay):
@@ -73,11 +76,11 @@ class GamesFeature(QObject):
     def set_games_list(self):
         # Open file dialog to select a CSV file
         file_name = QFileDialog.getOpenFileName(self.ui, "Set Games List",
-                                    self._settings.getConfigDir(),
+                                    self._settings.get_config_dir(),
                                     "Games Files (*.csv)")
         if len(file_name[0]) > 0:
-            self._settings.setgames_file(fileName[0])
-            self.rad_games()
+            self._settings.set_games_file(file_name[0])
+            self.read_games()
 
     # Read the games file. Trigger on setting it and also at startup
     def read_games(self):
@@ -88,7 +91,7 @@ class GamesFeature(QObject):
         categories = {}
 
         # Read the CSV file and add the first and second columns to the list view
-        games_file = self._settings.getGamesFile()
+        games_file = self._settings.get_games_file()
         if len(games_file) >0:
             with open(games_file, newline='', encoding='utf-8') as csv_file:
                 reader = csv.reader(csv_file)
@@ -193,7 +196,7 @@ class GamesFeature(QObject):
 
     @Slot()
     def load_background(self):
-        selected_file_name = QFileDialog.getOpenFileName(self.ui, "Select Background", self._settings.getMediaDir() , "Background Files (*.png *.jpg *.bmp)")
+        selected_file_name = QFileDialog.getOpenFileName(self.ui, "Select Background", self._settings.get_media_directory() , "Background Files (*.png *.jpg *.bmp)")
         self._games_background_file = selected_file_name[0]
 
         if QFileInfo.exists(self._games_background_file):
@@ -327,7 +330,10 @@ class GamesFeature(QObject):
 
         self.ui.gamesLW.setCurrentRow(self._whammy_randomizer.bounded(0, self.ui.gamesLW.count()))
         self.draw_games_slide(self.ui.gameBackgroundLBL)
-        self.show_game_main()
+        if self.ui.copytoAuxCB.isChecked():
+            self.show_game_both()
+        else:
+            self.show_game_main()
 
     # Option to manually add a game or any one line of content for that matter to the list
     @Slot()
@@ -348,6 +354,7 @@ class GamesFeature(QObject):
     @Slot(QItemSelection, QItemSelection)
     def game_selected(self, selected, deselected):
         indexes = selected.indexes()
-        item = indexes[0]
-        description = item.data(Qt.UserRole)
-        self.ui.gameDescriptionTE.setText(description)
+        if len(indexes):
+            item = indexes[0]
+            description = item.data(Qt.UserRole)
+            self.ui.gameDescriptionTE.setText(description)

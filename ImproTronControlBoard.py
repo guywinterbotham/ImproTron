@@ -1,5 +1,6 @@
-# This Python file uses the following encoding: utf-8
 import json
+import logging
+
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import (QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QImage, QStandardItemModel,
                                 QStandardItem, QFont, QFontMetrics)
@@ -17,7 +18,7 @@ from PySide6.QtNetwork import QTcpSocket
 from PySide6.QtMultimediaWidgets import QVideoWidget
 
 from Settings import Settings
-from Improtronics import ImproTron, SlideWidget, HotButton, SlideLoaderThread
+from Improtronics import ImproTron, SlideWidget, HotButtonHandler, SlideLoaderThread
 
 from games_feature import GamesFeature
 from text_feature import TextFeature
@@ -26,6 +27,8 @@ from thingz_feature import ThingzFeature
 import utilities
 from TouchPortal import TouchPortal
 import ImproTronIcons
+
+logger = logging.getLogger(__name__)
 
 class ImproTronControlBoard(QWidget):
     slideLoadSignal = Signal(str)
@@ -36,6 +39,10 @@ class ImproTronControlBoard(QWidget):
         loader = QUiLoader()
         self.ui = loader.load("ImproTronControlPanel.ui")
 
+        # Model/View/Controller model for images
+        self.mediaModel = QFileSystemModel()
+        self.mediaModel.setRootPath(self._settings.get_media_directory())
+
         # MediaPlayer and audio setup for movies, webcams, and sound
         self.mediaPlayer = QMediaPlayer()
         self.audioOutput = QAudioOutput()
@@ -44,7 +51,6 @@ class ImproTronControlBoard(QWidget):
         self.m_devices = QMediaDevices()
         self.m_devices.videoInputsChanged.connect(self.updateCameras)
         self.updateCameras()
-        self.videoFile = None
 
         self.m_captureSession = QMediaCaptureSession()
         self.setCamera(QMediaDevices.defaultVideoInput())
@@ -60,18 +66,19 @@ class ImproTronControlBoard(QWidget):
         self.auxiliaryDisplay = ImproTron("Auxiliary")
 
         self.auxiliaryDisplay.restore()
-        self.auxiliaryDisplay.setLocation(self._settings.getAuxLocation())
+        self.auxiliaryDisplay.set_location(self._settings.get_aux_location())
         self.auxiliaryDisplay.maximize()
 
         self.mainDisplay.restore()
-        self.mainDisplay.setLocation(self._settings.getMainLocation())
+        self.mainDisplay.set_location(self._settings.get_main_location())
         self.mainDisplay.maximize()
 
         # Instantiate Features
         self.games_feature = GamesFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.text_feature = TextFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.thingz_feature = ThingzFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
-        self.media_features = MediaFeatures(self.ui, self._settings, self.mediaPlayer)
+        self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel, self.mediaPlayer)
+        self.media_features.reset_media_view(self._settings.get_media_directory())
 
         # Custom Signals allows the media feature to leave screen control encapulated in the control panel
         self.media_features.mainMediaShow.connect(self.showMediaOnMain)
@@ -100,10 +107,10 @@ class ImproTronControlBoard(QWidget):
         self.ui.showScoresBothPB.clicked.connect(self.showScoresBoth)
         self.ui.showScoresAuxiliaryPB.clicked.connect(self.showScoresAuxiliary)
 
-        self.setLeftTeamColors(self._settings.getLeftTeamColor())
-        self.setRightTeamColors(self._settings.getRightTeamColor())
-        self.ui.teamNameLeft.setText(self._settings.getLeftTeamName())
-        self.ui.teamNameRight.setText(self._settings.getRightTeamName())
+        self.setLeftTeamColors(self._settings.get_left_team_color())
+        self.setRightTeamColors(self._settings.get_right_team_color())
+        self.ui.teamNameLeft.setText(self._settings.get_left_team_name())
+        self.ui.teamNameRight.setText(self._settings.get_right_team_name())
 
         # Quick Add Buttons for score updates.
         self.ui.add50PB.clicked.connect(self.quickAdd50) # Add 5 to Left team
@@ -133,18 +140,8 @@ class ImproTronControlBoard(QWidget):
         self.ui.timerVisibleMainCB.stateChanged.connect(self.timerVisibleMain)
 
         # Slide Show Management
-        self.mediaModel = QFileSystemModel()
-        self.mediaModel.setRootPath(self._settings.getMediaDir())
-
-        self.imageTreeView = self.ui.slideShowFilesTreeView
-        self.imageTreeView.setModel(self.mediaModel)
-        self.imageTreeView.setRootIndex(self.mediaModel.index(self._settings.getMediaDir()))
-        for i in range(1, self.mediaModel.columnCount()):
-            self.imageTreeView.header().hideSection(i)
-        self.imageTreeView.setHeaderHidden(True)
-
         # Selection changes will trigger a slot
-        selectionModel = self.imageTreeView.selectionModel()
+        selectionModel = self.ui.slideShowFilesTreeView.selectionModel()
         selectionModel.selectionChanged.connect(self.imageSelectedfromDir)
 
         # Connect Slide Show Management
@@ -178,7 +175,7 @@ class ImproTronControlBoard(QWidget):
 
         # Slideshow Timer wiring
         self.slideShowTimer = QTimer()
-        self.ui.slideShowSecondSB.setValue(self._settings.getSlideshowDelay())
+        self.ui.slideShowSecondSB.setValue(self._settings.get_slideshow_delay())
         self.paused = False
         self. currentSlide = 0
         self.slideShowTimer.timeout.connect(self.nextSlide)
@@ -257,7 +254,7 @@ class ImproTronControlBoard(QWidget):
         # Touch Portal Connect
         self.touchPortalClient = TouchPortal('127.0.0.1', 12136)
         self.ui.touchPortalConCB. checkStateChanged.connect(self.connectTouchPortal)
-        tpFlag = self._settings.getTouchPortalConnect()
+        tpFlag = self._settings.get_touch_portal_connect()
         self.ui.touchPortalConCB.setChecked(tpFlag)
 
         # Connect the Touch Portal custom signals to a slot
@@ -273,13 +270,13 @@ class ImproTronControlBoard(QWidget):
         self.ui.promosDirPB.clicked.connect(self.selectPromosDirectory)
 
         # Display the default images if they exist
-        self.showMediaOnMain(self._settings.getStartupImage())
-        self.showMediaOnAux(self._settings.getStartupImage())
+        self.showMediaOnMain(self._settings.get_startup_image())
+        self.showMediaOnAux(self._settings.get_startup_image())
         # Force the default feature tab on start up to the Text Display
         self.ui.featureTabs.setCurrentWidget(self.ui.textDisplayTab)
 
         # Then override with the promos if the promo directory has been set up
-        _promosDirectory = self._settings.getPromosDirectory()
+        _promosDirectory = self._settings.get_promos_directory()
         if len(_promosDirectory) >0:
             self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
             self.startPromosSlideShow()
@@ -287,27 +284,25 @@ class ImproTronControlBoard(QWidget):
             # Force the default feature tab on start up to the Slide Show to make it quicker to stop for the show.
             self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
 
+        # Hot Buttons Wiring
+        self.hot_buttons = [] #empty array
 
-            # Hot Buttons Wiring
-            self.hot_buttons = [] #empty array
-            self.hotButtonNumber = 10      #number of hotbuttons
+        for button in range(self.ui.hotButtonHL.count()):
+            self.hot_buttons.append(HotButtonHandler(button+1, self, self.media_features))
 
-            for button in range(self.hotButtonNumber):
-                self.hot_buttons.append(HotButton(button+1, self))
+        # Load the last saved hotbutton file
+        lastHotButtons = self._settings.get_last_hot_button_file()
+        if len(lastHotButtons) > 0:
+            with open(lastHotButtons, 'r') as json_file:
+                button_data = json.load(json_file)
 
-            # Load the last saved hotbutton file
-            lastHotButtons = self._settings.getLastHotButtonFile()
-            if lastHotButtons != None:
-                with open(lastHotButtons, 'r') as json_file:
-                    button_data = json.load(json_file)
+            for button in range(self.ui.hotButtonHL.count()):
+                self.hot_buttons[button].load(button_data)
 
-                for button in range(self.hotButtonNumber):
-                    self.hot_buttons[button].load(button_data)
-
-            # Set a slot for the clear, load and save buttons
-            self.ui.hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
-            self.ui.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
-            self.ui.hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
+        # Set a slot for the clear, load and save buttons
+        self.ui.hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
+        self.ui.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
+        self.ui.hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
 
         # Set up an event filter to handle the orderly shutdown of the app.
         self.ui.installEventFilter(self)
@@ -324,52 +319,41 @@ class ImproTronControlBoard(QWidget):
         self.ui.show()
 # ################################################################################################
 # ####################### Slots and more
-
     def eventFilter(self, obj, event):
         if obj is self.ui and event.type() == QEvent.Close:
-            self._settings.save()
             self.shutdown()
             event.ignore()
             return True
         return super(ImproTronControlBoard, self).eventFilter(obj, event)
 
     def shutdown(self):
-        # Delete feature obejcts to hopefully avoid the app staying open if they trigger a crash
-        del self.games_feature
-        del self.text_feature
-        del self.thingz_feature
-        del self.media_features
-
+        logging.info("ImproTron shutting down")
+        self._settings.save()
         self.touchPortalClient.disconnectTouchPortal()
         self.thread.quit()
         self.ui.removeEventFilter(self)
+        self.deleteLater()
         QApplication.quit()
 
     # Utility encapsulating the ui code to find widgets by name
     def findWidget(self, type, widgetName):
         return self.ui.findChild(type, widgetName)
 
-
-    def selectVideoFile(self):
-        selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Video", self._settings.getVideoDir() , "Video Files (*.mp4 *.m4v *.mp4v *.wmv)")
-
-        return selectedFileName[0]
-
     # Checks on various media types
-    def isAnimatedGIF(self, fileName):
-        if len(fileName) > 0:
-            if QFileInfo.exists(fileName):
-                mediaInfo = QFileInfo(fileName)
+    def isAnimatedGIF(self, file_name):
+        if len(file_name) > 0:
+            if QFileInfo.exists(file_name):
+                mediaInfo = QFileInfo(file_name)
                 return bytes(mediaInfo.suffix().lower(),"ascii") in QMovie.supportedFormats()
             else:
                 return False
         else:
             return False
 
-    def isVideo(self, fileName):
-        if len(fileName) > 0:
-            if QFileInfo.exists(fileName):
-                mediaInfo = QFileInfo(fileName)
+    def isVideo(self, file_name):
+        if len(file_name) > 0:
+            if QFileInfo.exists(file_name):
+                mediaInfo = QFileInfo(file_name)
                 return mediaInfo.suffix().lower() in  ['mp4', 'm4v', 'mp4v', 'wmv']
             else:
                 return False
@@ -378,17 +362,17 @@ class ImproTronControlBoard(QWidget):
 
     # Note: This is both a local call but a slot for images emitted from the media features
     @Slot(str)
-    def showMediaOnMain(self, fileName):
+    def showMediaOnMain(self, file_name):
         self.mainPreviewMovie.stop()
-        if self.isAnimatedGIF(fileName):
-            self.mainPreviewMovie.setFileName(fileName)
+        if self.isAnimatedGIF(file_name):
+            self.mainPreviewMovie.setFileName(file_name)
             if self.mainPreviewMovie.isValid():
                 self.mainPreviewMovie.setScaledSize(self.ui.imagePreviewMain.size())
                 self.ui.imagePreviewMain.setMovie(self.mainPreviewMovie)
                 self.mainPreviewMovie.start()
-                self.mainDisplay.showMovie(fileName)
-        elif self.media_features.isImage(fileName):
-            reader = QImageReader(fileName)
+                self.mainDisplay.showMovie(file_name)
+        elif self.media_features.isImage(file_name):
+            reader = QImageReader(file_name)
             reader.setAutoTransform(True)
             newImage = reader.read()
             if newImage:
@@ -397,23 +381,23 @@ class ImproTronControlBoard(QWidget):
                 else:
                     self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewMain.size().height())))
 
-            self.mainDisplay.showImage(fileName, self.ui.stretchMainCB.isChecked())
+            self.mainDisplay.showImage(file_name, self.ui.stretchMainCB.isChecked())
         else:
-            print("Unsupported media for main:", fileName)
+            logging.warning(f"Unsupported media for main: {file_name}")
 
     # Note: This is both a local call but a slot for images emitted from the media features
     @Slot(str)
-    def showMediaOnAux(self, fileName):
+    def showMediaOnAux(self, file_name):
         self.auxPreviewMovie.stop()
-        if self.isAnimatedGIF(fileName):
-            self.auxPreviewMovie.setFileName(fileName)
+        if self.isAnimatedGIF(file_name):
+            self.auxPreviewMovie.setFileName(file_name)
             if self.auxPreviewMovie.isValid():
                 self.auxPreviewMovie.setScaledSize(self.ui.imagePreviewAuxiliary.size())
                 self.ui.imagePreviewAuxiliary.setMovie(self.auxPreviewMovie)
                 self.auxPreviewMovie.start()
-                self.auxiliaryDisplay.showMovie(fileName)
-        elif self.media_features.isImage(fileName):
-            reader = QImageReader(fileName)
+                self.auxiliaryDisplay.showMovie(file_name)
+        elif self.media_features.isImage(file_name):
+            reader = QImageReader(file_name)
             reader.setAutoTransform(True)
             newImage = reader.read()
             if newImage:
@@ -422,9 +406,9 @@ class ImproTronControlBoard(QWidget):
                 else:
                     self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewAuxiliary.size().height())))
 
-                self.auxiliaryDisplay.showImage(fileName, self.ui.stretchAuxCB.isChecked())
+                self.auxiliaryDisplay.showImage(file_name, self.ui.stretchAuxCB.isChecked())
         else:
-            print("Unsupported media on aux:", fileName)
+            logging.warning(f"Unsupported media for aux: {file_name}")
 
     def setLeftTeamColors(self, colorSelected):
         style = utilities.style_sheet(colorSelected)
@@ -444,16 +428,16 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def pickLeftTeamColor(self):
-        colorSelected = QColorDialog.getColor(self._settings.getLeftTeamColor(), self.ui,title = 'Pick Left Team Color')
+        colorSelected = QColorDialog.getColor(self._settings.get_left_team_color(), self.ui,title = 'Pick Left Team Color')
         if colorSelected.isValid():
-            self._settings.setLeftTeamColor(colorSelected)
+            self._settings.set_left_team_color(colorSelected)
             self.setLeftTeamColors(colorSelected)
 
     @Slot()
     def pickRightTeamColor(self):
-        colorSelected = QColorDialog.getColor(self._settings.getRightTeamColor(), self.ui,title = 'Pick Right Team Color')
+        colorSelected = QColorDialog.getColor(self._settings.get_right_team_color(), self.ui,title = 'Pick Right Team Color')
         if colorSelected.isValid():
-            self._settings.setRightTeamColor(colorSelected)
+            self._settings.set_right_team_color(colorSelected)
             self.setRightTeamColors(colorSelected)
 
     @Slot()
@@ -497,27 +481,32 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def getImageFileMain(self):
-        self.showMediaOnMain(self.media_features.selectImageFile())
+        self.showMediaOnMain(self.media_features.select_image_file())
 
     @Slot()
     def getImageFileAuxiliary(self):
-        self.showMediaOnAux(self.media_features.selectImageFile())
+        self.showMediaOnAux(self.media_features.select_image_file())
 
     @Slot()
     def getVideoFile(self):
-        self.videoFile = self.selectVideoFile()
-        if self.isVideo(self.videoFile):
-            self.mediaPlayer.setSource(QUrl(self.videoFile))
-        else:
-            print("Unsupported Video File selected:",self.videoFile)
+        file_name = QFileDialog.getOpenFileName(self.ui, "Select Video", self._settings.get_video_directory() , "Video Files (*.mp4 *.m4v *.mp4v *.wmv)")
+
+        # If no file was seelcted then ignore the choice
+        if len(file_name[0]) > 0:
+            if self.isVideo(file_name[0]):
+                self.mediaPlayer.setSource(QUrl(file_name[0]))
+            else:
+                logging.warning(f"Unsupported Video File selected: {file_name[0]}")
 
     @Slot()
     def showScoresMain(self):
         self.mainDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
+        utilities.capture_window(self.mainDisplay, self.ui.imagePreviewMain)
 
     @Slot()
     def showScoresAuxiliary(self):
         self.auxiliaryDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
+        utilities.capture_window(self.auxiliaryDisplay, self.ui.imagePreviewAuxiliary)
 
     @Slot()
     def showScoresBoth(self):
@@ -552,14 +541,14 @@ class ImproTronControlBoard(QWidget):
         self.mainDisplay.showLeftTeam(teamName)
         self.auxiliaryDisplay.showLeftTeam(teamName)
         self.ui.leftThingTeamRB.setText(teamName)
-        self._settings.setLeftTeamName(teamName)
+        self._settings.set_left_team_name(teamName)
 
     @Slot(str)
     def showRightTeam(self, teamName):
         self.mainDisplay.showRightTeam(teamName)
         self.auxiliaryDisplay.showRightTeam(teamName)
         self.ui.rightThingTeamRB.setText(teamName)
-        self._settings.setRightTeamName(teamName)
+        self._settings.set_right_team_name(teamName)
 
     # Unlock the Improtron Displays so they can be moved. Lock them to maximize
     # on th screen they subsequently reside on.
@@ -568,8 +557,8 @@ class ImproTronControlBoard(QWidget):
             self.auxiliaryDisplay.restore()
             self.mainDisplay.restore()
         else:
-            self._settings.setAuxLocation(self.auxiliaryDisplay.getLocation())
-            self._settings.setMainLocation(self.mainDisplay.getLocation())
+            self._settings.set_aux_location(self.auxiliaryDisplay.get_location())
+            self._settings.set_main_location(self.mainDisplay.get_location())
             self._settings.save()
 
             # Order matters so the main displays on top
@@ -579,12 +568,12 @@ class ImproTronControlBoard(QWidget):
     # Slideshow Management
     @Slot(int)
     def slideShowSecondChanged(self, value):
-        self._settings.setSlideshowDelay(value)
+        self._settings.set_slideshow_delay(value)
 
     @Slot(QItemSelection, QItemSelection)
     def imageSelectedfromDir(self, new_selection, old_selection):
         # get the text of the selected item
-        index = self.imageTreeView.selectionModel().currentIndex()
+        index = self.ui.slideShowFilesTreeView.selectionModel().currentIndex()
         if not self.mediaModel.isDir(index):
             imageFileInfo = self.mediaModel.fileInfo(index)
             reader = QImageReader(imageFileInfo.absoluteFilePath())
@@ -607,7 +596,7 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def addSlidetoList(self):
         # get the text of the selected item
-        index = self.imageTreeView.selectionModel().currentIndex()
+        index = self.ui.slideShowFilesTreeView.selectionModel().currentIndex()
         if not self.mediaModel.isDir(index):
             SlideWidget(self.mediaModel.fileInfo(index), self.ui.slideListLW)
 
@@ -634,10 +623,10 @@ class ImproTronControlBoard(QWidget):
         self.ui.slidePreviewLBL.clear()
         self.ui.slideListLW.takeItem(self.ui.slideListLW.row(self.ui.slideListLW.currentItem()))
 
-    def loadSlides(self, fileName):
+    def loadSlides(self, file_name):
         # Read the JSON data from the file
-        if len(fileName) > 0:
-            with open(fileName, 'r') as json_file:
+        if len(file_name) > 0:
+            with open(file_name, 'r') as json_file:
                 slideshow_data = json.load(json_file)
 
             for slide in slideshow_data.items():
@@ -654,25 +643,25 @@ class ImproTronControlBoard(QWidget):
 
         self.ui.slideListLW.clear()
 
-        fileName = QFileDialog.getOpenFileName(self.ui, "Load Slideshow",
-                                    self._settings.getConfigDir(),
+        file_name = QFileDialog.getOpenFileName(self.ui, "Load Slideshow",
+                                    self._settings.get_config_dir(),
                                     "Slide Shows (*.ssh)")
 
-        self.loadSlides(fileName[0])
+        self.loadSlides(file_name[0])
 
     @Slot()
     def saveSlideShow(self):
-        fileName = QFileDialog.getSaveFileName(self.ui, "Save Slide Show",
-                                   self._settings.getConfigDir(),
+        file_name = QFileDialog.getSaveFileName(self.ui, "Save Slide Show",
+                                   self._settings.get_config_dir(),
                                    "Slide Shows (*.ssh)")
-        if len(fileName[0]) > 0:
+        if len(file_name[0]) > 0:
             slide_data = {}
             for slide in range(self.ui.slideListLW.count()):
                 slideName = "slide"+str(slide)
                 slide_data[slideName] = self.ui.slideListLW.item(slide).imagePath()
 
             # Write the JSON string to a file
-            with open(fileName[0], 'w', encoding='utf8') as json_file:
+            with open(file_name[0], 'w', encoding='utf8') as json_file:
                 json.dump(slide_data, json_file, indent=2)
 
     @Slot()
@@ -684,7 +673,7 @@ class ImproTronControlBoard(QWidget):
 
     # Promos specific behaviour
     def loadPromosSlides(self):
-        _promosDirectory = self._settings.getPromosDirectory()
+        _promosDirectory = self._settings.get_promos_directory()
         if len(_promosDirectory) > 0:
             self.ui.slideListLW.clear()
             for file_info in QDir(_promosDirectory).entryInfoList("*.jpg *.png", QDir.Files, QDir.Name):
@@ -722,7 +711,7 @@ class ImproTronControlBoard(QWidget):
         self.mediaPlayer.stop()
 
         # Have a default timeout. This will get overridden for videos.
-        self.slideShowTimer.setInterval(self._settings.getSlideshowDelay()*1000)
+        self.slideShowTimer.setInterval(self._settings.get_slideshow_delay()*1000)
 
         # Resample the promos directory once the current cycle is done
         if self.promosMode and self.currentSlide == 0:
@@ -735,24 +724,24 @@ class ImproTronControlBoard(QWidget):
             self.ui.slideListLW.setCurrentRow(self.currentSlide)
 
             # Determine the file type so as to correcty set the timeout to the default or video length
-            fileName = self.ui.slideListLW.currentItem().imagePath()
-            if self.isAnimatedGIF(fileName) or self.media_features.isImage(fileName):
+            file_name = self.ui.slideListLW.currentItem().imagePath()
+            if self.isAnimatedGIF(file_name) or self.media_features.isImage(file_name):
                 self.showSlideMain()
-            elif self.isVideo(fileName):
+            elif self.isVideo(file_name):
                 self.slideShowTimer.setInterval(1000)
-                self.mediaPlayer.setSource(QUrl(fileName))
+                self.mediaPlayer.setSource(QUrl(file_name))
                 self.mediaPlayer.setVideoOutput(self.mainDisplay.showVideo())
                 self.mediaPlayer.setPosition(0)
                 self.mediaPlayer.play()
 
             else:
-                print("Unsupported Media Type:",fileName)
+                logging.warning(f"Unsupported Media Type: {file_name}")
 
             self.currentSlide += 1 # Move onto the next slide
 
         else:
             self.currentSlide = 0
-            print("Missing Slides:",self.currentSlide)
+            logging.warning(f"Missing Slides: {self.currentSlide}")
 
     @Slot()
     def slideShowRestart(self):
@@ -781,7 +770,7 @@ class ImproTronControlBoard(QWidget):
         self.ui.slideListLW.setCurrentRow(self.currentSlide)
         self.mainDisplay.blackout() # removes and text colors
 
-        #self.slideShowTimer.setInterval(self._settings.getSlideshowDelay()*1000)
+        #self.slideShowTimer.setInterval(self._settings.get_slideshow_delay()*1000)
         # A short delay to allow th timer to tigger and the the length to be drtmied by the media type to be shown
         self.slideShowTimer.setInterval(1000)
         self.slideShowTimer.start()
@@ -934,55 +923,55 @@ class ImproTronControlBoard(QWidget):
     # Preferences and Hot Buttons configuration settings
     @Slot()
     def clearHotButtonsClicked(self):
-        for button in range(self.hotButtonNumber):
+        for button in range(self.ui.hotButtonHL.count()):
             self.hot_buttons[button].clear()
 
     @Slot()
     def loadHotButtonsClicked(self):
-        fileName = QFileDialog.getOpenFileName(self.ui, "Load Hot Buttons",
-                    self._settings.getConfigDir(),
+        file_name = QFileDialog.getOpenFileName(self.ui, "Load Hot Buttons",
+                    self._settings.get_config_dir(),
                     "Hot Buttons (*.hbt)")
 
         # Read the JSON data from the file
-        if len(fileName[0]) > 0:
+        if len(file_name[0]) > 0:
 
             # Remember the last loaded hotbutton file for when the app is started
-            self._settings.setLastHotButtonFile(fileName[0])
+            self._settings.set_last_hot_button_file(file_name[0])
 
-            with open(fileName[0], 'r') as json_file:
+            with open(file_name[0], 'r') as json_file:
                 button_data = json.load(json_file)
 
-            for button in range(self.hotButtonNumber):
+            for button in range(self.ui.hotButtonHL.count()):
                 self.hot_buttons[button].load(button_data)
 
     @Slot()
     def saveHotButtonsClicked(self):
-        fileName = QFileDialog.getSaveFileName(self.ui, "Save Hot Buttons",
-                    self._settings.getConfigDir(),
+        file_name = QFileDialog.getSaveFileName(self.ui, "Save Hot Buttons",
+                    self._settings.get_config_dir(),
                     "Hot Buttons (*.hbt)")
 
-        if len(fileName[0]) > 0:
+        if len(file_name[0]) > 0:
             button_data = {}
-            for button in range(self.hotButtonNumber):
+            for button in range(self.ui.hotButtonHL.count()):
                 self.hot_buttons[button].save(button_data)
 
             # Write the JSON string to a file. Since Button names could have special characters, encode
-            with open(fileName[0], 'w', encoding='utf8') as json_file:
+            with open(file_name[0], 'w', encoding='utf8') as json_file:
                 json.dump(button_data, json_file, indent=2)
 
     @Slot()
     def selectPromosDirectory(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
                 "Select the Promos Directory",
-                self._settings.getPromosDirectory(), QFileDialog.ShowDirsOnly)
+                self._settings.get_promos_directory(), QFileDialog.ShowDirsOnly)
 
         # If the user cancels then the filename will be blank and that is what will be stored as a flag to
         # not play any startup slides
-        self._settings.setPromosDirectory(setDir)
+        self._settings.set_promos_directory(setDir)
 
     @Slot()
     def startupImage(self):
-        self._settings.setStartupImage(self.media_features.selectImageFile())
+        self._settings.set_startup_image(self.media_features.select_image_file())
 
     @Slot()
     def about(self):
@@ -1084,7 +1073,7 @@ class ImproTronControlBoard(QWidget):
     # Touch Portal message handlers
     @Slot()
     def connectTouchPortal(self):
-        self._settings.setTouchPortalConnect(self.ui.touchPortalConCB.isChecked()) # Remember for the next session
+        self._settings.set_touch_portal_connect(self.ui.touchPortalConCB.isChecked()) # Remember for the next session
         if self.ui.touchPortalConCB.isChecked():
             self.touchPortalClient.connectTouchPortal()
         else:
@@ -1097,7 +1086,7 @@ class ImproTronControlBoard(QWidget):
         if button != None:
             button.click()
         else:
-            print(f"QPushButton: {buttonID} not found")
+            logging.warning(f"QPushButton: {buttonID} not found")
 
     # Handle a request to increment or reset a QSpinbox like that used for scoring
     @Slot(str, int)
@@ -1109,7 +1098,7 @@ class ImproTronControlBoard(QWidget):
             else:
                 spinBox.setValue(spinBox.value() + changeValue) # change can be positive or negative
         else:
-            print(f"QDoubleSpinBox: {buttonID} not found")
+            logging.warning(f"QDoubleSpinBox: {buttonID} not found")
 
     # Handle a request to display an image or animation
     @Slot(str, str)

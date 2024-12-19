@@ -1,233 +1,176 @@
-# This Python file uses the following encoding: utf-8
-# The Settings file carries any settings that need to persist
 import json
-from PySide6.QtCore import Qt, QStandardPaths, QDir, QPoint, QFileInfo
+import logging
+from PySide6.QtCore import QStandardPaths, QDir, QPoint, QFileInfo, Qt
 from PySide6.QtGui import QColor, QGuiApplication
 
-class Settings:
-    def __init__(self):
-        # Create a dictionary of default values
-        self._settings = {}
-        self.setConfigDir(QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0]+"/ImproTron")
-        self._defaultConfig = '/ImproTron.cfg'
+logger = logging.getLogger(__name__)
 
-        # Attempt to load the default settings. try/except logic is used to populate with defaults
+class Settings:
+    DEFAULT_CONFIG_FILE = '/ImproTron.cfg'
+    DEFAULTS = {
+        'leftTeamColor': QColor(Qt.blue).name(),
+        'rightTeamColor': QColor(Qt.red).name(),
+        'leftTeamName': "Left Team",
+        'rightTeamName': "Right Team",
+        'promosDirectory': "",
+        'slideshowDelay': 10,
+        'startupImage': "",
+        'mediaDirectory': QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0],
+        'videoDirectory': QStandardPaths.standardLocations(QStandardPaths.MoviesLocation)[0],
+        'soundDirectory': QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0],
+        'documentDirectory': QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0],
+        'lastHotButton': "",
+        'touchPortalConnect': False,
+        'gamesFile': "",
+        'mainX': 0,
+        'mainY': 0,
+        'auxX': 0,
+        'auxY': 0,
+    }
+
+    def __init__(self):
+        self._settings = {}
+        self.set_config_dir(QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0] + "/ImproTron")
         self.load()
 
-    # end init
+    def _get(self, key):
+        return self._settings.get(key, self.DEFAULTS.get(key))
 
-    def save(self):
-        # Write the JSON string to a file. Since certain settings could have special characters, encode
-        with open(self._settings['configDir'] + self._defaultConfig, 'w', encoding='utf8') as json_file:
-            json.dump(self._settings, json_file, indent=2)
+    def _set(self, key, value):
+        self._settings[key] = value
 
     def load(self):
-        configFileInfo = QFileInfo(self._settings['configDir'] + self._defaultConfig)
-        if configFileInfo.exists():
-            with open(configFileInfo.absoluteFilePath(), 'r') as json_file:
+        config_path = self.get_config_dir() + self.DEFAULT_CONFIG_FILE
+        try:
+            with open(config_path, 'r', encoding='utf8') as json_file:
                 self._settings = json.load(json_file)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            logger.warning(f"Failed to load configuration: {e}. Using defaults.")
+            self._settings = self.DEFAULTS.copy()
 
-    def setConfigDir(self, configDir):
-        configInfo = QDir(configDir)
-        if not configInfo.exists():
-            success = configInfo.mkpath(configDir)
-            if not success:
-                print("Failed to create configuration directory: ", configDir)
-        self._settings['configDir'] = configDir
-
-    def getConfigDir(self):
-        return self._settings['configDir']
-
-    def setLeftTeamColor(self, color):
-        self._settings['leftTeamColor'] = "#{:06x}".format(color.rgb())
-
-    def getLeftTeamColor(self):
+    def save(self):
+        config_path = self.get_config_dir() + self.DEFAULT_CONFIG_FILE
         try:
-            _leftTeamColor = QColor.fromString(self._settings['leftTeamColor'])
-        except:
-            self.setLeftTeamColor(QColor(Qt.blue))
-            _leftTeamColor = QColor.fromString(self._settings['leftTeamColor'])
+            with open(config_path, 'w', encoding='utf8') as json_file:
+                json.dump(self._settings, json_file, indent=2)
+        except IOError as e:
+            logger.error(f"Failed to save configuration: {e}")
 
-        return _leftTeamColor
+    def set_config_dir(self, configDir):
+        config_info = QDir(configDir)
+        if not config_info.exists():
+            if not config_info.mkpath(configDir):
+                logger.critical(f"Failed to create configuration directory: {configDir}")
+        self._set('configDir', configDir)
 
-    def setRightTeamColor(self, color):
-        self._settings['rightTeamColor'] = "#{:06x}".format(color.rgb())
+    def get_config_dir(self):
+        return self._get('configDir')
 
-    def getRightTeamColor(self):
-        try:
-            _rightTeamColor = QColor.fromString(self._settings['rightTeamColor'])
-        except:
-            self.setRightTeamColor(QColor(Qt.red))
-            _rightTeamColor = QColor.fromString(self._settings['rightTeamColor'])
+    def set_left_team_color(self, color):
+        self._set('leftTeamColor', color.name())
 
-        return _rightTeamColor
+    def get_left_team_color(self):
+        return QColor(self._get('leftTeamColor'))
 
-    def setLeftTeamName(self, name):
-        self._settings['leftTeamName'] = name
+    def set_right_team_color(self, color):
+        self._set('rightTeamColor', color.name())
 
-    def getLeftTeamName(self):
-        try:
-            _leftTeamName = self._settings['leftTeamName']
-        except:
-            self._settings['leftTeamName']  = _leftTeamName = "Left Team"
+    def get_right_team_color(self):
+        return QColor(self._get('rightTeamColor'))
 
-        return _leftTeamName
+    def set_left_team_name(self, team):
+        self._set('leftTeamName', team)
 
-    def setRightTeamName(self, name):
-        self._settings['rightTeamName'] = name
+    def get_left_team_name(self):
+        return self._get('leftTeamName')
 
-    def getRightTeamName(self):
-        try:
-            _rightTeamName = self._settings['rightTeamName']
-        except:
-            self._settings['rightTeamName'] = _rightTeamName = "Right Team"
+    def set_right_team_name(self, team):
+        self._set('rightTeamName', team)
 
-        return _rightTeamName
+    def get_right_team_name(self):
+        return self._get('rightTeamName')
 
-    def setPromosDirectory(self, name):
-        self._settings['promosDirectory'] = name
+    def set_promos_directory(self, directory):
+        self._set('promosDirectory', directory)
 
-    def getPromosDirectory(self):
-        try:
-            _promosDir = self._settings['promosDirectory']
-        except:
-            self._settings['promosDirectory'] = _promosDir = ""
+    def get_promos_directory(self):
+        return self._get('promosDirectory')
 
-        return _promosDir
+    def set_media_directory(self, directory):
+        self._set('mediaDirectory', directory)
 
-    def setSlideshowDelay(self, value):
-        self._settings['slideshowDelay'] = value
+    def get_media_directory(self):
+        return self._get('mediaDirectory')
 
-    def getSlideshowDelay(self):
-        try:
-            _slideShowDelay = self._settings['slideshowDelay']
-        except:
-            self._settings['slideshowDelay'] = _slideShowDelay = 10
+    def set_video_directory(self, directory):
+        self._set('videoDirectory', directory)
 
-        return _slideShowDelay
+    def get_video_directory(self):
+        return self._get('videoDirectory')
 
-    def setStartupImage(self, name):
-        self._settings['startupImage'] = name
+    def set_sound_directory(self, directory):
+        self._set('soundDirectory', directory)
 
-    def getStartupImage(self):
-        try:
-            _startupImage = self._settings['startupImage']
-        except:
-            self._settings['startupImage'] = _startupImage = ""
+    def get_sound_directory(self):
+        return self._get('soundDirectory')
 
-        return _startupImage
+    def set_document_directory(self, directory):
+        self._set('documentDirectory', directory)
 
-    def setMediaDir(self, mediaDir):
-        self._settings['mediaDir'] = mediaDir
+    def get_document_directory(self):
+        return self._get('documentDirectory')
 
-    def getMediaDir(self):
-        try:
-            _mediaDir = self._settings['mediaDir']
-        except:  # Default Location of Pictures and Gifs
-            self._settings['mediaDir'] = _mediaDir = QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]
+    def set_slideshow_delay(self, delay):
+        self._set('slideshowDelay', delay)
 
-        return _mediaDir
+    def get_slideshow_delay(self):
+        return self._get('slideshowDelay')
 
-    def setVideoDir(self, mediaDir):
-        self._settings['videoDir'] = mediaDir
+    def set_startup_image(self, image):
+        self._set('startupImage', image)
 
-    def getVideoDir(self):
-        try:
-            _videoDir = self._settings['videoDir']
-        except: # Default Videos
-            self._settings['videoDir'] = _videoDir = QStandardPaths.standardLocations(QStandardPaths.MoviesLocation)[0]
+    def get_startup_image(self):
+        return self._get('startupImage')
 
-        return _videoDir
+    def set_main_location(self, point):
+        self._set('mainX', point.x())
+        self._set('mainY', point.y())
 
-    def setSoundDir(self, mediaDir):
-        self._settings['soundDir'] = mediaDir
+    def get_main_location(self):
+        x = self._get('mainX')
+        y = self._get('mainY')
+        return QPoint(x, y)
 
-    def getSoundDir(self):
-        try:
-            _soundDir = self._settings['soundDir']
-        except: # Default Location of Sounds, and SoundFX (Wav Files)
-            self._settings['soundDir'] = _soundDir = QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0]
+    def set_aux_location(self, point):
+        self._set('auxX', point.x())
+        self._set('auxY', point.y())
 
-        return _soundDir
+    def get_aux_location(self):
+        x = self._get('auxX')
+        y = self._get('auxY')
+        return QPoint(x, y)
 
-    def setDocumentDir(self, documentDir):
-        self._settings['documentDir'] = documentDir
-
-    def getDocumentDir(self):
-        try:
-            _documentDir = self._settings['documentDir']
-        except: # Default Location of text files
-            self._settings['documentDir'] = _documentDir = QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0]
-
-        return _documentDir
-
-    def setLastHotButtonFile(self, hotButtonFile):
-        self._settings['lastHotButton'] = hotButtonFile
-
-    def getLastHotButtonFile(self):
-        try:
-            _lastHotButton = self._settings['lastHotButton']
-        except:
-            # File name of default Hot Button file. This may not exist on install
-            self._settings['lastHotButton'] = _lastHotButton = self.getConfigDir()+"/default.hbt"
-
-        _hotButtonFile = QFileInfo(_lastHotButton)
-        if _hotButtonFile.exists():
-
-            return _lastHotButton
-
-        return None
-
-    def setMainLocation(self, p):
-        self._settings['mainX'] = p.x()
-        self._settings['mainY'] = p.y()
-
-    def getMainLocation(self):
-        try:
-            _mainLocation = QPoint(int(self._settings['mainX']), int(self._settings['mainY']))
-        except:
-            primaryScreen = QGuiApplication.primaryScreen()
-            primaryLocation = primaryScreen.availableGeometry()
-            self.setMainLocation(primaryLocation.topLeft())
-            _mainLocation = QPoint(int(self._settings['mainX']), int(self._settings['mainY']))
-
-        return _mainLocation
-
-    def setAuxLocation(self, p):
-        self._settings['auxX'] = p.x()
-        self._settings['auxY'] = p.y()
-
-    def getAuxLocation(self):
-        try:
-            _auxLocation = QPoint(int(self._settings['auxX']), int(self._settings['auxY']))
-        except:
-            primaryScreen = QGuiApplication.primaryScreen()
-            primaryLocation = primaryScreen.availableGeometry()
-            self.setAuxLocation(primaryLocation.topLeft())
-            _auxLocation = QPoint(int(self._settings['auxX']), int(self._settings['auxY']))
-
-        return _auxLocation
-
-    def setTouchPortalConnect(self, flag):
+    def set_touch_portal_connect(self, flag):
         if isinstance(flag, bool):
-            self._settings['touchPortalConnect'] = flag #Boolean
+            self._set('touchPortalConnect', flag)
 
-    def getTouchPortalConnect(self):
-        try:
-            _touchPortalConnect = self._settings['touchPortalConnect']
-        except:
-            self.setTouchPortalConnect(False)
-            _touchPortalConnect = self._settings['touchPortalConnect']
+    def get_touch_portal_connect(self):
+        return self._get('touchPortalConnect')
 
-        return _touchPortalConnect
+    def set_last_hot_button_file(self, file):
+        self._set('lastHotButton', file)
 
-    def setGamesFile(self, name):
-        self._settings['gamesFile'] = name
+    def get_last_hot_button_file(self):
+        file_path = self._get('lastHotButton')
+        if QFileInfo(file_path).exists():
+            return file_path
+        return self.DEFAULTS.get('lastHotButton')
 
-    def getGamesFile(self):
-        try:
-            _promosDir = self._settings['gamesFile']
-        except:
-            self._settings['gamesFile'] = _promosDir = ""
+    def set_games_file(self, file):
+        self._set('gamesFile', file)
 
-        return _promosDir
+    def get_games_file(self):
+        file_path = self._get('gamesFile')
+        if QFileInfo(file_path).exists():
+            return file_path
+        return self.DEFAULTS.get('gamesFile')

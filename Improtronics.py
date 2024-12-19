@@ -1,12 +1,14 @@
 # The display is a container for all the possible features that can be displayed
-# This Python file uses the following encoding: utf-8
+import logging
 
 from PySide6.QtWidgets import QPushButton, QCheckBox, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow, QWidget
-from PySide6.QtCore import Slot, Qt, QUrl, QObject
+from PySide6.QtCore import Slot, Qt, QUrl, QObject, QEvent
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QFont, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect
 from Timer import CountdownTimer
 from ui_ImproTron import Ui_ImproTron
+
+logger = logging.getLogger(__name__)
 
 # Class to handle display on a separate monitor
 class ImproTron(QMainWindow):
@@ -217,23 +219,19 @@ class ImproTron(QMainWindow):
         # increases the size in one direction that is almost the right scale
         if textHeight <= labelHeight and textWidth <= labelWidth:
             scaleByF = 1/max(heightRatio, widthRatio)
-            #print(self._display_name,labelText+" Case 1:", scaleByF)
 
         # Case 2: The text is outside the label on both sides. Find the most aggregious side and scale down by that
         # Since the ratios will be by definition > 1, invert them
         if textHeight > labelHeight and textWidth > labelWidth:
             scaleByF = 1/max(heightRatio, widthRatio)
-            #print(self._display_name,labelText+" Case 2:", scaleByF, "HR",heightRatio,"WR",widthRatio,'th',textHeight,'lh',labelHeight,'tw',textWidth,'lw',labelWidth)
 
         # Case 3a: The text is too high so scale down by the height ratio
         if textHeight > labelHeight and  textWidth <= labelWidth:
             scaleByF = 1/heightRatio
-            #print(self._display_name,labelText+" Case 3a:", scaleByF)
 
         # Case 3b: The text is too wide so scale down by the width ratio
         if textHeight <= labelHeight and  textWidth > labelWidth:
             scaleByF = 1/widthRatio
-            #print(self._display_name,labelText+" Case 3b:", scaleByF)
 
         textBoxFont = nameLabel.font()
         originalSize = textBoxFont.pointSize()
@@ -243,7 +241,6 @@ class ImproTron(QMainWindow):
             newSize = originalSize
         textBoxFont.setPointSize(newSize)
         nameLabel.setFont(textBoxFont) # and put it back
-        #print(self._display_name,nameLabel.objectName(),labelText,': OldSize',originalSize, 'Newsize', newSize,'SF',scaleByF)
 
 
     # Set the name of the Left Team
@@ -298,11 +295,11 @@ class ImproTron(QMainWindow):
         return self.ui.cameraPlayer
 
     # Return the location to persist
-    def getLocation(self):
+    def get_location(self):
         return self.pos()
 
     # Move to the location
-    def setLocation(self, q):
+    def set_location(self, q):
         self.move(q)
 
     # Maximize on the screen where the improtron was moved to
@@ -322,30 +319,43 @@ class ImproTron(QMainWindow):
 
     # End Class ImproTron
 
-class HotButton(QObject):
-    def __init__(self, button_number, controlBoard):
+class HotButtonHandler(QObject):
+    def __init__(self, button_number, control_board, media_features):
+
+        super(HotButtonHandler,self).__init__()
 
         self.button_number = button_number
         self.text = "Button "+str(button_number)
-        self.control_board = controlBoard
+        self.control_board = control_board
+        self.media_features = media_features
 
         # Take control of the actual button
-        self.hot_button = controlBoard.findWidget(QPushButton, "hotPB" +str(button_number))
-        self.hot_button.clicked.connect(self.hotButtonClicked)
-        #self.hot_button.mousePressEvent  = self.hotButtonMouseEvent # an attempt to get right mouse click detection
+        self.hot_button = control_board.findWidget(QPushButton, "hotPB" +str(button_number))
+        self.hot_button.installEventFilter(self)
 
-        self.hot_button_title = controlBoard.findWidget(QLineEdit, "titleHotButton" +str(button_number))
+        self.hot_button_title = control_board.findWidget(QLineEdit, "titleHotButton" +str(button_number))
         self.hot_button_title.textChanged.connect(self.hotButtonNameChange)
         self.hot_button_title.setText(self.text)
 
-        self.hot_button_image_file = controlBoard.findWidget(QLineEdit, "imageFileTxt" +str(button_number))
+        self.hot_button_image_file = control_board.findWidget(QLineEdit, "imageFileTxt" +str(button_number))
         self.hot_button_image_file.setText("")
 
-        self.hot_button_select_file = controlBoard.findWidget(QPushButton, "selectPB" +str(button_number))
+        self.hot_button_select_file = control_board.findWidget(QPushButton, "selectPB" +str(button_number))
         self.hot_button_select_file.clicked.connect(self.selectImage)
 
         # Get a reference to the preference to dupicate images to the auxiliary monitor
-        self.copyToAux = controlBoard.findWidget(QCheckBox, "copytoAuxCB")
+        self.copyToAux = control_board.findWidget(QCheckBox, "copytoAuxCB")
+
+    # Allow for right and left click actions
+    def eventFilter(self, obj, event):
+        if obj is self.hot_button and event.type() == QEvent.MouseButtonPress:
+            if event.button() == Qt.LeftButton:
+                self.hot_button_to_main()
+                return True
+            elif event.button() == Qt.RightButton:
+                self.hot_button_to_aux()
+                return True
+        return False  # Pass the event to the default handler
 
     def clear(self):
         self.hot_button_image_file.clear()
@@ -362,26 +372,11 @@ class HotButton(QObject):
         self.hot_button_image_file.setText(hot_buttons_json[self.hot_button_image_file.objectName()])
 
     # Hot Button clicked response
-    def hotButtonMouseEvent(self, event):
-        print("hotButtonMouseEvent")  # Debug print statement
-        msg_box = QMessageBox()
-
-        if event.button() == Qt.LeftButton:
-            msg_box.setText("Left Button Clicked")
-        elif event.button() == Qt.RightButton:
-            msg_box.setText("Right Button Clicked")
-
-        msg_box.exec()
-        #self.control_board.showMediaOnMain(self.hot_button_image_file.text())
-        #if self.copyToAux.isChecked():
-        #    self.control_board.showMediaOnAux(self.hot_button_image_file.text())
-
-    # Hot Button clicked response
-    @Slot()
-    def hotButtonClicked(self):
+    def hot_button_to_main(self):
         self.control_board.showMediaOnMain(self.hot_button_image_file.text())
-        if self.copyToAux.isChecked():
-            self.control_board.showMediaOnAux(self.hot_button_image_file.text())
+
+    def hot_button_to_aux(self):
+        self.control_board.showMediaOnAux(self.hot_button_image_file.text())
 
     @Slot(str)
     def hotButtonNameChange(self,new_name):
@@ -390,7 +385,7 @@ class HotButton(QObject):
 
     @Slot()
     def selectImage(self):
-        fileName = self.control_board.selectImageFile()
+        fileName = self.media_features.select_image_file()
         if fileName != None:
             self.hot_button_image_file.setText(fileName)
 

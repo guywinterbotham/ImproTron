@@ -79,8 +79,10 @@ class ThingzFeature(QObject):
 
             if display_type in ("main", "both"):
                 self.main_display.show_text(list_text, font = thing_font)
+                utilities.capture_window(self.main_display, self.ui.imagePreviewMain)
             if display_type in ("auxiliary", "both"):
                 self.auxiliary_display.show_text(list_text, font = thing_font)
+                utilities.capture_window(self.auxiliary_display, self.ui.imagePreviewAuxiliary)
 
     @Slot()
     def show_thingz_list_main(self):
@@ -105,8 +107,10 @@ class ThingzFeature(QObject):
 
         if display_type in ("main", "both"):
             self.main_display.show_text(thing_data, style, thing_font)
+            utilities.capture_window(self.main_display, self.ui.imagePreviewMain)
         if display_type in ("auxiliary", "both"):
             self.auxiliary_display.show_text(thing_data, style, thing_font)
+            utilities.capture_window(self.auxiliary_display, self.ui.imagePreviewAuxiliary)
 
     @Slot()
     def show_thing_main(self):
@@ -133,7 +137,7 @@ class ThingzFeature(QObject):
         if not current_thing:
             return
         is_left_team = not current_thing.is_left_side_team()
-        color = self._settings.getLeftTeamColor() if is_left_team else self._settings.getRightTeamColor()
+        color = self._settings.get_left_team_color() if is_left_team else self._settings.get_right_team_color()
         current_thing.setBackground(color)
         current_thing.setForeground(utilities.team_font(color))
         current_thing.toggle_team()
@@ -159,13 +163,13 @@ class ThingzFeature(QObject):
             # and color the thing appropriately
             if self.ui.leftThingTeamRB.isChecked():
                 newThing = ThingzItem (thingStr, True, self.ui.thingzListLW)
-                newThing.setBackground(self._settings.getLeftTeamColor())
-                newThing.setForeground(utilities.team_font(self._settings.getLeftTeamColor()))
+                newThing.setBackground(self._settings.get_left_team_color())
+                newThing.setForeground(utilities.team_font(self._settings.get_left_team_color()))
                 self.ui.rightThingTeamRB.setChecked(True)
             else: # Right Team Color
                 newThing = ThingzItem (thingStr, False, self.ui.thingzListLW)
-                newThing.setBackground(self._settings.getRightTeamColor())
-                newThing.setForeground(utilities.team_font(self._settings.getRightTeamColor()))
+                newThing.setBackground(self._settings.get_right_team_color())
+                newThing.setForeground(utilities.team_font(self._settings.get_right_team_color()))
                 self.ui.leftThingTeamRB.setChecked(True)
 
             newThingFont = newThing.font()

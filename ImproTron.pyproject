@@ -4,7 +4,6 @@
         "ImproTronControlBoard.py",
         "Improtronics.py",
         "MediaFileDatabase.py",
-        "Settings.py",
         "Timer.py",
         "TouchPortal.py",
         "ImproTron.spec",
@@ -12,6 +11,7 @@
         "text_feature.py",
         "utilities.py",
         "media_features.py",
-        "thingz_feature.py"
+        "thingz_feature.py",
+        "settings.py"
     ]
 }

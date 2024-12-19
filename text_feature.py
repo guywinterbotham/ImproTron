@@ -51,6 +51,9 @@ class TextFeature(QObject):
                 lambda _, btn=getattr(self.ui, f"rightColorPreset{i}"): self.use_color_preset(btn, self.ui.rightTextColorPB)
             )
 
+        # Pull the preset colors onto the selection buttons
+        self.set_preset_colors()
+
 # End Connections
 
     def use_color_preset(self, button, target):
@@ -58,12 +61,12 @@ class TextFeature(QObject):
             self.set_text_box_color(target, style)
 
     def get_text_file(self):
-        file_name, _ = QFileDialog.getOpenFileName(self.ui, "Open Text File", self._settings.getDocumentDir(), "Text File (*.txt)")
+        file_name, _ = QFileDialog.getOpenFileName(self.ui, "Open Text File", self._settings.get_document_directory(), "Text File (*.txt)")
         if not file_name:
             return None
 
         file_info = QFileInfo(file_name)
-        self._settings.setDocumentDir(file_info.absolutePath())
+        self._settings.set_document_directory(file_info.absolutePath())
         file = QFile(file_name)
         if not file.open(QIODevice.ReadOnly | QIODevice.Text):
             QMessageBox.warning(self.ui, "Error", "Failed to open the file.")
@@ -131,14 +134,14 @@ class TextFeature(QObject):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
         self.mainDisplay.show_text(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
-        self.ui.imagePreviewMain.clear()
+        utilities.capture_window(self.mainDisplay, self.ui.imagePreviewMain)
 
     @Slot()
     def show_left_text_auxiliary(self):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
         self.auxiliaryDisplay.show_text(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
-        self.ui.imagePreviewAuxiliary.clear()
+        utilities.capture_window(self.auxiliaryDisplay, self.ui.imagePreviewAuxiliary)
 
     @Slot()
     def show_left_text_both(self):
@@ -150,14 +153,14 @@ class TextFeature(QObject):
         font = self.ui.fontComboBoxRight.currentFont()
         font.setPointSize(self.ui.rightFontSize.value())
         self.mainDisplay.show_text(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
-        self.ui.imagePreviewMain.clear()
+        utilities.capture_window(self.mainDisplay, self.ui.imagePreviewMain)
 
     @Slot()
     def show_right_text_auxiliary(self):
         font = self.ui.fontComboBoxRight.currentFont()
         font.setPointSize(self.ui.rightFontSize.value())
         self.auxiliaryDisplay.show_text(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
-        self.ui.imagePreviewAuxiliary.clear()
+        utilities.capture_window(self.auxiliaryDisplay, self.ui.imagePreviewAuxiliary)
 
     @Slot()
     def show_right_text_both(self):

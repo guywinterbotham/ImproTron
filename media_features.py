@@ -1,5 +1,6 @@
 # media_features.py
-# This Python file uses the following encoding: utf-8
+import json
+import logging
 from PySide6.QtCore import QObject, Slot, Signal, QFileInfo, QDirIterator, QUrl
 from PySide6.QtGui import QImageReader, QPixmap, QMovie
 from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QStyle, QPushButton
@@ -7,18 +8,20 @@ from PySide6.QtMultimedia import QMediaPlayer
 from Improtronics import SoundFX, SlideWidget
 from MediaFileDatabase import MediaFileDatabase
 import utilities
-import json
+
+logger = logging.getLogger(__name__)
 
 # Module to encapsulate image and media search along with the media database management
 class MediaFeatures(QObject):
     mainMediaShow = Signal(str)    # Custom signal that decouples the media display from controlboard
     auxMediaShow  = Signal(str)    # Custom signal that decouples the media display from controlboard
 
-    def __init__(self, ui, settings, media_player):
+    def __init__(self, ui, settings, media_model, media_player):
         super(MediaFeatures, self).__init__()
 
         self.ui = ui
         self._settings = settings
+        self.media_model = media_model
         self.media_player = media_player
 
         # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
@@ -29,19 +32,21 @@ class MediaFeatures(QObject):
         self.media_file_database = MediaFileDatabase()
 
         # Initial Image Indexing
-        media_count = self.media_file_database.index_media(self._settings.getMediaDir())
+        media_count = self.media_file_database.index_media(self._settings.get_media_directory())
         self.ui.mediaFilesCountLBL.setText(str(media_count))
 
         # Initial Sound Indexing
-        sound_count = self.media_file_database.index_sounds(self._settings.getSoundDir())
+        sound_count = self.media_file_database.index_sounds(self._settings.get_sound_directory())
         self.ui.soundFilesCountLBL.setText(str(sound_count))
 
         # Sound Pallette Setup
-        self.sfx_buttons = [] #empty array
-        self.sound_fx_number = 25      #number of soundeffects for a pallette
+        self.sfx_buttons = [] # empty array
+        _volume = self.ui.soundFXVolumeHS.value()/self.ui.soundFXVolumeHS.maximum() # Use the ui default as a guide
 
-        _volume = self.ui.soundFXVolumeHS.value()/self.ui.soundFXVolumeHS.maximum()
-        for button in range(self.sound_fx_number):
+        # Don't assume the buttons are in the same order in the grid as they are numbered
+        # Look for each button by its object name. The number of buttons can be derived
+        # from the grid though
+        for button in range(self.ui.soundFXGrid.count()):
             sfx_button = self.ui.findChild(QPushButton, "soundFXPB" +str(button+1))
             _soundFX = SoundFX(sfx_button)
             _soundFX.set_fx_volume(_volume)
@@ -102,8 +107,8 @@ class MediaFeatures(QObject):
 # #### connections
 
     # Media Utilties
-    def selectImageFile(self):
-        selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Media", self._settings.getMediaDir() , "Media Files "+self.media_file_database.get_media_supported_for_dialog())
+    def select_image_file(self):
+        selectedFileName = QFileDialog.getOpenFileName(self.ui, "Select Media", self._settings.get_media_directory() , "Media Files "+self.media_file_database.get_media_supported_for_dialog())
         return selectedFileName[0]
 
     def isImage(self, fileName):
@@ -115,6 +120,15 @@ class MediaFeatures(QObject):
                 return False
         else:
             return False
+
+    # Reset the tree view of media files
+    def reset_media_view(self, directory):
+        self.image_tree_view = self.ui.slideShowFilesTreeView
+        self.image_tree_view.setModel(self.media_model)
+        self.image_tree_view.setRootIndex(self.media_model.index(directory))
+        for i in range(1, self.media_model.columnCount()):
+            self.image_tree_view.header().hideSection(i)
+        self.image_tree_view.setHeaderHidden(True)
 
     # Media Management Slots
     @Slot()
@@ -133,19 +147,14 @@ class MediaFeatures(QObject):
     def set_media_library(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
                 "Select the Media Library location",
-                self._settings.getMediaDir(), QFileDialog.ShowDirsOnly)
+                self._settings.get_media_directory(), QFileDialog.ShowDirsOnly)
         if setDir:
-            self._settings.setMediaDir(setDir)
+            self._settings.set_media_directory(setDir)
             media_count = self.media_file_database.index_media(setDir)
             self.ui.mediaFilesCountLBL.setText(str(media_count))
 
-            # The Media Library is also part of the Media mediaModel so reset it
-            self.image_tree_view = self.ui.slideShowFilesTreeView
-            self.image_tree_view.setModel(self.mediaModel)
-            self.image_tree_view.setRootIndex(self.mediaModel.index(setDir))
-            for i in range(1, self.mediaModel.columnCount()):
-                self.image_tree_view.header().hideSection(i)
-            self.image_tree_view.setHeaderHidden(True)
+            # The Media Library is also part of the media model so reset it
+            self.reset_media_view(setDir)
 
     @Slot(SlideWidget)
     def preview_selected_media(self, slide):
@@ -200,9 +209,9 @@ class MediaFeatures(QObject):
     def set_sound_library(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
                 "Select the Sound Library location",
-                self._settings.getSoundDir(), QFileDialog.ShowDirsOnly)
+                self._settings.get_sound_directory(), QFileDialog.ShowDirsOnly)
         if setDir:
-            self._settings.setSoundDir(setDir)
+            self._settings.set_sound_directory(setDir)
             soundsCount = self.media_file_database.index_sounds(setDir)
             self.ui.soundFilesCountLBL.setText(str(soundsCount))
 
@@ -280,7 +289,7 @@ class MediaFeatures(QObject):
         self.ui.soundQueueLW.clear()
 
         fileName = QFileDialog.getOpenFileName(self.ui, "Load Sound Queue",
-                                self._settings.getConfigDir(),
+                                self._settings.get_config_dir(),
                                 "Sound Queue Files(*.sfx *.sdq)")
 
         # Read the JSON data from the file
@@ -295,7 +304,7 @@ class MediaFeatures(QObject):
     @Slot()
     def save_sound_queue(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
-                                   self._settings.getConfigDir(),
+                                   self._settings.get_config_dir(),
                                    "Sound Queue Files(*.sdq)")
 
         if len(fileName[0]) > 0:
@@ -311,7 +320,7 @@ class MediaFeatures(QObject):
     @Slot()
     def save_soundFX_pallette(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save Sound Queue",
-                                   self._settings.getConfigDir(),
+                                   self._settings.get_config_dir(),
                                    "Sound Queue Files(*.sfx)")
 
         if len(fileName[0]) > 0:
@@ -338,11 +347,13 @@ class MediaFeatures(QObject):
     @Slot()
     def load_sound_pallettes(self):
         self.palletteSelect.clear()
-        palletteIter = QDirIterator(self._settings.getConfigDir(),{"*.sfx"})
+        palletteIter = QDirIterator(self._settings.get_config_dir(),{"*.sfx"})
         while palletteIter.hasNext():
             palletteFileInfo = palletteIter.nextFileInfo()
             palletteFileName = palletteFileInfo.completeBaseName()
             self.palletteSelect.addItem(palletteFileName, palletteFileInfo)
+
+        self.load_sound_effects(0)
 
     @Slot(int)
     def load_sound_effects(self, index):
@@ -357,7 +368,7 @@ class MediaFeatures(QObject):
             # Loop through all the buttons to either set them based on the file
             # or clear and disable
             for sound in soundButton_data.items():
-                if buttonNumber < self.sound_fx_number:
+                if buttonNumber < self.ui.soundFXGrid.count():
                     if QFileInfo.exists(sound[1]): # The file still exists
                         file = QFileInfo(sound[1])
                         if file.suffix() == "wav": # Only wav files are supported for sound effect
@@ -369,7 +380,7 @@ class MediaFeatures(QObject):
 
                 buttonNumber += 1
 
-        for disabledButton in range(buttonNumber, self.sound_fx_number):
+        for disabledButton in range(buttonNumber, self.ui.soundFXGrid.count()):
             self.sfx_buttons[disabledButton].disable()
 
     @Slot(int)

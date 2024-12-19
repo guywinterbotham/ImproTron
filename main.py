@@ -1,50 +1,66 @@
-# This Python file uses the following encoding: utf-8
 import sys
+import os
 import logging
+import argparse
+import traceback
 from PySide6.QtCore import QStandardPaths
-from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QApplication
 from ImproTronControlBoard import ImproTronControlBoard
-#export QT_LOGGING_RULES="qt.pyside.libpyside.warning=true"
-
-# Commands to use in the build process
-# venv\Scripts\activate.bat
-# venv\Scripts\pyside6-deploy -c ImproTron.spec
-# venv\Scripts\pyside6-rcc -g python ImproTronIcons.qrc > ImproTronIcons.py
-# venv\Scripts\pyside6-uic ImproTronControlBoard.ui -o ui_ImproTronControlBoard.py
-# venv\Scripts\pyside6-uic ImproTron.ui -o ui_ImproTron.py
-
-# Set the logging configuration
-logging.basicConfig(
-    level = logging.ERROR,
-    format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers =[
-        logging.FileHandler(QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0]+"/ImproTron/improton_error.log"),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
-        # Call the default excepthook on KeyboardInterrupt and exit the program
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
-    # Log the exception
-    logging.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+    logging.critical(
+        "Uncaught exception:\n"
+        "Type: %s\nValue: %s\nTraceback: %s",
+        exc_type.__name__, str(exc_value), ''.join(traceback.format_tb(exc_traceback)),
+        exc_info=(exc_type, exc_value, exc_traceback)
+    )
 
 sys.excepthook = handle_exception
 
-class ImproTronApplication(QApplication):
-    def notify(self, receiver, event):
-        try:
-            return super().notify(receiver, event)
-        except Exception as e:
-            logging.critical('Uncaught exception during event processing!', exc_info=true)
-            raise e
+def setup_logging():
+    log_dir_list = QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)
+    log_dir = log_dir_list[0] + "/ImproTron" if log_dir_list else os.path.join(os.getcwd(), "ImproTron")
+    os.makedirs(log_dir, exist_ok=True)
+
+    log_level = args.log_level or os.getenv("IMPROTRON_LOG_LEVEL", "INFO").upper()
+    logging.basicConfig(
+        level=logging.getLevelName(log_level) if log_level in logging._nameToLevel else logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(os.path.join(log_dir, "improton_error.log")),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+
+def main():
+    logging.info("ImproTron starting")
+    logging.info("Environment Details: OS=%s, Python=%s", sys.platform, sys.version)
+
+    app = QApplication(sys.argv)
+    improTronControlBoard = ImproTronControlBoard()
+    result = app.exec()
+    del improTronControlBoard
+    return result
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="ImproTron Application")
+    parser.add_argument(
+        "--log-level",
+        help="Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL). Default: INFO.",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+    )
+    try:
+        args = parser.parse_args()
+    except argparse.ArgumentError as e:
+        print(f"Argument parsing error: {e}", file=sys.stderr)
+        sys.exit(2)
 
-    # Get the party started
-    improTronControlBoard = ImproTronControlBoard()
+    # Set up logging
+    setup_logging()
 
-    sys.exit(app.exec())
+    # Run the application
+    sys.exit(main())
