@@ -23,7 +23,7 @@ def capture_window(window: QMainWindow, preview_label: QLabel):
     pixmap = window.grab()  # Grab the content of the QMainWindow
     scaled_pixmap = pixmap.scaled(
         preview_label.size(),
-        Qt.KeepAspectRatio,
+        Qt.IgnoreAspectRatio,
         Qt.SmoothTransformation,
     )
     preview_label.setPixmap(scaled_pixmap)

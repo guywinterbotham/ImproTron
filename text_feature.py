@@ -1,5 +1,5 @@
 # text_feature.py
-# This Python file uses the following encoding: utf-8
+
 import csv
 from PySide6.QtCore import QObject, Slot, QRegularExpression, QFile, QFileInfo, QIODevice
 from PySide6.QtGui import QColor, QFontMetrics

@@ -5,6 +5,8 @@ from PySide6.QtWidgets import QPushButton, QCheckBox, QLineEdit, QListWidgetItem
 from PySide6.QtCore import Slot, Qt, QUrl, QObject, QEvent
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QFont, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect
+from PySide6.QtWebEngineCore import QWebEngineSettings
+
 from Timer import CountdownTimer
 from ui_ImproTron import Ui_ImproTron
 
@@ -24,6 +26,15 @@ class ImproTron(QMainWindow):
         self.media = QPixmap()
         self.movie = QMovie() # Keep the memory allocated
         self.movie.setSpeed(100)
+        self.web_view = self.ui.youTubePlayer
+
+        #
+        self.web_view.settings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
+        self.web_view.settings().setAttribute(QWebEngineSettings.JavascriptEnabled, True)
+        self.web_view.settings().setAttribute(QWebEngineSettings.PlaybackRequiresUserGesture, False)
+
+        # Connect to the loadFinished signal
+        self.web_view.loadFinished.connect(self.inject_toggle_javascript)
 
         self.updateScores(0.0, 0.0) # Force a font scaling
 
@@ -293,6 +304,78 @@ class ImproTron(QMainWindow):
         self.movie.stop() # Stop a GIF if it is playing
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayCamera)
         return self.ui.cameraPlayer
+
+    # Controls for YouTube playback
+    def load_youtube(self, video_url):
+        # Embed the YouTube video
+        self.movie.stop() # Stop a GIF if it is playing
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayYouTube)
+
+        html_content = f"""
+        <html>
+        <body style="margin:0; overflow:hidden;">
+        <iframe width="100%" height="100%" id="player" type="text/html" src="{video_url}"
+                frameborder="0" allowfullscreen>
+        </iframe>
+        </body>
+        </html>
+        """
+        self.web_view.setHtml(html_content)
+
+    # Inject JavaScript to define the toggleMute function after the page loads
+    def inject_toggle_javascript(self):
+        # Load YouTube IFrame API script
+        self.web_view.page().runJavaScript("""
+            var tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            var firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+            // Setup player
+            var player;
+            function onYouTubeIframeAPIReady() {
+                player = new YT.Player('player', {
+                    events: {
+                        onReady: function(event) {
+                            console.log('Player ready');
+                        }
+                    }
+                });
+            }
+
+            // Define toggleMute
+            function toggleMute() {
+                if (player) {
+                    if (player.isMuted()) {
+                        player.unMute();
+                    } else {
+                        player.mute();
+                    }
+                } else {
+                    console.log('Player not initialized.');
+                }
+            }
+        """)
+
+    def play_youtube(self):
+        # Use JavaScript to play the video
+        self.movie.stop() # Stop a GIF if it is playing
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayYouTube)
+        self.web_view.page().runJavaScript("""
+            document.querySelector('iframe').contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        """)
+
+    def mute_youtube(self):
+        # Trigger JavaScript to toggle mute
+        self.web_view.page().runJavaScript("toggleMute();")
+
+    def pause_youtube(self):
+        # Use JavaScript to pause the video
+        self.movie.stop() # Stop a GIF if it is playing
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayYouTube)
+        self.web_view.page().runJavaScript("""
+            document.querySelector('iframe').contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        """)
 
     # Return the location to persist
     def get_location(self):
