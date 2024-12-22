@@ -317,7 +317,10 @@ class GamesFeature(QObject):
         self._game_whams = self.ui.gameWhammysSB.value()
 
         self.ui.gamesLW.setCurrentRow(self._whammy_randomizer.bounded(0, game_count))
-        self.show_game_main()
+        if self.ui.copytoAuxCB.isChecked():
+            self.show_game_both()
+        else:
+            self.show_game_main()
         self._game_whammy_timer.start()
 
     # Triggered by the time out of the Game whammy timer and increments to the next random selection of game

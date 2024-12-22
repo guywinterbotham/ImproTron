@@ -370,6 +370,9 @@ class ImproTronControlBoard(QWidget):
     # Note: This is both a local call but a slot for images emitted from the media features
     @Slot(str)
     def showMediaOnMain(self, file_name):
+        if len(file_name) <= 0:
+            return
+
         self.mainPreviewMovie.stop()
         if self.isAnimatedGIF(file_name):
             self.mainPreviewMovie.setFileName(file_name)
@@ -395,6 +398,9 @@ class ImproTronControlBoard(QWidget):
     # Note: This is both a local call but a slot for images emitted from the media features
     @Slot(str)
     def showMediaOnAux(self, file_name):
+        if len(file_name) <= 0:
+            return
+
         self.auxPreviewMovie.stop()
         if self.isAnimatedGIF(file_name):
             self.auxPreviewMovie.setFileName(file_name)

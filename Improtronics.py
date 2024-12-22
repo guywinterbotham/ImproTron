@@ -426,17 +426,14 @@ class HotButtonHandler(QObject):
         self.hot_button_select_file = control_board.findWidget(QPushButton, "selectPB" +str(button_number))
         self.hot_button_select_file.clicked.connect(self.selectImage)
 
-        # Get a reference to the preference to dupicate images to the auxiliary monitor
-        self.copyToAux = control_board.findWidget(QCheckBox, "copytoAuxCB")
-
     # Allow for right and left click actions
     def eventFilter(self, obj, event):
         if obj is self.hot_button and event.type() == QEvent.MouseButtonPress:
             if event.button() == Qt.LeftButton:
-                self.hot_button_to_main()
+                self.control_board.showMediaOnMain(self.hot_button_image_file.text())
                 return True
             elif event.button() == Qt.RightButton:
-                self.hot_button_to_aux()
+                self.control_board.showMediaOnAux(self.hot_button_image_file.text())
                 return True
         return False  # Pass the event to the default handler
 
@@ -453,13 +450,6 @@ class HotButtonHandler(QObject):
     def load(self, hot_buttons_json):
         self.hot_button_title.setText(hot_buttons_json[self.hot_button_title.objectName()])
         self.hot_button_image_file.setText(hot_buttons_json[self.hot_button_image_file.objectName()])
-
-    # Hot Button clicked response
-    def hot_button_to_main(self):
-        self.control_board.showMediaOnMain(self.hot_button_image_file.text())
-
-    def hot_button_to_aux(self):
-        self.control_board.showMediaOnAux(self.hot_button_image_file.text())
 
     @Slot(str)
     def hotButtonNameChange(self,new_name):

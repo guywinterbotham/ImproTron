@@ -39,7 +39,7 @@ class TouchPortal(QObject):
         self.pair()
 
     def on_error(self, socket_error):
-        logger.info(f"Touch Portal enabled but failed to connect. Connection error: {socket_error}")
+        logger.warn(f"Touch Portal enabled but failed to connect. Connection error: {socket_error}")
 
     def on_disconnected(self):
         logger.info("Disconnected from Touch Portal.")
