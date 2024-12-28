@@ -16,7 +16,11 @@ class ThingzItem(QListWidgetItem):
         return self._substitutes
 
     def thing_data(self):
-        return self.text() + "\n" + self._substitutes
+        thing_text = self.text()
+        if len(self._substitutes) > 0:
+            thing_text += "\n" + self._substitutes
+
+        return thing_text
 
     def update_substitutes(self, substitutesText):
         self._substitutes = substitutesText
@@ -72,7 +76,9 @@ class ThingzFeature(QObject):
         if self.ui.thingzListLW.count() > 0:
             list_text = ""
             for thingRow in range(self.ui.thingzListLW.count()):
-                list_text += self.ui.thingzListLW.item(thingRow).text() + "\n"
+                list_text += self.ui.thingzListLW.item(thingRow).text()
+                if thingRow < self.ui.thingzListLW.count()-1:
+                    list_text += "\n"
 
             thing_font = self.ui.thingFontFCB.currentFont()
             thing_font.setPointSize(self.ui.thingFontSizeSB.value())

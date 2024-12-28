@@ -196,7 +196,7 @@ class GamesFeature(QObject):
 
     @Slot()
     def load_background(self):
-        selected_file_name = QFileDialog.getOpenFileName(self.ui, "Select Background", self._settings.get_media_directory() , "Background Files (*.png *.jpg *.bmp)")
+        selected_file_name = QFileDialog.getOpenFileName(self.ui, "Select Background", self._settings.get_media_directory() , "Background Files (*.png *.jpg *.bmp *.webp)")
         self._games_background_file = selected_file_name[0]
 
         if QFileInfo.exists(self._games_background_file):
