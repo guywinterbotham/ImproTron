@@ -2,11 +2,12 @@
 import logging
 
 from PySide6.QtWidgets import QPushButton, QCheckBox, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow, QWidget
-from PySide6.QtCore import Slot, Qt, QUrl, QObject, QEvent
+from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QFont, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect
 from PySide6.QtWebEngineCore import QWebEngineSettings
 
+import utilities
 from Timer import CountdownTimer
 from ui_ImproTron import Ui_ImproTron
 
@@ -169,24 +170,29 @@ class ImproTron(QMainWindow):
             self.ui.textDisplay.setPixmap(pixmap)
 
     # Show an image on the display
-    def showImage(self, fileName, stretch = True):
+    def showImage(self, image, stretch = True):
         self.movie.stop()
-        if len(fileName) >0:
-            reader = QImageReader(fileName)
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-
-            if newImage:
-                self.blackout() # Clears the display and sets it to the current tab
-                if stretch:
-                    self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.textDisplay.size())))
-                else:
-                    self.ui.textDisplay.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.textDisplay.size().height())))
+        if image:
+            self.blackout() # Clears the display and sets it to the current tab
+            if stretch:
+                self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaled(self.ui.textDisplay.size())))
+            else:
+                self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.ui.textDisplay.size().height())))
 
     # Show an image on the from the clipboard
     def pasteImage(self, stretch = True):
         self.movie.stop()
         pixmap = QGuiApplication.clipboard().pixmap()
+        if pixmap != None:
+            self.blackout() # Clears the display and sets it to the current tab
+            if stretch:
+                self.ui.textDisplay.setPixmap(pixmap.scaled(self.ui.textDisplay.size()))
+            else:
+                self.ui.textDisplay.setPixmap(pixmap.scaledToHeight(self.ui.textDisplay.size().height()))
+
+    # Show an pixel map on the from a drop event on the preview
+    def dropImage(self, pixmap, stretch = True):
+        self.movie.stop()
         if pixmap != None:
             self.blackout() # Clears the display and sets it to the current tab
             if stretch:
@@ -403,37 +409,38 @@ class ImproTron(QMainWindow):
     # End Class ImproTron
 
 class HotButtonHandler(QObject):
-    def __init__(self, button_number, control_board, media_features):
+    mainMediaShow = Signal(str)    # Custom signal that decouples the media display from controlboard
+    auxMediaShow  = Signal(str)    # Custom signal that decouples the media display from controlboard
+    def __init__(self, button_number, ui, media_features):
 
         super(HotButtonHandler,self).__init__()
 
         self.button_number = button_number
         self.text = "Button "+str(button_number)
-        self.control_board = control_board
         self.media_features = media_features
 
         # Take control of the actual button
-        self.hot_button = control_board.findWidget(QPushButton, "hotPB" +str(button_number))
+        self.hot_button = utilities.findWidget(ui, QPushButton, "hotPB" +str(button_number))
         self.hot_button.installEventFilter(self)
 
-        self.hot_button_title = control_board.findWidget(QLineEdit, "titleHotButton" +str(button_number))
+        self.hot_button_title = utilities.findWidget(ui, QLineEdit, "titleHotButton" +str(button_number))
         self.hot_button_title.textChanged.connect(self.hotButtonNameChange)
         self.hot_button_title.setText(self.text)
 
-        self.hot_button_image_file = control_board.findWidget(QLineEdit, "imageFileTxt" +str(button_number))
+        self.hot_button_image_file = utilities.findWidget(ui, QLineEdit, "imageFileTxt" +str(button_number))
         self.hot_button_image_file.setText("")
 
-        self.hot_button_select_file = control_board.findWidget(QPushButton, "selectPB" +str(button_number))
+        self.hot_button_select_file = utilities.findWidget(ui, QPushButton, "selectPB" +str(button_number))
         self.hot_button_select_file.clicked.connect(self.selectImage)
 
     # Allow for right and left click actions
     def eventFilter(self, obj, event):
         if obj is self.hot_button and event.type() == QEvent.MouseButtonPress:
             if event.button() == Qt.LeftButton:
-                self.control_board.showMediaOnMain(self.hot_button_image_file.text())
+                self.mainMediaShow.emit(self.hot_button_image_file.text())
                 return True
             elif event.button() == Qt.RightButton:
-                self.control_board.showMediaOnAux(self.hot_button_image_file.text())
+                self.auxMediaShow.emit(self.hot_button_image_file.text())
                 return True
         return False  # Pass the event to the default handler
 

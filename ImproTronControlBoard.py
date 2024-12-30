@@ -13,7 +13,7 @@ from PySide6.QtMultimedia import (QAudioInput, QCamera, QCameraDevice,
                                     QImageCapture, QMediaCaptureSession,
                                     QMediaDevices, QMediaMetaData,
                                     QMediaRecorder, QMediaPlayer, QAudioOutput)
-from PySide6.QtNetwork import QTcpSocket
+from PySide6.QtNetwork import QNetworkAccessManager
 
 from PySide6.QtMultimediaWidgets import QVideoWidget
 
@@ -24,6 +24,7 @@ from games_feature import GamesFeature
 from text_feature import TextFeature
 from media_features import MediaFeatures
 from thingz_feature import ThingzFeature
+from monitor_preview import MonitorPreview
 import utilities
 from TouchPortal import TouchPortal
 import ImproTronIcons
@@ -51,9 +52,13 @@ class ImproTronControlBoard(QWidget):
         self.m_devices = QMediaDevices()
         self.m_devices.videoInputsChanged.connect(self.updateCameras)
         self.updateCameras()
+        self.last_media_duration = 0 # used to over come a problem in slides with a single video
 
         self.m_captureSession = QMediaCaptureSession()
         self.setCamera(QMediaDevices.defaultVideoInput())
+
+        # Connect error signal
+        self.mediaPlayer.errorOccurred.connect(self.mediaplayer_handle_error)
 
         # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
         self.mainPreviewMovie = QMovie()
@@ -72,6 +77,27 @@ class ImproTronControlBoard(QWidget):
         self.mainDisplay.restore()
         self.mainDisplay.set_location(self._settings.get_main_location())
         self.mainDisplay.maximize()
+
+        # Create a shared QNetworkAccessManager
+        self.shared_network_manager = QNetworkAccessManager()
+
+        # Replace the main image preview with a DragDropLabel
+        self.main_preview = MonitorPreview(self.ui.imagePreviewMain, self.ui.imagePreviewMainHL, self.mainDisplay, self.ui.stretchMainCB.isChecked(), self.shared_network_manager, parent=self.ui.imagePreviewMain.parent())
+        self.ui.imagePreviewMain = self.main_preview
+        self.ui.loadImageMainPB.clicked.connect(self.getImageFileMain)
+        self.ui.pasteImageMainPB.clicked.connect(self.main_preview.paste_image)
+        self.ui.blackoutMainPB.clicked.connect(self.main_preview.blackout)
+        self.ui.stretchMainCB.checkStateChanged.connect(self.main_preview.previewStretch)
+
+        # Replace the auxilliary image preview with a DragDropLabel
+        self.aux_preview = MonitorPreview(self.ui.imagePreviewAuxiliary, self.ui.imagePreviewAuxiliaryHL, self.auxiliaryDisplay, self.ui.stretchMainCB.isChecked(), self.shared_network_manager, parent=self.ui.imagePreviewAuxiliary.parent())
+        self.ui.imagePreviewAuxiliary = self.aux_preview
+        self.ui.loadImageAuxiliaryPB.clicked.connect(self.getImageFileAuxiliary)
+        self.ui.pasteImageAuxiliaryPB.clicked.connect(self.aux_preview.paste_image)
+        self.ui.blackoutAuxPB.clicked.connect(self.aux_preview.blackout)
+        self.ui.stretchAuxCB.checkStateChanged.connect(self.aux_preview.previewStretch)
+
+        self.ui.blackoutBothPB.clicked.connect(self.blackout_both)
 
         # Instantiate Features
         self.games_feature = GamesFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
@@ -117,15 +143,6 @@ class ImproTronControlBoard(QWidget):
         self.ui.add32PB.clicked.connect(self.quickAdd32) # Add 3 to Left, 2 to Right
         self.ui.add23PB.clicked.connect(self.quickAdd23) # Add 2 to Left, 3 to Right
         self.ui.add05PB.clicked.connect(self.quickAdd05) # Add 5 to Right team
-
-        # Image load, paste and blackout
-        self.ui.loadImageMainPB.clicked.connect(self.getImageFileMain)
-        self.ui.loadImageAuxiliaryPB.clicked.connect(self.getImageFileAuxiliary)
-        self.ui.pasteImageMainPB.clicked.connect(self.pasteImageMain)
-        self.ui.pasteImageAuxiliaryPB.clicked.connect(self.pasteImageAuxiliary)
-        self.ui.blackoutMainPB.clicked.connect(self.blackout_main)
-        self.ui.blackoutAuxPB.clicked.connect(self.blackout_aux)
-        self.ui.blackoutBothPB.clicked.connect(self.blackout_both)
 
         # Countdown timer controls
         self.ui.startTimerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
@@ -288,7 +305,13 @@ class ImproTronControlBoard(QWidget):
         self.hot_buttons = [] #empty array
 
         for button in range(self.ui.hotButtonHL.count()):
-            self.hot_buttons.append(HotButtonHandler(button+1, self, self.media_features))
+            hotButton = HotButtonHandler(button+1, self.ui, self.media_features)
+            self.hot_buttons.append(hotButton)
+
+            # Custom Signals allows the HotButtonHandler to leave screen control encapulated in the control panel
+            hotButton.mainMediaShow.connect(self.showMediaOnMain)
+            hotButton.auxMediaShow.connect(self.showMediaOnAux)
+
 
         # Load the last saved hotbutton file
         lastHotButtons = self._settings.get_last_hot_button_file()
@@ -342,10 +365,6 @@ class ImproTronControlBoard(QWidget):
         self.deleteLater()
         QApplication.quit()
 
-    # Utility encapsulating the ui code to find widgets by name
-    def findWidget(self, type, widgetName):
-        return self.ui.findChild(type, widgetName)
-
     # Checks on various media types
     def isAnimatedGIF(self, file_name):
         if len(file_name) > 0:
@@ -373,25 +392,23 @@ class ImproTronControlBoard(QWidget):
         if len(file_name) <= 0:
             return
 
+        if not QFile(file_name).exists():
+            logger.warn(f"Mising Media File on Main: {file_name}")
+            return
+
         self.mainPreviewMovie.stop()
         if self.isAnimatedGIF(file_name):
             self.mainPreviewMovie.setFileName(file_name)
             if self.mainPreviewMovie.isValid():
-                self.mainPreviewMovie.setScaledSize(self.ui.imagePreviewMain.size())
-                self.ui.imagePreviewMain.setMovie(self.mainPreviewMovie)
+                self.mainPreviewMovie.setScaledSize(self.main_preview.size())
+                self.main_preview.setMovie(self.mainPreviewMovie)
                 self.mainPreviewMovie.start()
                 self.mainDisplay.showMovie(file_name)
         elif self.media_features.isImage(file_name):
             reader = QImageReader(file_name)
             reader.setAutoTransform(True)
             newImage = reader.read()
-            if newImage:
-                if self.ui.stretchMainCB.isChecked():
-                    self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewMain.size())))
-                else:
-                    self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewMain.size().height())))
-
-            self.mainDisplay.showImage(file_name, self.ui.stretchMainCB.isChecked())
+            self.main_preview.load_image(newImage)
         else:
             logging.warning(f"Unsupported media for main: {file_name}")
 
@@ -401,25 +418,23 @@ class ImproTronControlBoard(QWidget):
         if len(file_name) <= 0:
             return
 
+        if not QFile(file_name).exists():
+            logger.warn(f"Mising Media File on Aux: {file_name}")
+            return
+
         self.auxPreviewMovie.stop()
         if self.isAnimatedGIF(file_name):
             self.auxPreviewMovie.setFileName(file_name)
             if self.auxPreviewMovie.isValid():
-                self.auxPreviewMovie.setScaledSize(self.ui.imagePreviewAuxiliary.size())
-                self.ui.imagePreviewAuxiliary.setMovie(self.auxPreviewMovie)
+                self.auxPreviewMovie.setScaledSize(self.aux_preview.size())
+                self.aux_preview.setMovie(self.auxPreviewMovie)
                 self.auxPreviewMovie.start()
                 self.auxiliaryDisplay.showMovie(file_name)
         elif self.media_features.isImage(file_name):
             reader = QImageReader(file_name)
             reader.setAutoTransform(True)
             newImage = reader.read()
-            if newImage:
-                if self.ui.stretchAuxCB.isChecked():
-                    self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.imagePreviewAuxiliary.size())))
-                else:
-                    self.ui.imagePreviewAuxiliary.setPixmap(QPixmap.fromImage(newImage.scaledToHeight(self.ui.imagePreviewAuxiliary.size().height())))
-
-                self.auxiliaryDisplay.showImage(file_name, self.ui.stretchAuxCB.isChecked())
+            self.aux_preview.load_image(newImage)
         else:
             logging.warning(f"Unsupported media for aux: {file_name}")
 
@@ -455,42 +470,8 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def blackout_both(self):
-        self.blackout_main()
-        self.blackout_aux()
-
-    @Slot()
-    def blackout_main(self):
-        self.ui.imagePreviewMain.clear()
-        self.ui.imagePreviewMain.setStyleSheet("background:black; color:black")
-        self.mainDisplay.blackout()
-
-    @Slot()
-    def blackout_aux(self):
-        self.ui.imagePreviewAuxiliary.clear()
-        self.ui.imagePreviewAuxiliary.setStyleSheet("background:black; color:black")
-        self.auxiliaryDisplay.blackout()
-
-    @Slot()
-    def pasteImageMain(self):
-        pixmap = QGuiApplication.clipboard().pixmap()
-        if pixmap != None:
-            if self.ui.stretchMainCB.isChecked():
-                self.ui.imagePreviewMain.setPixmap(pixmap.scaled(self.ui.imagePreviewMain.size()))
-            else:
-                self.ui.imagePreviewMain.setPixmap(pixmap.scaledToHeight(self.ui.imagePreviewMain.size().height()))
-
-            self.mainDisplay.pasteImage(self.ui.stretchMainCB.isChecked())
-
-    @Slot()
-    def pasteImageAuxiliary(self):
-        pixmap = QGuiApplication.clipboard().pixmap()
-        if pixmap != None:
-            if self.ui.stretchAuxCB.isChecked():
-                self.ui.imagePreviewAuxiliary.setPixmap(pixmap.scaled(self.ui.imagePreviewAuxiliary.size()))
-            else:
-                self.ui.imagePreviewAuxiliary.setPixmap(pixmap.scaledToHeight(self.ui.imagePreviewAuxiliary.size().height()))
-
-            self.auxiliaryDisplay.pasteImage(self.ui.stretchAuxCB.isChecked())
+        self.main_preview.blackout()
+        self.aux_preview.blackout()
 
     @Slot()
     def getImageFileMain(self):
@@ -514,12 +495,12 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def showScoresMain(self):
         self.mainDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
-        utilities.capture_window(self.mainDisplay, self.ui.imagePreviewMain)
+        utilities.capture_window(self.mainDisplay, self.main_preview)
 
     @Slot()
     def showScoresAuxiliary(self):
         self.auxiliaryDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
-        utilities.capture_window(self.auxiliaryDisplay, self.ui.imagePreviewAuxiliary)
+        utilities.capture_window(self.auxiliaryDisplay, self.aux_preview)
 
     @Slot()
     def showScoresBoth(self):
@@ -741,10 +722,16 @@ class ImproTronControlBoard(QWidget):
             if self.isAnimatedGIF(file_name) or self.media_features.isImage(file_name):
                 self.showSlideMain()
             elif self.isVideo(file_name):
-                self.slideShowTimer.setInterval(1000)
                 self.mediaPlayer.setSource(QUrl(file_name))
                 self.mediaPlayer.setVideoOutput(self.mainDisplay.showVideo())
                 self.mediaPlayer.setPosition(0)
+
+                # This is an attempt to handle a situation where a slide show has one video
+                # The media player loads the same video with the same length and so never triggers
+                # an event to change the duration for the slide show.
+                if self.last_media_duration > 0:
+                    self.slideShowTimer.setInterval(self.last_media_duration)
+
                 self.mediaPlayer.play()
 
             else:
@@ -783,8 +770,7 @@ class ImproTronControlBoard(QWidget):
         self.ui.slideListLW.setCurrentRow(self.currentSlide)
         self.mainDisplay.blackout() # removes and text colors
 
-        #self.slideShowTimer.setInterval(self._settings.get_slideshow_delay()*1000)
-        # A short delay to allow th timer to tigger and the the length to be drtmied by the media type to be shown
+        # A short delay to allow the timer to tigger and the the length to be determined by the media type to be shown
         self.slideShowTimer.setInterval(1000)
         self.slideShowTimer.start()
 
@@ -854,9 +840,9 @@ class ImproTronControlBoard(QWidget):
         image = self.slideLoaderThread.getSlide()
         if image:
             if self.ui.stretchMainCB.isChecked():
-                self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(image.scaled(self.ui.imagePreviewMain.size())))
+                self.main_preview.setPixmap(QPixmap.fromImage(image.scaled(self.main_preview.size())))
             else:
-                self.ui.imagePreviewMain.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.ui.imagePreviewMain.size().height())))
+                self.main_preview.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.main_preview.size().height())))
 
             self.mainDisplay.showSlide(image, self.ui.stretchMainCB.isChecked())
 
@@ -874,8 +860,6 @@ class ImproTronControlBoard(QWidget):
     def searchtoSlideShow(self):
         if self.ui.mediaSearchResultsLW.currentItem() != None:
             SlideWidget(QFileInfo(self.ui.mediaSearchResultsLW.currentItem().imagePath()), self.ui.slideListLW)
-
-
 
     @Slot()
     def soundMoveUp(self):
@@ -926,12 +910,18 @@ class ImproTronControlBoard(QWidget):
             if self.mediaPlayer.isPlaying():
                 self.mediaPlayer.stop()
 
+    def mediaplayer_handle_error(self, error, error_string):
+        # Log the error
+        logger.info(f"Media Player Error: {error} - {error_string}")
+
     # Slide Timer interval setting for videos: QMediaPlayer does not have the duration available on load
     # but does so when playing commences. If the slide timer is active this slot changes the interval to match
     @Slot(int)
     def updateDuration(self, duration):
+        self.last_media_duration = duration + 100 # Add a little buffer
         if self.slideShowTimer.isActive():
-            self.slideShowTimer.setInterval(duration + 100) # Add a little buffer
+            logger.info(f"Changing Video Length {duration}")
+            self.slideShowTimer.setInterval(self.last_media_duration) # Add a little buffer
 
     # Preferences and Hot Buttons configuration settings
     @Slot()
@@ -1054,6 +1044,7 @@ class ImproTronControlBoard(QWidget):
         if self.m_camera.error() != QCamera.NoError:
             QMessageBox.warning(self, "Camera Error",
                                 self.m_camera.errorString())
+            logger.warn(f"Camera Error {self.m_camera.errorString()}")
 
     @Slot(QListWidgetItem)
     def updateCameraDevice(self, camera):
@@ -1089,7 +1080,7 @@ class ImproTronControlBoard(QWidget):
     # Handle a request to click a button
     @Slot(str)
     def onTouchPortalButtonAction(self, buttonID):
-        button = self.findWidget(QPushButton, buttonID)
+        button = utilities.findWidget(self.ui, QPushButton, buttonID)
         if button != None:
             button.click()
         else:
@@ -1098,7 +1089,7 @@ class ImproTronControlBoard(QWidget):
     # Handle a request to increment or reset a QSpinbox like that used for scoring
     @Slot(str, int)
     def onTouchPortalSpinBoxAction(self, buttonID, changeValue):
-        spinBox = self.findWidget(QDoubleSpinBox, buttonID)
+        spinBox = utilities.findWidget(self.ui, QDoubleSpinBox, buttonID)
         if spinBox != None:
             if changeValue == 0:
                 spinBox.setValue(0.0)
@@ -1141,12 +1132,12 @@ class ImproTronControlBoard(QWidget):
             embed_url = f"https://www.youtube.com/embed/{video_id}?enablejsapi=1"
             if self.ui.videoOnMainRB.isChecked():
                 self.mainDisplay.load_youtube(embed_url)
-                self.ui.imagePreviewMain.clear()
-                self.ui.imagePreviewMain.setStyleSheet("background:black; color:black")
+                self.main_preview.clear()
+                self.main_preview.setStyleSheet("background:black; color:black")
             elif self.ui.videoOnAuxRB.isChecked():
                 self.auxiliaryDisplay.load_youtube(embed_url)
-                self.ui.imagePreviewAuxiliary.clear()
-                self.ui.imagePreviewAuxiliary.setStyleSheet("background:black; color:black")
+                self.aux_preview.clear()
+                self.aux_preview.setStyleSheet("background:black; color:black")
             else:
                 QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
 

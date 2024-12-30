@@ -56,7 +56,7 @@
       <item>
        <layout class="QVBoxLayout" name="teamLeftVL">
         <item>
-         <layout class="QHBoxLayout" name="leftTeamHL">
+         <layout class="QHBoxLayout" name="leftTeamNameHL">
           <item>
            <widget class="QLabel" name="teamLeftLbl">
             <property name="font">
@@ -136,7 +136,7 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="teamLeftHL">
+         <layout class="QHBoxLayout" name="imagePreviewMainHL">
           <item>
            <widget class="QLabel" name="imagePreviewMain">
             <property name="sizePolicy">
@@ -180,6 +180,9 @@ background-color: rgb(0, 0, 0);</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::NoTextInteraction</set>
             </property>
            </widget>
           </item>
@@ -303,6 +306,9 @@ background-color: rgb(0, 0, 0);</string>
               </property>
               <property name="text">
                <string>Fit to Width</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -503,6 +509,9 @@ font: 12pt &quot;Segoe UI&quot;;</string>
               <property name="text">
                <string>Fit to Width</string>
               </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
             <item>
@@ -538,7 +547,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
       <item>
        <layout class="QVBoxLayout" name="teamRightVL">
         <item>
-         <layout class="QHBoxLayout" name="teamRightHL">
+         <layout class="QHBoxLayout" name="rightTeamNameHL">
           <item>
            <widget class="QLabel" name="teamRightLbl">
             <property name="font">
@@ -618,7 +627,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="teamRightHL_2">
+         <layout class="QHBoxLayout" name="imagePreviewAuxiliaryHL">
           <item>
            <widget class="QLabel" name="imagePreviewAuxiliary">
             <property name="sizePolicy">
@@ -665,6 +674,9 @@ background-color: rgb(0, 0, 0);</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::NoTextInteraction</set>
             </property>
            </widget>
           </item>
@@ -2056,7 +2068,7 @@ background-color: rgb(255, 255, 0);</string>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <layout class="QHBoxLayout" name="gameToMonitorHL">
             <item>
              <widget class="QPushButton" name="loadBackgroundPB">
               <property name="font">
@@ -2318,6 +2330,42 @@ background-color: rgb(255, 255, 0);</string>
             </property>
             <property name="text">
              <string>Toggle Team</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="nextThingMainPB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Next Thing Main</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="nextThingAuxPB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Next Thing Aux</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="reverseThingzListPB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Reverse List</string>
             </property>
            </widget>
           </item>
@@ -2644,7 +2692,7 @@ background-color: rgb(255, 255, 0);</string>
                </font>
               </property>
               <property name="text">
-               <string>Game Image</string>
+               <string>Game Frame</string>
               </property>
              </widget>
             </item>

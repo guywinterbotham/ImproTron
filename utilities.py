@@ -27,3 +27,7 @@ def capture_window(window: QMainWindow, preview_label: QLabel):
         Qt.SmoothTransformation,
     )
     preview_label.setPixmap(scaled_pixmap)
+
+# Utility encapsulating the ui code to find widgets by name
+def findWidget(ui, type, widgetName):
+    return ui.findChild(type, widgetName)

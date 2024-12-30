@@ -12,6 +12,7 @@
         "utilities.py",
         "media_features.py",
         "thingz_feature.py",
-        "settings.py"
+        "settings.py",
+        "monitor_preview.py"
     ]
 }

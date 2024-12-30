@@ -68,6 +68,9 @@ class ThingzFeature(QObject):
         self.ui.showThingzMainPB.clicked.connect(self.show_thingz_list_main)
         self.ui.showThingzAuxiliaryPB.clicked.connect(self.show_thingz_list_auxiliary)
         self.ui.showThingzBothPB.clicked.connect(self.show_thingz_list_both)
+        self.ui.reverseThingzListPB.clicked.connect(self.reverse_thingz)
+        self.ui.nextThingMainPB.clicked.connect(self.show_next_thing_main)
+        self.ui.nextThingAuxPB.clicked.connect(self.show_next_thing_aux)
     # End Connections
 
     # Things Tab Management
@@ -89,6 +92,52 @@ class ThingzFeature(QObject):
             if display_type in ("auxiliary", "both"):
                 self.auxiliary_display.show_text(list_text, font = thing_font)
                 utilities.capture_window(self.auxiliary_display, self.ui.imagePreviewAuxiliary)
+
+    @Slot()
+    def reverse_thingz(self):
+        # Extract all QListWidgetItem objects
+        items = [self.ui.thingzListLW.takeItem(0) for _ in range(self.ui.thingzListLW.count())]
+
+        # Reverse the list of items
+        items.reverse()
+
+        # Add them back to the QListWidget
+        for item in items:
+            self.ui.thingzListLW.addItem(item)
+
+    def next_thing(self):
+        # Get the currently selected items
+        selected_items = self.ui.thingzListLW.selectedItems()
+
+        # If no item is selected, start from the top
+        if not selected_items:
+            next_index = 0
+        else:
+            # Get the index of the currently selected item
+            current_item = selected_items[0]
+            current_index = self.ui.thingzListLW.row(current_item)
+
+            # Calculate the next index (wrap around if at the end)
+            next_index = (current_index + 1) % self.ui.thingzListLW.count()
+
+        # Select the next item
+        self.ui.thingzListLW.setCurrentRow(next_index)
+        next_item = self.ui.thingzListLW.item(next_index)
+
+        # Trigger the click event
+        if next_item is not None:
+            self.ui.thingzListLW.itemPressed.emit(next_item)
+            self.show_selected_thing(next_item)
+
+    @Slot()
+    def show_next_thing_main(self):
+        self.next_thing()
+        self.show_thing("main")
+
+    @Slot()
+    def show_next_thing_aux(self):
+        self.next_thing()
+        self.show_thing("auxiliary")
 
     @Slot()
     def show_thingz_list_main(self):
@@ -148,8 +197,7 @@ class ThingzFeature(QObject):
         current_thing.setForeground(utilities.team_font(color))
         current_thing.toggle_team()
 
-
-    @Slot(ThingzItem )
+    @Slot(ThingzItem)
     def show_selected_thing(self, thing):
         # Display selected item's title and text in the editor
         self.ui.thingFocusLBL.setText(thing.text())
