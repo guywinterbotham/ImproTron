@@ -1,9 +1,9 @@
 [app]
-# Additional Files to copy to the distribution folder before packaing
-# ImproTronControlPanel.ui
-# Documentation/ImproTron User Guide.pdf
-# Touch Portal/ImproPortal.tpp
 
+# additional files to copy to the distribution folder before packaing
+# improtroncontrolpanel.ui
+# documentation/improtron user guide.pdf
+# touch portal/improportal.tpp
 # title of your application
 title = ImproTron
 
@@ -12,7 +12,7 @@ title = ImproTron
 project_dir = .
 
 # source file path
-input_file = .\main.py
+input_file = C:\Users\guywi\OneDrive\Documents\git\ImproTron\main.py
 
 # directory where exec is stored
 exec_directory = .
@@ -26,7 +26,7 @@ icon = .\yesand.ico
 [python]
 
 # python path
-python_path = .\venv\Scripts\python.exe
+python_path = C:\Users\guywi\OneDrive\Documents\git\ImproTron\venv\Scripts\python.exe
 
 # python packages to install
 packages = Nuitka==2.5.1
@@ -44,7 +44,7 @@ qml_files =
 excluded_qml_plugins = 
 
 # qt modules used. comma separated
-modules = Quick,WebEngineCore,Core,QmlMeta,QmlWorkerScript,UiTools,MultimediaWidgets,Widgets,Gui,Multimedia,Network,WebChannel,Positioning,Qml,OpenGLWidgets,OpenGL,QmlModels
+modules = Core,OpenGL,Qml,MultimediaWidgets,Quick,Multimedia,Widgets,QmlMeta,OpenGLWidgets,Positioning,UiTools,Network,QmlWorkerScript,Gui,QmlModels,WebEngineCore,WebChannel
 
 # qt plugins used by the application
 plugins = networkinformation,iconengines,platforms,multimedia,platformthemes,generic,styles,tls,platforminputcontexts,imageformats
@@ -71,10 +71,10 @@ macos.permissions =
 mode = standalone
 
 # (str) specify any extra nuitka arguments
-# For a fresh dev environment, a language pack is needed for the Web Engine. You can either
+# for a fresh dev environment, a language pack is needed for the web engine. you can either
 # remove the --noinclude-qt-translations for the first build and then remove everything else, or
-# copy the single file after the build. It will remain for subsequent builds.
-# .\ImproTron.dist\PySide6\translations\qtwebengine_locales\en-US.pak
+# copy the single file after the build. it will remain for subsequent builds.
+# .\improtron.dist\pyside6\translations\qtwebengine_locales\en-us.pak
 extra_args = --quiet --noinclude-qt-translations
 
 [buildozer]

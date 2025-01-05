@@ -358,6 +358,8 @@ class ImproTronControlBoard(QWidget):
 
     def shutdown(self):
         logging.info("ImproTron shutting down")
+        self.mainDisplay.shutdown()
+        self.auxiliaryDisplay.shutdown()
         self._settings.save()
         self.touchPortalClient.disconnectTouchPortal()
         self.thread.quit()

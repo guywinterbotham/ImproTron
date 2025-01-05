@@ -1,7 +1,7 @@
 # The display is a container for all the possible features that can be displayed
 import logging
 
-from PySide6.QtWidgets import QPushButton, QCheckBox, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow, QWidget
+from PySide6.QtWidgets import QPushButton, QCheckBox, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow, QWidget, QMessageBox
 from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QFont, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect
@@ -19,6 +19,7 @@ class ImproTron(QMainWindow):
         super(ImproTron, self).__init__()
 
         self._screen_number = 0
+        self.shutting_down = False # used to flag a controlled shutdown to be able to filter a user accidentally clsong the window
         self._display_name = name
 
         self.ui = Ui_ImproTron()
@@ -52,7 +53,7 @@ class ImproTron(QMainWindow):
         self._timer.reset(time, redTime)
 
     def shutdown(self):
-        self.close()
+        self.shutting_down = True
 
     # Functions for the Countdown Timer
     def timerVisible(self, visible = False):
@@ -406,7 +407,11 @@ class ImproTron(QMainWindow):
         self.setWindowFlags(flags)
         self.showNormal()
 
-    # End Class ImproTron
+    def closeEvent(self, event):
+        # Override closeEvent to prevent accidental closure
+        if not self.shutting_down:
+            event.ignore()
+# End Class ImproTron
 
 class HotButtonHandler(QObject):
     mainMediaShow = Signal(str)    # Custom signal that decouples the media display from controlboard
