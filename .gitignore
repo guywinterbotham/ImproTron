@@ -4,7 +4,7 @@ ImproTron.dist
 venv
 __pycache__
 .ropeproject
-*.pyproject.user
+*.pyproject.user*
 *~
 *.autosave
 *.a
