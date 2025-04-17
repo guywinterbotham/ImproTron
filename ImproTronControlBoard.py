@@ -25,6 +25,7 @@ from text_feature import TextFeature
 from media_features import MediaFeatures
 from thingz_feature import ThingzFeature
 from monitor_preview import MonitorPreview
+from lighting_feature import LightingFeature
 import utilities
 from TouchPortal import TouchPortal
 import ImproTronIcons
@@ -105,6 +106,7 @@ class ImproTronControlBoard(QWidget):
         self.thingz_feature = ThingzFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel, self.mediaPlayer)
         self.media_features.reset_media_view(self._settings.get_media_directory())
+        self.lighting_feature = LightingFeature(self.ui, self._settings, "127.0.0.1", 7700)
 
         # Custom Signals allows the media feature to leave screen control encapulated in the control panel
         self.media_features.mainMediaShow.connect(self.showMediaOnMain)
