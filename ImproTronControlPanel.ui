@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1056</width>
-    <height>753</height>
+    <height>761</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -68,7 +68,7 @@
              <string>Left Team:</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -96,7 +96,7 @@
              </font>
             </property>
             <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::PlusMinus</enum>
+             <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
             </property>
             <property name="decimals">
              <number>1</number>
@@ -173,16 +173,16 @@
 background-color: rgb(0, 0, 0);</string>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::Shape::Box</enum>
             </property>
             <property name="text">
              <string/>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
             <property name="textInteractionFlags">
-             <set>Qt::NoTextInteraction</set>
+             <set>Qt::TextInteractionFlag::NoTextInteraction</set>
             </property>
            </widget>
           </item>
@@ -293,7 +293,7 @@ background-color: rgb(0, 0, 0);</string>
                <string>Main Preview</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -435,7 +435,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                  <item>
                   <widget class="QPushButton" name="startTimerPB">
                    <property name="autoFillBackground">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="text">
                     <string/>
@@ -495,7 +495,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                <string>Aux Preview</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -559,7 +559,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
              <string>Right Team:</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -587,7 +587,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
              </font>
             </property>
             <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::PlusMinus</enum>
+             <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
             </property>
             <property name="decimals">
              <number>1</number>
@@ -667,16 +667,16 @@ font: 12pt &quot;Segoe UI&quot;;</string>
 background-color: rgb(0, 0, 0);</string>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::Shape::Box</enum>
             </property>
             <property name="text">
              <string/>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
             <property name="textInteractionFlags">
-             <set>Qt::NoTextInteraction</set>
+             <set>Qt::TextInteractionFlag::NoTextInteraction</set>
             </property>
            </widget>
           </item>
@@ -822,7 +822,7 @@ background-color: rgb(0, 0, 0);</string>
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>8</number>
+       <number>2</number>
       </property>
       <property name="iconSize">
        <size>
@@ -849,7 +849,7 @@ background-color: rgb(0, 0, 0);</string>
           <item>
            <layout class="QHBoxLayout" name="leftFontHLayout">
             <property name="sizeConstraint">
-             <enum>QLayout::SetDefaultConstraint</enum>
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
             </property>
             <item>
              <widget class="QLabel" name="leftFontLbl">
@@ -857,7 +857,7 @@ background-color: rgb(0, 0, 0);</string>
                <string>Font:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -876,7 +876,7 @@ background-color: rgb(0, 0, 0);</string>
                <string>Size:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -983,10 +983,10 @@ background-color: rgb(0, 0, 0);</string>
              </font>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
             </property>
             <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
             </property>
             <property name="acceptRichText">
              <bool>false</bool>
@@ -1041,15 +1041,15 @@ background-color: rgb(0, 0, 0);</string>
         <item>
          <layout class="QVBoxLayout" name="manageTextLayout">
           <property name="sizeConstraint">
-           <enum>QLayout::SetMinimumSize</enum>
+           <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
           </property>
           <item>
            <spacer name="loadTextSP">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
+             <enum>QSizePolicy::Policy::Expanding</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1070,7 +1070,7 @@ background-color: rgb(0, 0, 0);</string>
              <string>Load Text</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -1115,7 +1115,7 @@ background-color: rgb(0, 0, 0);</string>
              <string>Clear Text</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -1161,7 +1161,7 @@ background-color: rgb(0, 0, 0);</string>
                <string>Font:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -1180,7 +1180,7 @@ background-color: rgb(0, 0, 0);</string>
                <string>Size:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -1287,10 +1287,10 @@ background-color: rgb(0, 0, 0);</string>
              </font>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
             </property>
             <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
             </property>
             <property name="acceptRichText">
              <bool>false</bool>
@@ -1405,7 +1405,7 @@ background-color: rgb(0, 0, 0);</string>
              <number>0</number>
             </property>
             <property name="sizeConstraint">
-             <enum>QLayout::SetDefaultConstraint</enum>
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
             </property>
             <property name="leftMargin">
              <number>0</number>
@@ -1437,10 +1437,10 @@ background-color: rgb(0, 0, 0);</string>
             <item>
              <spacer name="searchMediaHS">
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Minimum</enum>
+               <enum>QSizePolicy::Policy::Minimum</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -1482,7 +1482,7 @@ background-color: rgb(0, 0, 0);</string>
                <number>16</number>
               </property>
               <property name="textInteractionFlags">
-               <set>Qt::NoTextInteraction</set>
+               <set>Qt::TextInteractionFlag::NoTextInteraction</set>
               </property>
              </widget>
             </item>
@@ -1509,7 +1509,7 @@ background-color: rgb(0, 0, 0);</string>
                <string/>
               </property>
               <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
               <property name="margin">
                <number>0</number>
@@ -1518,7 +1518,7 @@ background-color: rgb(0, 0, 0);</string>
                <number>8</number>
               </property>
               <property name="textInteractionFlags">
-               <set>Qt::NoTextInteraction</set>
+               <set>Qt::TextInteractionFlag::NoTextInteraction</set>
               </property>
              </widget>
             </item>
@@ -1574,7 +1574,7 @@ background-color: rgb(0, 0, 0);</string>
                <string>Image:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignHCenter|Qt::AlignTop</set>
+               <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop</set>
               </property>
              </widget>
             </item>
@@ -1590,7 +1590,7 @@ background-color: rgb(0, 0, 0);</string>
                <string/>
               </property>
               <property name="textInteractionFlags">
-               <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+               <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
               </property>
              </widget>
             </item>
@@ -1611,7 +1611,7 @@ background-color: rgb(0, 0, 0);</string>
              </size>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::Shape::Box</enum>
             </property>
             <property name="text">
              <string/>
@@ -1673,7 +1673,7 @@ background-color: rgb(0, 0, 0);</string>
           <item>
            <spacer name="imageSearchVS">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1754,7 +1754,7 @@ background-color: rgb(0, 0, 0);</string>
              <bool>true</bool>
             </property>
             <property name="textInteractionFlags">
-             <set>Qt::NoTextInteraction</set>
+             <set>Qt::TextInteractionFlag::NoTextInteraction</set>
             </property>
            </widget>
           </item>
@@ -1765,7 +1765,7 @@ background-color: rgb(0, 0, 0);</string>
           <item>
            <spacer name="gameArrowBottomSPR">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1832,7 +1832,7 @@ background-color: rgb(0, 0, 0);</string>
           <item>
            <spacer name="gameArrowTopSPR">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1884,7 +1884,7 @@ background-color: rgb(0, 0, 0);</string>
           <item>
            <layout class="QHBoxLayout" name="gameFontHL">
             <property name="sizeConstraint">
-             <enum>QLayout::SetDefaultConstraint</enum>
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
             </property>
             <item>
              <widget class="QLabel" name="gameFontLBL">
@@ -1892,7 +1892,7 @@ background-color: rgb(0, 0, 0);</string>
                <string>Font:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -1946,7 +1946,7 @@ background-color: rgb(0, 0, 0);</string>
 background-color: rgb(0, 0, 0);</string>
               </property>
               <property name="frameShape">
-               <enum>QFrame::Box</enum>
+               <enum>QFrame::Shape::Box</enum>
               </property>
               <property name="text">
                <string/>
@@ -1965,7 +1965,7 @@ background-color: rgb(0, 0, 0);</string>
                <number>10</number>
               </property>
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
              </widget>
             </item>
@@ -1973,6 +1973,18 @@ background-color: rgb(0, 0, 0);</string>
              <layout class="QHBoxLayout" name="gameWhammyHL">
               <item>
                <widget class="QLabel" name="secPerGameWhamLBL">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>120</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>12</pointsize>
@@ -1986,10 +1998,16 @@ background-color: rgb(0, 0, 0);</string>
               <item>
                <widget class="QComboBox" name="secsPerGameWhamCB">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>75</width>
+                  <height>0</height>
+                 </size>
                 </property>
                 <property name="maximumSize">
                  <size>
@@ -2024,7 +2042,7 @@ background-color: rgb(0, 0, 0);</string>
                  <string>Whams</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                 <property name="margin">
                  <number>4</number>
@@ -2122,7 +2140,7 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <spacer name="gamePreviewSPR">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -2152,7 +2170,7 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <layout class="QHBoxLayout" name="thingFontHL">
             <property name="sizeConstraint">
-             <enum>QLayout::SetDefaultConstraint</enum>
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
             </property>
             <item>
              <widget class="QLabel" name="thingFontLBL">
@@ -2166,7 +2184,7 @@ background-color: rgb(255, 255, 0);</string>
                <string>Font:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
               <property name="margin">
                <number>6</number>
@@ -2194,7 +2212,7 @@ background-color: rgb(255, 255, 0);</string>
                <string>Size:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -2372,10 +2390,10 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <spacer name="thingManagerSP">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Maximum</enum>
+             <enum>QSizePolicy::Policy::Maximum</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -2515,13 +2533,13 @@ background-color: rgb(255, 255, 0);</string>
              </font>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::Shape::Box</enum>
             </property>
             <property name="text">
              <string/>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -2613,7 +2631,7 @@ background-color: rgb(255, 255, 0);</string>
         <item>
          <layout class="QVBoxLayout" name="ssFileTreeVL">
           <property name="sizeConstraint">
-           <enum>QLayout::SetDefaultConstraint</enum>
+           <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
           </property>
           <item>
            <widget class="QTreeView" name="slideShowFilesTreeView">
@@ -2652,13 +2670,13 @@ background-color: rgb(255, 255, 0);</string>
                </size>
               </property>
               <property name="frameShape">
-               <enum>QFrame::Box</enum>
+               <enum>QFrame::Shape::Box</enum>
               </property>
               <property name="text">
                <string/>
               </property>
               <property name="textInteractionFlags">
-               <set>Qt::NoTextInteraction</set>
+               <set>Qt::TextInteractionFlag::NoTextInteraction</set>
               </property>
              </widget>
             </item>
@@ -2702,6 +2720,11 @@ background-color: rgb(255, 255, 0);</string>
            <layout class="QHBoxLayout" name="slideShowPlayerHL">
             <item>
              <widget class="QLabel" name="slideShowSecondLBL">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
               <property name="text">
                <string>Seconds</string>
               </property>
@@ -2709,8 +2732,13 @@ background-color: rgb(255, 255, 0);</string>
             </item>
             <item>
              <widget class="QSpinBox" name="slideShowSecondSB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
               <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::PlusMinus</enum>
+               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
               </property>
               <property name="minimum">
                <number>1</number>
@@ -2776,8 +2804,23 @@ background-color: rgb(255, 255, 0);</string>
           </item>
           <item>
            <layout class="QHBoxLayout" name="whammyHL">
+            <property name="spacing">
+             <number>4</number>
+            </property>
             <item>
              <widget class="QLabel" name="secPerWhamLBL">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>120</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -2791,10 +2834,16 @@ background-color: rgb(255, 255, 0);</string>
             <item>
              <widget class="QComboBox" name="secsPerWhamCB">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>75</width>
+                <height>0</height>
+               </size>
               </property>
               <property name="maximumSize">
                <size>
@@ -2820,6 +2869,12 @@ background-color: rgb(255, 255, 0);</string>
             </item>
             <item>
              <widget class="QLabel" name="whamsLBL">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -2829,7 +2884,7 @@ background-color: rgb(255, 255, 0);</string>
                <string>Whams</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
               <property name="margin">
                <number>4</number>
@@ -2838,6 +2893,12 @@ background-color: rgb(255, 255, 0);</string>
             </item>
             <item>
              <widget class="QSpinBox" name="whammysSB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -2850,6 +2911,12 @@ background-color: rgb(255, 255, 0);</string>
             </item>
             <item>
              <widget class="QPushButton" name="whammyPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
                 <family>Segoe UI</family>
@@ -3095,7 +3162,7 @@ background-color: rgb(255, 255, 0);</string>
              <number>0</number>
             </property>
             <property name="sizeConstraint">
-             <enum>QLayout::SetDefaultConstraint</enum>
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
             </property>
             <property name="leftMargin">
              <number>0</number>
@@ -3127,10 +3194,10 @@ background-color: rgb(255, 255, 0);</string>
             <item>
              <spacer name="soundSpacerHS">
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Minimum</enum>
+               <enum>QSizePolicy::Policy::Minimum</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -3172,7 +3239,7 @@ background-color: rgb(255, 255, 0);</string>
                <number>16</number>
               </property>
               <property name="textInteractionFlags">
-               <set>Qt::NoTextInteraction</set>
+               <set>Qt::TextInteractionFlag::NoTextInteraction</set>
               </property>
              </widget>
             </item>
@@ -3199,7 +3266,7 @@ background-color: rgb(255, 255, 0);</string>
                <string/>
               </property>
               <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
               <property name="margin">
                <number>0</number>
@@ -3208,7 +3275,7 @@ background-color: rgb(255, 255, 0);</string>
                <number>8</number>
               </property>
               <property name="textInteractionFlags">
-               <set>Qt::NoTextInteraction</set>
+               <set>Qt::TextInteractionFlag::NoTextInteraction</set>
               </property>
              </widget>
             </item>
@@ -3246,10 +3313,10 @@ background-color: rgb(255, 255, 0);</string>
              <number>50</number>
             </property>
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::TickPosition::TicksAbove</enum>
             </property>
             <property name="tickInterval">
              <number>10</number>
@@ -3259,7 +3326,7 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <layout class="QHBoxLayout" name="soundPlayHL">
             <property name="sizeConstraint">
-             <enum>QLayout::SetDefaultConstraint</enum>
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
             </property>
             <property name="rightMargin">
              <number>0</number>
@@ -3310,7 +3377,7 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <spacer name="soundListEditUpperSP">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -3337,7 +3404,7 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <spacer name="soundListEditMidSP">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -3364,7 +3431,7 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <spacer name="soundListEditLowSP">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -3409,7 +3476,7 @@ background-color: rgb(255, 255, 0);</string>
                <string>Music Queue:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignHCenter|Qt::AlignTop</set>
+               <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop</set>
               </property>
              </widget>
             </item>
@@ -3419,7 +3486,7 @@ background-color: rgb(255, 255, 0);</string>
                <string/>
               </property>
               <property name="textInteractionFlags">
-               <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+               <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
               </property>
              </widget>
             </item>
@@ -3483,7 +3550,7 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <spacer name="soundListVS">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -3508,7 +3575,7 @@ background-color: rgb(255, 255, 0);</string>
            <number>6</number>
           </property>
           <property name="sizeConstraint">
-           <enum>QLayout::SetMinimumSize</enum>
+           <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
           </property>
           <property name="bottomMargin">
            <number>0</number>
@@ -3585,13 +3652,13 @@ background-color: rgb(255, 255, 0);</string>
              <number>50</number>
             </property>
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="invertedAppearance">
              <bool>false</bool>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::TickPosition::TicksAbove</enum>
             </property>
             <property name="tickInterval">
              <number>10</number>
@@ -4539,59 +4606,6 @@ background-color: rgb(255, 255, 0);</string>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="lightingTab">
-       <attribute name="title">
-        <string>Page</string>
-       </attribute>
-       <widget class="QLineEdit" name="oscMessageLE">
-        <property name="geometry">
-         <rect>
-          <x>390</x>
-          <y>50</y>
-          <width>113</width>
-          <height>22</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-       </widget>
-       <widget class="QSpinBox" name="oscValueSP">
-        <property name="geometry">
-         <rect>
-          <x>540</x>
-          <y>50</y>
-          <width>42</width>
-          <height>22</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="oscMessagePB">
-        <property name="geometry">
-         <rect>
-          <x>630</x>
-          <y>50</y>
-          <width>101</width>
-          <height>24</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>PushButton</string>
-        </property>
-       </widget>
-      </widget>
       <widget class="QWidget" name="preferencesTab">
        <property name="minimumSize">
         <size>
@@ -4650,7 +4664,7 @@ background-color: rgb(255, 255, 0);</string>
                 <bool>true</bool>
                </property>
                <property name="textInteractionFlags">
-                <set>Qt::NoTextInteraction</set>
+                <set>Qt::TextInteractionFlag::NoTextInteraction</set>
                </property>
               </widget>
              </item>
@@ -4690,7 +4704,7 @@ background-color: rgb(255, 255, 0);</string>
                 <bool>true</bool>
                </property>
                <property name="textInteractionFlags">
-                <set>Qt::NoTextInteraction</set>
+                <set>Qt::TextInteractionFlag::NoTextInteraction</set>
                </property>
               </widget>
              </item>
@@ -4749,7 +4763,7 @@ background-color: rgb(255, 255, 0);</string>
                 <string>Title</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -5144,7 +5158,7 @@ background-color: rgb(255, 255, 0);</string>
                </property>
               </widget>
              </item>
-             <item alignment="Qt::AlignLeft">
+             <item alignment="Qt::AlignmentFlag::AlignLeft">
               <widget class="QLineEdit" name="titleHotButton10">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -5278,7 +5292,7 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <spacer name="buttonVS">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>

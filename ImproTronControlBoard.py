@@ -2,22 +2,17 @@ import json
 import logging
 
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import (QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QImage, QStandardItemModel,
-                                QStandardItem, QFont, QFontMetrics)
+from PySide6.QtGui import QImageReader, QPixmap, QMovie
 from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
-from PySide6.QtCore import (QObject, QStandardPaths, Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir,
-                                QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator,
-                                QPoint, QRegularExpression, QSize, QModelIndex, QThread)
-from PySide6.QtMultimedia import (QAudioInput, QCamera, QCameraDevice,
-                                    QImageCapture, QMediaCaptureSession,
-                                    QMediaDevices, QMediaMetaData,
-                                    QMediaRecorder, QMediaPlayer, QAudioOutput)
+from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir,
+                                QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread)
+from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession, QMediaDevices, QMediaPlayer, QAudioOutput)
 from PySide6.QtNetwork import QNetworkAccessManager
 
 from PySide6.QtMultimediaWidgets import QVideoWidget
 
-from Settings import Settings
+from settings import Settings
 from Improtronics import ImproTron, SlideWidget, HotButtonHandler, SlideLoaderThread
 
 from games_feature import GamesFeature
@@ -25,10 +20,9 @@ from text_feature import TextFeature
 from media_features import MediaFeatures
 from thingz_feature import ThingzFeature
 from monitor_preview import MonitorPreview
-from lighting_feature import LightingFeature
+# from lighting_feature import LightingFeature # Future DMX integration
 import utilities
 from TouchPortal import TouchPortal
-import ImproTronIcons
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +100,7 @@ class ImproTronControlBoard(QWidget):
         self.thingz_feature = ThingzFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel, self.mediaPlayer)
         self.media_features.reset_media_view(self._settings.get_media_directory())
-        self.lighting_feature = LightingFeature(self.ui, self._settings, "127.0.0.1", 7700)
+        #self.lighting_feature = LightingFeature(self.ui, self._settings, "127.0.0.1", 7700) # Future DMX integration
 
         # Custom Signals allows the media feature to leave screen control encapulated in the control panel
         self.media_features.mainMediaShow.connect(self.showMediaOnMain)
@@ -661,6 +655,7 @@ class ImproTronControlBoard(QWidget):
             # Write the JSON string to a file
             with open(file_name[0], 'w', encoding='utf8') as json_file:
                 json.dump(slide_data, json_file, indent=2)
+                json_file.close()
 
     @Slot()
     def clearSlideShow(self):
@@ -965,6 +960,7 @@ class ImproTronControlBoard(QWidget):
             # Write the JSON string to a file. Since Button names could have special characters, encode
             with open(file_name[0], 'w', encoding='utf8') as json_file:
                 json.dump(button_data, json_file, indent=2)
+                json_file.close()
 
     @Slot()
     def selectPromosDirectory(self):

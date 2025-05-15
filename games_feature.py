@@ -133,7 +133,6 @@ class GamesFeature(QObject):
                     list_item = QListWidgetItem(item.child(row).text())
                     self.ui.gamesLW.addItem(list_item)
             elif item.parent():  # If the item has a parent, it is a name
-                description = item.data(Qt.UserRole)
                 list_item = QListWidgetItem(item.text())
                 self.ui.gamesLW.addItem(list_item)
 

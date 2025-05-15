@@ -27,6 +27,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
 sys.excepthook = handle_exception
 
+# The determination of the location duplicates Settings. For a fresh install the first log file may not be in the config directory
 def setup_logging():
     log_dir_list = QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)
     log_dir = log_dir_list[0] + "/ImproTron" if log_dir_list else os.path.join(os.getcwd(), "ImproTron")

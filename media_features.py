@@ -7,7 +7,6 @@ from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QStyle, QP
 from PySide6.QtMultimedia import QMediaPlayer
 from Improtronics import SoundFX, SlideWidget
 from MediaFileDatabase import MediaFileDatabase
-import utilities
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +140,7 @@ class MediaFeatures(QObject):
             for media in foundMedia:
                 SlideWidget(QFileInfo(media), self.ui.mediaSearchResultsLW)
         else:
-            reply = QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
+            QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
 
     @Slot()
     def set_media_library(self):
@@ -353,14 +352,16 @@ class MediaFeatures(QObject):
             palletteFileName = palletteFileInfo.completeBaseName()
             self.palletteSelect.addItem(palletteFileName, palletteFileInfo)
 
-        self.load_sound_effects(0)
+        if self.palletteSelect.count() > 0:
+            self.load_sound_effects(0)
 
     @Slot(int)
     def load_sound_effects(self, index):
         # During initialization, a negative index is sent. Use that as a trigger
         # to diable all buttons in the case no files exist
+
         buttonNumber = 0
-        if index >= 0 :
+        if self.palletteSelect.count() > 0 and index >= 0 :
             palletteFileInfo = self.palletteSelect.itemData(index)
             with open(palletteFileInfo.absoluteFilePath(), 'r') as json_file:
                 soundButton_data = json.load(json_file)

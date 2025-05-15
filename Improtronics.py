@@ -1,9 +1,9 @@
 # The display is a container for all the possible features that can be displayed
 import logging
 
-from PySide6.QtWidgets import QPushButton, QCheckBox, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow, QWidget, QMessageBox
+from PySide6.QtWidgets import QPushButton, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow
 from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent
-from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QFont, QColor, QPainter
+from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect
 from PySide6.QtWebEngineCore import QWebEngineSettings
 
