@@ -1,7 +1,8 @@
 import logging
+import struct
 
 from PySide6.QtNetwork import QUdpSocket, QHostAddress
-from PySide6.QtCore import QByteArray, QObject, Slot
+from PySide6.QtCore import QByteArray, QObject
 
 logger = logging.getLogger(__name__)
 
