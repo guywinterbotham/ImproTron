@@ -49,8 +49,17 @@ class Settings:
         try:
             with open(config_path, 'r', encoding='utf8') as json_file:
                 self._settings = json.load(json_file)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            logger.warning(f"Failed to load configuration: {e}. Using defaults.")
+        except FileNotFoundError:
+            logger.warning(f"Configuration file not found: {config_path}. Using defaults.")
+            self._settings = self.DEFAULTS.copy()
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to decode configuration file: {config_path} - {e}. Using defaults.")
+            self._settings = self.DEFAULTS.copy()
+        except PermissionError as e:
+            logger.error(f"Permission denied while trying to load configuration file: {config_path} - {e}. Using defaults.")
+            self._settings = self.DEFAULTS.copy()
+        except OSError as e:
+            logger.error(f"OS error while trying to load configuration file: {config_path} - {e}. Using defaults.")
             self._settings = self.DEFAULTS.copy()
 
     def save(self):
