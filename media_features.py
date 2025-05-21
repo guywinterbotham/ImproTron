@@ -170,7 +170,14 @@ class MediaFeatures(QObject):
             reader = QImageReader(slide.imagePath())
             reader.setAutoTransform(True)
             newImage = reader.read()
-            if newImage:
+            if newImage.isNull():
+                logger.warning(f"Media search preview: Failed to read image {slide.imagePath()}. QImageReader error: {reader.errorString()}")
+                self.ui.mediaSearchPreviewLBL.clear() # Clear the preview label
+                self.ui.mediaFileNameLBL.clear() # Clear the filename label
+                return
+            # This 'if newImage:' is now redundant due to the isNull check above, but kept for safety / original structure.
+            # Realistically, if newImage is Null, the return above would have exited.
+            if newImage: 
                 if self.ui.stretchMainCB.isChecked():
                     self.ui.mediaSearchPreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.mediaSearchPreviewLBL.size())))
                 else:
