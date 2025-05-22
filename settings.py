@@ -76,7 +76,7 @@ class Settings:
         return self._get('configDir')
 
     def set_left_team_color(self, color):
-        self._set('leftTeamColor', color.name())
+        self._set('lefolor', color.name())
 
     def get_left_team_color(self):
         return QColor(self._get('leftTeamColor'))
