@@ -2,17 +2,13 @@ import json
 import logging
 
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import (QImageReader, QPixmap, QMovie, QColor, QGuiApplication, QImage, QStandardItemModel,
-                                QStandardItem, QFont, QFontMetrics)
+from PySide6.QtGui import QImageReader, QPixmap, QMovie
 from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
-from PySide6.QtCore import (QObject, QStandardPaths, Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir,
-                                QFile, QIODevice, QEvent, QUrl, QDirIterator, QRandomGenerator,
-                                QPoint, QRegularExpression, QSize, QModelIndex, QThread)
-from PySide6.QtMultimedia import (QAudioInput, QCamera, QCameraDevice,
-                                    QImageCapture, QMediaCaptureSession,
-                                    QMediaDevices, QMediaMetaData,
-                                    QMediaRecorder, QMediaPlayer, QAudioOutput)
+from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QFile, QIODevice,
+                                QEvent, QUrl, QRandomGenerator, QSize, QThread)
+from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession,
+                                    QMediaDevices, QMediaPlayer, QAudioOutput)
 from PySide6.QtNetwork import QNetworkAccessManager
 
 from PySide6.QtMultimediaWidgets import QVideoWidget
@@ -27,7 +23,6 @@ from thingz_feature import ThingzFeature
 from monitor_preview import MonitorPreview
 import utilities
 from TouchPortal import TouchPortal
-import ImproTronIcons
 
 logger = logging.getLogger(__name__)
 
@@ -981,7 +976,6 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def about(self):
         file = QFile(":/icons/about")
-
         if file.exists():
             if not file.open(QIODevice.ReadOnly | QIODevice.Text):
                 return
@@ -1143,7 +1137,7 @@ class ImproTronControlBoard(QWidget):
             else:
                 QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
 
-        except Exception as e:
+        except Exception:
             # Show an error message
             logging.warn(f"Unable to load video: {video_url}")
 

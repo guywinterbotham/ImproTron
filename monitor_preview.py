@@ -2,9 +2,9 @@
 import logging
 
 from PySide6.QtWidgets import QLabel
-from PySide6.QtCore import QUrl, Qt, QMimeData, QEventLoop, QByteArray, QBuffer, Slot
-from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent, QImage, QGuiApplication
-from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
+from PySide6.QtCore import QUrl, Qt, QEventLoop, QByteArray, QBuffer, Slot
+from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent, QGuiApplication
+from PySide6.QtNetwork import QNetworkRequest, QNetworkReply
 
 logger = logging.getLogger(__name__)
 

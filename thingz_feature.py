@@ -1,16 +1,84 @@
 # thingz_feature
 # This Python file uses the following encoding: utf-8
-from PySide6.QtCore import QObject, Slot, Qt
-from PySide6.QtWidgets import QApplication, QStyle, QListWidgetItem, QMessageBox
+from PySide6.QtCore import QObject, Slot, Qt, QSize
+from PySide6.QtWidgets import QApplication, QStyle, QListWidgetItem, QMessageBox, QStyledItemDelegate, QLineEdit
 import utilities
+
+# Controls the color selection then an item is selected so as to get better contrast
+class ThingzItemDelegate(QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        list_item = index.model().parent().item(index.row())
+        is_selected = option.state & QStyle.State_Selected
+        has_focus = option.state & QStyle.State_HasFocus
+
+        # Background
+        bg_color = list_item.team_color()
+        font = list_item.font()
+
+        if is_selected:
+            # Apply a custom selection color
+            bg_color = bg_color.darker(150) if has_focus else bg_color.darker(120)
+            font.setBold(True)
+
+        painter.save()
+        painter.setFont(font)
+        painter.fillRect(option.rect, bg_color)
+
+        # Text color
+        painter.setPen(utilities.team_font(bg_color))
+
+        # Text
+        text = list_item.text()
+        painter.drawText(option.rect.adjusted(5, 0, -5, 0),
+                         Qt.AlignVCenter | Qt.AlignLeft, text)
+        painter.restore()
+
+    def sizeHint(self, option, index):
+        return QSize(100, 30)
+
+    def createEditor(self, parent, option, index):
+        editor = QLineEdit(parent)
+
+        item = index.model().parent().item(index.row())
+        if item:
+            editor.setFont(item.font())
+
+            bg_color = item.team_color()
+            fg_color = utilities.team_font(bg_color)
+
+            # Convert colors to hex strings for CSS
+            bg_hex = bg_color.name()
+            fg_hex = fg_color.name()
+
+            editor.setStyleSheet(
+                f"QLineEdit {{ background-color: {bg_hex}; color: {fg_hex}; }}"
+            )
+
+        return editor
+
+    def setEditorData(self, editor, index):
+        editor.setText(index.data(Qt.EditRole))
+
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.text(), Qt.EditRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)
 
 # Subclass to maintain the additional substitutes information associated with a Thing
 class ThingzItem(QListWidgetItem):
-    def __init__(self, title, is_left_side_team, parent=None):
+    def __init__(self, title, is_left_side_team, settings, parent=None):
         super().__init__(title, parent)
 
         self._substitutes = ""
         self._is_left_side_team = is_left_side_team
+        self._settings = settings
+        self.set_team_color()
+
+        newThingFont = self.font()
+        newThingFont.setPointSize(12)
+        self.setFont(newThingFont)
+        self.setFlags(self.flags() | Qt.ItemIsEditable)
 
     def substitutes(self):
         return self._substitutes
@@ -25,11 +93,19 @@ class ThingzItem(QListWidgetItem):
     def update_substitutes(self, substitutesText):
         self._substitutes = substitutesText
 
-    def is_left_side_team(self):
-        return self._is_left_side_team
+    def team_color(self):
+        return self._settings.get_left_team_color() if self._is_left_side_team else self._settings.get_right_team_color()
+
+    def set_team_color(self):
+        color = self.team_color()
+        self.setBackground(color)
+        self.setForeground(utilities.team_font(color))
 
     def toggle_team(self):
         self._is_left_side_team = not self._is_left_side_team
+        color = self.team_color()
+        self.setBackground(color)
+        self.setForeground(utilities.team_font(color))
 
 class ThingzFeature(QObject):
     def __init__(self, ui, settings, main_display, auxiliary_display):
@@ -39,6 +115,7 @@ class ThingzFeature(QObject):
         self._settings = settings
         self.main_display = main_display
         self.auxiliary_display = auxiliary_display
+        self.ui.thingzListLW.setItemDelegate(ThingzItemDelegate())
 
         self.ui.removeThingPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCloseButton))
         self.ui.clearThingzPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogDiscardButton))
@@ -158,7 +235,7 @@ class ThingzFeature(QObject):
         thing_font = self.ui.thingFontFCB.currentFont()
         thing_font.setPointSize(self.ui.thingFontSizeSB.value())
         thing_data = current_thing.thing_data()
-        style = utilities.style_sheet(current_thing.background().color())
+        style = utilities.style_sheet(current_thing.team_color())
 
         if display_type in ("main", "both"):
             self.main_display.show_text(thing_data, style, thing_font)
@@ -191,10 +268,6 @@ class ThingzFeature(QObject):
         current_thing = self.ui.thingzListLW.currentItem()
         if not current_thing:
             return
-        is_left_team = not current_thing.is_left_side_team()
-        color = self._settings.get_left_team_color() if is_left_team else self._settings.get_right_team_color()
-        current_thing.setBackground(color)
-        current_thing.setForeground(utilities.team_font(color))
         current_thing.toggle_team()
 
     @Slot(ThingzItem)
@@ -216,20 +289,11 @@ class ThingzFeature(QObject):
             # Determine which team is being entered from the radio buttons
             # and color the thing appropriately
             if self.ui.leftThingTeamRB.isChecked():
-                newThing = ThingzItem (thingStr, True, self.ui.thingzListLW)
-                newThing.setBackground(self._settings.get_left_team_color())
-                newThing.setForeground(utilities.team_font(self._settings.get_left_team_color()))
+                newThing = ThingzItem (thingStr, True, self._settings, self.ui.thingzListLW)
                 self.ui.rightThingTeamRB.setChecked(True)
             else: # Right Team Color
-                newThing = ThingzItem (thingStr, False, self.ui.thingzListLW)
-                newThing.setBackground(self._settings.get_right_team_color())
-                newThing.setForeground(utilities.team_font(self._settings.get_right_team_color()))
+                newThing = ThingzItem (thingStr, False, self._settings, self.ui.thingzListLW)
                 self.ui.leftThingTeamRB.setChecked(True)
-
-            newThingFont = newThing.font()
-            newThingFont.setPointSize(12)
-            newThing.setFont(newThingFont)
-            newThing.setFlags(newThing.flags() | Qt.ItemIsEditable)
 
             self.ui.thingNameTxt.setText("")
             self.ui.thingNameTxt.setFocus()
@@ -262,7 +326,6 @@ class ThingzFeature(QObject):
         else:
             self.ui.thingFocusLBL.clear()
             self.ui.thingTextEdit.clear()
-
 
     @Slot()
     def clear_thingz_list(self):

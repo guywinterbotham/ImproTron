@@ -1,4 +1,3 @@
-import sys
 import json
 import logging
 from PySide6.QtCore import QObject, QIODevice, Slot, Signal, QCoreApplication

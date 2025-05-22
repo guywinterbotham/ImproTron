@@ -7,7 +7,6 @@ from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QStyle, QP
 from PySide6.QtMultimedia import QMediaPlayer
 from Improtronics import SoundFX, SlideWidget
 from MediaFileDatabase import MediaFileDatabase
-import utilities
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +140,7 @@ class MediaFeatures(QObject):
             for media in foundMedia:
                 SlideWidget(QFileInfo(media), self.ui.mediaSearchResultsLW)
         else:
-            reply = QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
+            QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
 
     @Slot()
     def set_media_library(self):
