@@ -170,7 +170,14 @@ class MediaFeatures(QObject):
             reader = QImageReader(slide.imagePath())
             reader.setAutoTransform(True)
             newImage = reader.read()
-            if newImage:
+            if newImage.isNull():
+                logger.warning(f"Media search preview: Failed to read image {slide.imagePath()}. QImageReader error: {reader.errorString()}")
+                self.ui.mediaSearchPreviewLBL.clear() # Clear the preview label
+                self.ui.mediaFileNameLBL.clear() # Clear the filename label
+                return
+            # This 'if newImage:' is now redundant due to the isNull check above, but kept for safety / original structure.
+            # Realistically, if newImage is Null, the return above would have exited.
+            if newImage: 
                 if self.ui.stretchMainCB.isChecked():
                     self.ui.mediaSearchPreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.mediaSearchPreviewLBL.size())))
                 else:
@@ -352,14 +359,16 @@ class MediaFeatures(QObject):
             palletteFileName = palletteFileInfo.completeBaseName()
             self.palletteSelect.addItem(palletteFileName, palletteFileInfo)
 
-        self.load_sound_effects(0)
+        if self.palletteSelect.count() > 0:
+            self.load_sound_effects(0)
 
     @Slot(int)
     def load_sound_effects(self, index):
         # During initialization, a negative index is sent. Use that as a trigger
         # to diable all buttons in the case no files exist
+
         buttonNumber = 0
-        if index >= 0 :
+        if self.palletteSelect.count() > 0 and index >= 0 :
             palletteFileInfo = self.palletteSelect.itemData(index)
             with open(palletteFileInfo.absoluteFilePath(), 'r') as json_file:
                 soundButton_data = json.load(json_file)

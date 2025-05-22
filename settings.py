@@ -1,7 +1,7 @@
 import json
 import logging
 from PySide6.QtCore import QStandardPaths, QDir, QPoint, QFileInfo, Qt
-from PySide6.QtGui import QColor, QGuiApplication
+from PySide6.QtGui import QColor
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ class Settings:
         'promosDirectory': "",
         'slideshowDelay': 10,
         'startupImage': "",
+        'configDir': QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0] + "/ImproTron",
         'mediaDirectory': QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0],
         'videoDirectory': QStandardPaths.standardLocations(QStandardPaths.MoviesLocation)[0],
         'soundDirectory': QStandardPaths.standardLocations(QStandardPaths.MusicLocation)[0],
@@ -30,7 +31,11 @@ class Settings:
 
     def __init__(self):
         self._settings = {}
-        self.set_config_dir(QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)[0] + "/ImproTron")
+        configDir = self.get_config_dir()
+        config_info = QDir(configDir)
+        if not config_info.exists():
+            if not config_info.mkpath(configDir):
+                logger.critical(f"Failed to create configuration directory: {configDir}")
         self.load()
 
     def _get(self, key):
@@ -44,24 +49,28 @@ class Settings:
         try:
             with open(config_path, 'r', encoding='utf8') as json_file:
                 self._settings = json.load(json_file)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            logger.warning(f"Failed to load configuration: {e}. Using defaults.")
+        except FileNotFoundError:
+            logger.warning(f"Configuration file not found: {config_path}. Using defaults.")
+            self._settings = self.DEFAULTS.copy()
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to decode configuration file: {config_path} - {e}. Using defaults.")
+            self._settings = self.DEFAULTS.copy()
+        except PermissionError as e:
+            logger.error(f"Permission denied while trying to load configuration file: {config_path} - {e}. Using defaults.")
+            self._settings = self.DEFAULTS.copy()
+        except OSError as e:
+            logger.error(f"OS error while trying to load configuration file: {config_path} - {e}. Using defaults.")
             self._settings = self.DEFAULTS.copy()
 
     def save(self):
         config_path = self.get_config_dir() + self.DEFAULT_CONFIG_FILE
+        logger.info(f"Saving config to: {config_path}")
         try:
-            with open(config_path, 'w', encoding='utf8') as json_file:
-                json.dump(self._settings, json_file, indent=2)
+            json_file = open(config_path, 'w', encoding='utf8')
+            json.dump(self._settings, json_file, indent=2)
+            json_file.close()
         except IOError as e:
             logger.error(f"Failed to save configuration: {e}")
-
-    def set_config_dir(self, configDir):
-        config_info = QDir(configDir)
-        if not config_info.exists():
-            if not config_info.mkpath(configDir):
-                logger.critical(f"Failed to create configuration directory: {configDir}")
-        self._set('configDir', configDir)
 
     def get_config_dir(self):
         return self._get('configDir')

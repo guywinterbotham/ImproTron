@@ -5,15 +5,15 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie
 from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
-from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QFile, QIODevice,
-                                QEvent, QUrl, QRandomGenerator, QSize, QThread)
-from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession,
-                                    QMediaDevices, QMediaPlayer, QAudioOutput)
+
+from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir,
+                                QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread)
+from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession, QMediaDevices, QMediaPlayer, QAudioOutput)
 from PySide6.QtNetwork import QNetworkAccessManager
 
 from PySide6.QtMultimediaWidgets import QVideoWidget
 
-from Settings import Settings
+from settings import Settings
 from Improtronics import ImproTron, SlideWidget, HotButtonHandler, SlideLoaderThread
 
 from games_feature import GamesFeature
@@ -21,6 +21,7 @@ from text_feature import TextFeature
 from media_features import MediaFeatures
 from thingz_feature import ThingzFeature
 from monitor_preview import MonitorPreview
+# from lighting_feature import LightingFeature # Future DMX integration
 import utilities
 from TouchPortal import TouchPortal
 
@@ -31,9 +32,11 @@ class ImproTronControlBoard(QWidget):
     def __init__(self, parent=None):
         super(ImproTronControlBoard,self).__init__()
         self._settings = Settings()
+        logger.info("Settings loaded.")
 
         loader = QUiLoader()
         self.ui = loader.load("ImproTronControlPanel.ui")
+        logger.info("UI loaded.")
 
         # Model/View/Controller model for images
         self.mediaModel = QFileSystemModel()
@@ -43,6 +46,7 @@ class ImproTronControlBoard(QWidget):
         self.mediaPlayer = QMediaPlayer()
         self.audioOutput = QAudioOutput()
         self.mediaPlayer.setAudioOutput(self.audioOutput)
+        logger.info("Media player and audio output initialized.")
         self.audioOutput.setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
         self.m_devices = QMediaDevices()
         self.m_devices.videoInputsChanged.connect(self.updateCameras)
@@ -51,6 +55,7 @@ class ImproTronControlBoard(QWidget):
 
         self.m_captureSession = QMediaCaptureSession()
         self.setCamera(QMediaDevices.defaultVideoInput())
+        logger.info("Default camera set up.")
 
         # Connect error signal
         self.mediaPlayer.errorOccurred.connect(self.mediaplayer_handle_error)
@@ -72,6 +77,7 @@ class ImproTronControlBoard(QWidget):
         self.mainDisplay.restore()
         self.mainDisplay.set_location(self._settings.get_main_location())
         self.mainDisplay.maximize()
+        logger.info("Main and Auxiliary displays initialized and configured.")
 
         # Create a shared QNetworkAccessManager
         self.shared_network_manager = QNetworkAccessManager()
@@ -91,6 +97,7 @@ class ImproTronControlBoard(QWidget):
         self.ui.pasteImageAuxiliaryPB.clicked.connect(self.aux_preview.paste_image)
         self.ui.blackoutAuxPB.clicked.connect(self.aux_preview.blackout)
         self.ui.stretchAuxCB.checkStateChanged.connect(self.aux_preview.previewStretch)
+        logger.info("Main and Auxiliary preview handlers initialized.")
 
         self.ui.blackoutBothPB.clicked.connect(self.blackout_both)
 
@@ -100,6 +107,8 @@ class ImproTronControlBoard(QWidget):
         self.thingz_feature = ThingzFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel, self.mediaPlayer)
         self.media_features.reset_media_view(self._settings.get_media_directory())
+        #self.lighting_feature = LightingFeature(self.ui, self._settings, "127.0.0.1", 7700) # Future DMX integration
+        logger.info("Core feature modules (Games, Text, Thingz, Media) initialized.")
 
         # Custom Signals allows the media feature to leave screen control encapulated in the control panel
         self.media_features.mainMediaShow.connect(self.showMediaOnMain)
@@ -265,6 +274,7 @@ class ImproTronControlBoard(QWidget):
 
         # Touch Portal Connect
         self.touchPortalClient = TouchPortal('127.0.0.1', 12136)
+        logger.info("TouchPortal client initialized.")
         self.ui.touchPortalConCB. checkStateChanged.connect(self.connectTouchPortal)
         tpFlag = self._settings.get_touch_portal_connect()
         self.ui.touchPortalConCB.setChecked(tpFlag)
@@ -306,6 +316,7 @@ class ImproTronControlBoard(QWidget):
             # Custom Signals allows the HotButtonHandler to leave screen control encapulated in the control panel
             hotButton.mainMediaShow.connect(self.showMediaOnMain)
             hotButton.auxMediaShow.connect(self.showMediaOnAux)
+        logger.info("Hot buttons initialized.")
 
 
         # Load the last saved hotbutton file
@@ -339,6 +350,7 @@ class ImproTronControlBoard(QWidget):
             Qt.WindowCloseButtonHint |
             Qt.WindowTitleHint
             )
+        logger.info("ImproTronControlBoard initialization complete.")
 
         # Let the fun begin!
         self.ui.show()
@@ -396,6 +408,9 @@ class ImproTronControlBoard(QWidget):
         self.mainPreviewMovie.stop()
         if self.isAnimatedGIF(file_name):
             self.mainPreviewMovie.setFileName(file_name)
+            if not self.mainPreviewMovie.isValid():
+                logger.error(f"Main display: Failed to load GIF {file_name}. Error: {self.mainPreviewMovie.errorString()}")
+                return # Stop further processing for this invalid GIF
             if self.mainPreviewMovie.isValid():
                 self.mainPreviewMovie.setScaledSize(self.main_preview.size())
                 self.main_preview.setMovie(self.mainPreviewMovie)
@@ -405,6 +420,9 @@ class ImproTronControlBoard(QWidget):
             reader = QImageReader(file_name)
             reader.setAutoTransform(True)
             newImage = reader.read()
+            if newImage.isNull():
+                logger.error(f"Main display: Failed to read image {file_name}. QImageReader error: {reader.errorString()}")
+                return # Stop further processing
             self.main_preview.load_image(newImage)
         else:
             logging.warning(f"Unsupported media for main: {file_name}")
@@ -422,6 +440,9 @@ class ImproTronControlBoard(QWidget):
         self.auxPreviewMovie.stop()
         if self.isAnimatedGIF(file_name):
             self.auxPreviewMovie.setFileName(file_name)
+            if not self.auxPreviewMovie.isValid():
+                logger.error(f"Aux display: Failed to load GIF {file_name}. Error: {self.auxPreviewMovie.errorString()}")
+                return
             if self.auxPreviewMovie.isValid():
                 self.auxPreviewMovie.setScaledSize(self.aux_preview.size())
                 self.aux_preview.setMovie(self.auxPreviewMovie)
@@ -431,6 +452,9 @@ class ImproTronControlBoard(QWidget):
             reader = QImageReader(file_name)
             reader.setAutoTransform(True)
             newImage = reader.read()
+            if newImage.isNull():
+                logger.error(f"Aux display: Failed to read image {file_name}. QImageReader error: {reader.errorString()}")
+                return
             self.aux_preview.load_image(newImage)
         else:
             logging.warning(f"Unsupported media for aux: {file_name}")
@@ -570,6 +594,10 @@ class ImproTronControlBoard(QWidget):
             reader = QImageReader(imageFileInfo.absoluteFilePath())
             reader.setAutoTransform(True)
             newImage = reader.read()
+            if newImage.isNull():
+                logger.warning(f"Slide preview: Failed to read image {imageFileInfo.absoluteFilePath()}. QImageReader error: {reader.errorString()}")
+                # self.ui.slidePreviewLBL.clear() # Optionally clear preview
+                return 
 
             # Scale to match the preview
             self.ui.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.slidePreviewLBL.size())))
@@ -579,6 +607,10 @@ class ImproTronControlBoard(QWidget):
         reader = QImageReader(slide.imagePath())
         reader.setAutoTransform(True)
         newImage = reader.read()
+        if newImage.isNull():
+            logger.warning(f"Slide preview (from list): Failed to read image {slide.imagePath()}. QImageReader error: {reader.errorString()}")
+            # self.ui.slidePreviewLBL.clear() # Optionally clear preview
+            return
 
         # Scale to match the preview
         self.ui.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.slidePreviewLBL.size())))
@@ -654,6 +686,7 @@ class ImproTronControlBoard(QWidget):
             # Write the JSON string to a file
             with open(file_name[0], 'w', encoding='utf8') as json_file:
                 json.dump(slide_data, json_file, indent=2)
+                json_file.close()
 
     @Slot()
     def clearSlideShow(self):
@@ -909,7 +942,7 @@ class ImproTronControlBoard(QWidget):
 
     def mediaplayer_handle_error(self, error, error_string):
         # Log the error
-        logger.info(f"Media Player Error: {error} - {error_string}")
+        logger.error(f"Media Player Error: {error} - {error_string}")
 
     # Slide Timer interval setting for videos: QMediaPlayer does not have the duration available on load
     # but does so when playing commences. If the slide timer is active this slot changes the interval to match
@@ -958,6 +991,7 @@ class ImproTronControlBoard(QWidget):
             # Write the JSON string to a file. Since Button names could have special characters, encode
             with open(file_name[0], 'w', encoding='utf8') as json_file:
                 json.dump(button_data, json_file, indent=2)
+                json_file.close()
 
     @Slot()
     def selectPromosDirectory(self):

@@ -13,6 +13,7 @@
         "media_features.py",
         "thingz_feature.py",
         "settings.py",
-        "monitor_preview.py"
+        "monitor_preview.py",
+        "lighting_feature.py"
     ]
 }

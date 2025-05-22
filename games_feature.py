@@ -92,34 +92,47 @@ class GamesFeature(QObject):
 
         # Read the CSV file and add the first and second columns to the list view
         games_file = self._settings.get_games_file()
-        if len(games_file) >0:
-            with open(games_file, newline='', encoding='utf-8') as csv_file:
-                reader = csv.reader(csv_file)
-                next(reader)  # Skip header
+        if len(games_file) > 0:
+            try:
+                with open(games_file, newline='', encoding='utf-8') as csv_file:
+                    reader = csv.reader(csv_file)
+                    try:
+                        next(reader)  # Skip header
+                    except StopIteration:
+                        logger.error(f"Games CSV file {games_file} is empty or missing header.")
+                        return
 
-                for row in reader:
-                    if len(row) < 3:
-                        continue  # Skip rows without enough columns
+                    for row in reader:
+                        if len(row) < 3:
+                            logger.warning(f"Skipping malformed row in {games_file}, line {reader.line_num}: {row}")
+                            continue  # Skip rows without enough columns
 
-                    category, name, description = row[0], row[1], row[2]
+                        category, name, description = row[0], row[1], row[2]
 
-                    # Check if category exists in dictionary; if not, create it
-                    if category not in categories:
-                        category_item = QStandardItem(category)
-                        category_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                        self._games_model.appendRow([category_item])
-                        categories[category] = category_item
+                        # Check if category exists in dictionary; if not, create it
+                        if category not in categories:
+                            category_item = QStandardItem(category)
+                            category_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                            self._games_model.appendRow([category_item])
+                            categories[category] = category_item
 
-                    # Create the item for Name and set its description as data
-                    name_item = QStandardItem(name)
-                    name_item.setData(description, Qt.UserRole)  # Store description in UserRole
-                    name_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                        # Create the item for Name and set its description as data
+                        name_item = QStandardItem(name)
+                        name_item.setData(description, Qt.UserRole)  # Store description in UserRole
+                        name_item.setFlags( Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 
-                    # Add name item under the category
-                    categories[category].appendRow([name_item])
+                        # Add name item under the category
+                        categories[category].appendRow([name_item])
+                
+                # Expand all items for better view
+                self._games_tree_view.expandAll()
 
-            # Expand all items for better view
-            self._games_tree_view.expandAll()
+            except FileNotFoundError:
+                logger.error(f"Games CSV file not found: {games_file}")
+            except (IOError, OSError) as e:
+                logger.error(f"Error reading games CSV file {games_file}: {e}")
+            except csv.Error as e:
+                logger.error(f"Error parsing CSV file {games_file}: {e}")
 
     @Slot()
     def add_to_games(self, index):
@@ -196,44 +209,110 @@ class GamesFeature(QObject):
     @Slot()
     def load_background(self):
         selected_file_name = QFileDialog.getOpenFileName(self.ui, "Select Background", self._settings.get_media_directory() , "Background Files (*.png *.jpg *.bmp *.webp)")
-        self._games_background_file = selected_file_name[0]
+        
+        if not selected_file_name or not selected_file_name[0]:
+            logger.info("No background file selected.")
+            return
 
-        if QFileInfo.exists(self._games_background_file):
+        self._games_background_file = selected_file_name[0]
+        self._games_background = None # Reset in case loading fails
+
+        try:
+            if not QFileInfo.exists(self._games_background_file):
+                logger.error(f"Selected game background file does not exist: {self._games_background_file}")
+                return
+
             mediaInfo = QFileInfo(self._games_background_file)
-            if bytes(mediaInfo.suffix().lower(),"ascii") in  QImageReader.supportedImageFormats():
-                reader = QImageReader(self._games_background_file)
-                reader.setAutoTransform(True)
-                self._games_background = reader.read()
-                self.draw_games_slide(self.ui.gameBackgroundLBL)
+            if not bytes(mediaInfo.suffix().lower(),"ascii") in QImageReader.supportedImageFormats():
+                logger.error(f"Selected game background file is not a supported image format: {self._games_background_file}")
+                return
+
+            reader = QImageReader(self._games_background_file)
+            reader.setAutoTransform(True)
+            loaded_image = reader.read()
+
+            if loaded_image.isNull():
+                logger.error(f"Failed to read or decode game background image: {self._games_background_file}. Error: {reader.errorString()}")
+                return
+            
+            self._games_background = loaded_image
+            self.draw_games_slide(self.ui.gameBackgroundLBL)
+
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while loading background image {self._games_background_file}: {e}")
+            self._games_background = None
 
     @Slot()
     def set_game_to_image(self):
-        self._games_background_file = self.ui.mediaFileNameLBL.text()
+        potential_background_file = self.ui.mediaFileNameLBL.text()
+        self._games_background = None # Reset in case loading fails
 
-        if QFileInfo.exists(self._games_background_file):
+        if not potential_background_file:
+            logger.warning("No media file name set in UI to use as game background.")
+            return
+
+        self._games_background_file = potential_background_file
+
+        try:
+            if not QFileInfo.exists(self._games_background_file):
+                logger.error(f"Game background file from media selection does not exist: {self._games_background_file}")
+                return
+
             mediaInfo = QFileInfo(self._games_background_file)
-            if bytes(mediaInfo.suffix().lower(),"ascii") in  QImageReader.supportedImageFormats():
-                reader = QImageReader(self._games_background_file)
-                reader.setAutoTransform(True)
-                self._games_background = reader.read()
-                self.draw_games_slide(self.ui.gameBackgroundLBL)
+            if not bytes(mediaInfo.suffix().lower(),"ascii") in  QImageReader.supportedImageFormats():
+                logger.error(f"Game background file from media selection is not a supported image format: {self._games_background_file}")
+                return
+
+            reader = QImageReader(self._games_background_file)
+            reader.setAutoTransform(True)
+            loaded_image = reader.read()
+
+            if loaded_image.isNull():
+                logger.error(f"Failed to read or decode game background image from media selection: {self._games_background_file}. Error: {reader.errorString()}")
+                return
+            
+            self._games_background = loaded_image
+            self.draw_games_slide(self.ui.gameBackgroundLBL)
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while setting game background from image {self._games_background_file}: {e}")
+            self._games_background = None
 
     @Slot()
     def set_game_to_slide(self):
         index = self.ui.slideShowFilesTreeView.selectionModel().currentIndex()
         media_model = self.ui.slideShowFilesTreeView.model()
+        self._games_background = None # Reset in case loading fails
 
-        if not media_model.isDir(index):
-            image_file_info = media_model.fileInfo(index)
-            self._games_background_file = image_file_info.absoluteFilePath()
+        if not index.isValid() or media_model.isDir(index):
+            logger.warning("No valid file selected in slideshow to set as game background.")
+            return
 
-            if QFileInfo.exists(self._games_background_file):
-                mediaInfo = QFileInfo(self._games_background_file)
-                if bytes(mediaInfo.suffix().lower(),"ascii") in  QImageReader.supportedImageFormats():
-                    reader = QImageReader(self._games_background_file)
-                    reader.setAutoTransform(True)
-                    self._games_background = reader.read()
-                    self.draw_games_slide(self.ui.gameBackgroundLBL)
+        image_file_info = media_model.fileInfo(index)
+        self._games_background_file = image_file_info.absoluteFilePath()
+
+        try:
+            if not QFileInfo.exists(self._games_background_file):
+                logger.error(f"Game background file from slideshow selection does not exist: {self._games_background_file}")
+                return
+
+            mediaInfo = QFileInfo(self._games_background_file)
+            if not bytes(mediaInfo.suffix().lower(),"ascii") in QImageReader.supportedImageFormats():
+                logger.error(f"Game background file from slideshow selection is not a supported image format: {self._games_background_file}")
+                return
+
+            reader = QImageReader(self._games_background_file)
+            reader.setAutoTransform(True)
+            loaded_image = reader.read()
+
+            if loaded_image.isNull():
+                logger.error(f"Failed to read or decode game background image from slideshow: {self._games_background_file}. Error: {reader.errorString()}")
+                return
+            
+            self._games_background = loaded_image
+            self.draw_games_slide(self.ui.gameBackgroundLBL)
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while setting game background from slideshow image {self._games_background_file}: {e}")
+            self._games_background = None
 
     @Slot()
     def show_game_main(self):

@@ -821,14 +821,8 @@ background-color: rgb(0, 0, 0);</string>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>4</number>
       </property>
       <property name="iconSize">
        <size>
@@ -1360,7 +1354,7 @@ background-color: rgb(0, 0, 0);</string>
        <attribute name="title">
         <string>Image Search</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <layout class="QHBoxLayout" name="mediaSearchHL">
         <item>
          <layout class="QVBoxLayout" name="searchMediaVL">
           <item>
@@ -1672,7 +1666,7 @@ background-color: rgb(0, 0, 0);</string>
              </font>
             </property>
             <property name="text">
-             <string>Game Image</string>
+             <string>Game Frame</string>
             </property>
            </widget>
           </item>
@@ -2810,7 +2804,7 @@ background-color: rgb(255, 255, 0);</string>
               </property>
               <property name="minimumSize">
                <size>
-                <width>70</width>
+                <width>60</width>
                 <height>0</height>
                </size>
               </property>
@@ -4556,6 +4550,65 @@ background-color: rgb(255, 255, 0);</string>
          </layout>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="lightingTab">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <attribute name="title">
+        <string>DMX Alpha</string>
+       </attribute>
+       <widget class="QLineEdit" name="oscMessageLE">
+        <property name="geometry">
+         <rect>
+          <x>390</x>
+          <y>50</y>
+          <width>113</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+       </widget>
+       <widget class="QSpinBox" name="oscValueSP">
+        <property name="geometry">
+         <rect>
+          <x>540</x>
+          <y>50</y>
+          <width>88</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="oscMessagePB">
+        <property name="geometry">
+         <rect>
+          <x>630</x>
+          <y>50</y>
+          <width>101</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>PushButton</string>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="preferencesTab">
        <property name="minimumSize">

@@ -1,7 +1,7 @@
 # text_feature.py
 
 from PySide6.QtCore import QObject, Slot, QRegularExpression, QFile, QFileInfo, QIODevice
-from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QMessageBox, QPushButton
+from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QPushButton, QMessageBox
 import utilities
 
 class TextFeature(QObject):

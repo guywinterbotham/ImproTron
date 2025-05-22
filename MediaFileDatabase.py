@@ -4,6 +4,9 @@ from tinydb.storages import MemoryStorage
 from PySide6.QtCore import QDir, QDirIterator
 from PySide6.QtGui import QImageReader
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 class MediaFileDatabase():
     def __init__(self):
@@ -47,6 +50,7 @@ class MediaFileDatabase():
 
     def index_media(self, path):
         if not QDir(path).exists():
+            logger.error(f"Media indexing path not found: {path}")
             raise FileNotFoundError(f"The path {path} does not exist.")
         return self._index_files(path, self._media_supported, self.media_table)
 
@@ -61,6 +65,7 @@ class MediaFileDatabase():
 
     def index_sounds(self, path):
         if not QDir(path).exists():
+            logger.error(f"Sound indexing path not found: {path}")
             raise FileNotFoundError(f"The path {path} does not exist.")
         return self._index_files(path, self._sounds_supported, self.sounds_table)
 
