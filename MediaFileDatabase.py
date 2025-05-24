@@ -49,6 +49,7 @@ class MediaFileDatabase():
         return file_count
 
     def index_media(self, path):
+        logger.info("Indexing Media Files ...")
         if not QDir(path).exists():
             logger.error(f"Media indexing path not found: {path}")
             raise FileNotFoundError(f"The path {path} does not exist.")
@@ -64,6 +65,7 @@ class MediaFileDatabase():
         return [entry['name'] for entry in result]
 
     def index_sounds(self, path):
+        logger.info("Indexing Sound Files ...")
         if not QDir(path).exists():
             logger.error(f"Sound indexing path not found: {path}")
             raise FileNotFoundError(f"The path {path} does not exist.")

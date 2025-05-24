@@ -126,7 +126,7 @@ class ThingzFeature(QObject):
 
     # Connect Thingz Management
     def connect_slots(self):
-        self.ui.thingzListLW.itemClicked.connect(self.show_selected_thing)
+        self.ui.thingzListLW.currentItemChanged.connect(self.show_selected_thing)
         self.ui.thingzListLW.itemChanged.connect(self.title_edited)
 
         self.ui.addThingPB.clicked.connect(self.add_thing_to_list)
@@ -204,7 +204,6 @@ class ThingzFeature(QObject):
         # Trigger the click event
         if next_item is not None:
             self.ui.thingzListLW.itemPressed.emit(next_item)
-            self.show_selected_thing(next_item)
 
     @Slot()
     def show_next_thing_main(self):
@@ -270,11 +269,13 @@ class ThingzFeature(QObject):
             return
         current_thing.toggle_team()
 
-    @Slot(ThingzItem)
-    def show_selected_thing(self, thing):
+
+    @Slot(ThingzItem, ThingzItem)
+    def show_selected_thing(self, thing: ThingzItem, previous: ThingzItem):
         # Display selected item's title and text in the editor
-        self.ui.thingFocusLBL.setText(thing.text())
-        self.ui.thingTextEdit.setPlainText(thing.substitutes())
+        if thing != None:
+            self.ui.thingFocusLBL.setText(thing.text())
+            self.ui.thingTextEdit.setPlainText(thing.substitutes())
 
     @Slot(ThingzItem )
     def title_edited(self, thing):

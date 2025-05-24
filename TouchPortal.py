@@ -13,7 +13,7 @@ SOUND_ACTION_ID = "improtron.sound.action"
 
 class TouchPortal(QObject):
     buttonAction = Signal(str)    # Custom signal with a string argument of a touch portal button matching the UI ID
-    spinBoxAction = Signal(str, int)   # Custom signal with a string UI ID of a Spin Box and the delta. 0 = reset to zero
+    spinBoxAction = Signal(str, float)   # Custom signal with a string UI ID of a Spin Box and the delta. 0 = reset to zero
     mediaAction = Signal(str, str) # Custom signal with string arguments for the file and target monitor
     soundAction = Signal(str)     # Custom signal with a string argument for a sound file
 
@@ -108,12 +108,12 @@ class TouchPortal(QObject):
         self.mediaAction.emit(file, monitor)
 
     def handle_spinbox_action(self, data):
-        button_id, change = "", 0
+        button_id, change = "", 0.0
         for item in data:
             if item["id"] == "improtron.spinbox.id":
                 button_id = item["value"]
             elif item["id"] == "improtron.spinbox.changevalue":
-                change = int(item["value"])
+                change = float(item["value"])
         self.spinBoxAction.emit(button_id, change)
 
     def handle_sound_action(self, data):

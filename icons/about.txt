@@ -1,7 +1,7 @@
-ImproTron Dual Monitor
-Version 1.0 Release January, 2025
-by Improv Jester
+ImproTron
+Version 1.1 Release March, 2025
+by Guy Winterbotham
 
-Currently Virus Scanners hate it so exclude the installation directory and the Temp directory created when it runs if necessary.
+ImproTron is Light and Sound software for managing multiple screens, lights, and audio playback, designed primarily for ComedySportz (R) and other Improv Shows. It provides a comprehensive suite of tools to enhance live improvisational performances.
 
-This program may only be used if you can figure out how to work it!
+https://github.com/guywinterbotham/ImproTron

@@ -23,6 +23,7 @@ from thingz_feature import ThingzFeature
 from monitor_preview import MonitorPreview
 # from lighting_feature import LightingFeature # Future DMX integration
 import utilities
+import ImproTronIcons
 from TouchPortal import TouchPortal
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,13 @@ class ImproTronControlBoard(QWidget):
         self.thingz_feature = ThingzFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel, self.mediaPlayer)
         self.media_features.reset_media_view(self._settings.get_media_directory())
+
+        # Disable the DMX Feature which is under design and development
         #self.lighting_feature = LightingFeature(self.ui, self._settings, "127.0.0.1", 7700) # Future DMX integration
+        index = self.ui.featureTabs.indexOf(self.ui.lightingTab)
+        if index != -1:
+            self.ui.featureTabs.removeTab(index)
+
         logger.info("Core feature modules (Games, Text, Thingz, Media) initialized.")
 
         # Custom Signals allows the media feature to leave screen control encapulated in the control panel

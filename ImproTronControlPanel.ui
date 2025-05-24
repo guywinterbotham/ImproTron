@@ -92,7 +92,7 @@
            <widget class="QDoubleSpinBox" name="teamScoreLeft">
             <property name="font">
              <font>
-              <pointsize>20</pointsize>
+              <pointsize>16</pointsize>
              </font>
             </property>
             <property name="buttonSymbols">
@@ -583,7 +583,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
            <widget class="QDoubleSpinBox" name="teamScoreRight">
             <property name="font">
              <font>
-              <pointsize>20</pointsize>
+              <pointsize>16</pointsize>
              </font>
             </property>
             <property name="buttonSymbols">
