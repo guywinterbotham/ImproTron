@@ -29,7 +29,8 @@ icon = .\yesand.ico
 python_path = C:\Users\guywi\OneDrive\Documents\git\ImproTron\venv\Scripts\python.exe
 
 # python packages to install
-packages = Nuitka==2.5.1
+# packages = Nuitka==2.6.8
+packages = Nuitka==2.7.3
 
 # buildozer = for deploying Android application
 android_packages = buildozer==1.5.0,cython==0.29.33
@@ -44,7 +45,7 @@ qml_files =
 excluded_qml_plugins = 
 
 # qt modules used. comma separated
-modules = Core,OpenGL,Qml,MultimediaWidgets,Quick,Multimedia,Widgets,QmlMeta,OpenGLWidgets,Positioning,UiTools,Network,QmlWorkerScript,Gui,QmlModels,WebEngineCore,WebChannel
+modules = MultimediaWidgets,Core,Widgets,Multimedia,Gui,Network,WebEngineCore,UiTools
 
 # qt plugins used by the application
 plugins = networkinformation,iconengines,platforms,multimedia,platformthemes,generic,styles,tls,platforminputcontexts,imageformats
@@ -75,7 +76,7 @@ mode = standalone
 # remove the --noinclude-qt-translations for the first build and then remove everything else, or
 # copy the single file after the build. it will remain for subsequent builds.
 # .\improtron.dist\pyside6\translations\qtwebengine_locales\en-us.pak
-extra_args = --quiet --noinclude-qt-translations
+extra_args = --quiet --noinclude-qt-translations --msvc=latest
 
 [buildozer]
 

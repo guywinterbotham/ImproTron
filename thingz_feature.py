@@ -323,7 +323,7 @@ class ThingzFeature(QObject):
     def remove_thing_from_list(self):
         self.ui.thingzListLW.takeItem(self.ui.thingzListLW.row(self.ui.thingzListLW.currentItem()))
         if self.ui.thingzListLW.currentItem() != None:
-            self.show_selected_thing(self.ui.thingzListLW.currentItem())
+            self.show_selected_thing(self.ui.thingzListLW.currentItem(),self.ui.thingzListLW.currentItem())
         else:
             self.ui.thingFocusLBL.clear()
             self.ui.thingTextEdit.clear()
