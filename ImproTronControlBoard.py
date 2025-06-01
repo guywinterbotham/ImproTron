@@ -136,16 +136,16 @@ class ImproTronControlBoard(QWidget):
         self.ui.soundVolumeSL.valueChanged.connect(self.set_sound_volume)
 
         # Recall Team names and colors then connect Score related signals to slots
-        self.ui.teamNameLeft.textChanged.connect(self.showLeftTeam)
-        self.ui.teamNameRight.textChanged.connect(self.showRightTeam)
-        self.ui.colorRightPB.clicked.connect(self.pickRightTeamColor)
-        self.ui.colorLeftPB.clicked.connect(self.pickLeftTeamColor)
-        self.ui.showScoresMainPB.clicked.connect(self.showScoresMain)
-        self.ui.showScoresBothPB.clicked.connect(self.showScoresBoth)
-        self.ui.showScoresAuxiliaryPB.clicked.connect(self.showScoresAuxiliary)
+        self.ui.teamNameLeft.textChanged.connect(self.show_left_team)
+        self.ui.teamNameRight.textChanged.connect(self.show_right_team)
+        self.ui.colorRightPB.clicked.connect(self.pick_right_team_color)
+        self.ui.colorLeftPB.clicked.connect(self.pick_left_team_color)
+        self.ui.showScoresMainPB.clicked.connect(self.show_scores_main)
+        self.ui.showScoresBothPB.clicked.connect(self.show_scores_both)
+        self.ui.showScoresAuxiliaryPB.clicked.connect(self.show_scores_auxiliary)
 
-        self.setLeftTeamColors(self._settings.get_left_team_color())
-        self.setRightTeamColors(self._settings.get_right_team_color())
+        self.set_left_team_colors(self._settings.get_left_team_color())
+        self.set_right_team_colors(self._settings.get_right_team_color())
         self.ui.teamNameLeft.setText(self._settings.get_left_team_name())
         self.ui.teamNameRight.setText(self._settings.get_right_team_name())
 
@@ -374,7 +374,6 @@ class ImproTronControlBoard(QWidget):
         logging.info("ImproTron shutting down")
         self.mainDisplay.shutdown()
         self.auxiliaryDisplay.shutdown()
-        self._settings.save()
         self.touchPortalClient.disconnectTouchPortal()
         self.thread.quit()
         self.ui.removeEventFilter(self)
@@ -466,16 +465,16 @@ class ImproTronControlBoard(QWidget):
         else:
             logging.warning(f"Unsupported media for aux: {file_name}")
 
-    def setLeftTeamColors(self, colorSelected):
-        style = utilities.style_sheet(colorSelected)
+    def set_left_team_colors(self, color_selected):
+        style = utilities.style_sheet(color_selected)
 
         self.ui.teamNameLeft.setStyleSheet(style)
         self.ui.leftThingTeamRB.setStyleSheet(style)
         self.mainDisplay.colorizeLeftScore(style)
         self.auxiliaryDisplay.colorizeLeftScore(style)
 
-    def setRightTeamColors(self, colorSelected):
-        style = utilities.style_sheet(colorSelected)
+    def set_right_team_colors(self, color_selected):
+        style = utilities.style_sheet(color_selected)
 
         self.ui.teamNameRight.setStyleSheet(style)
         self.ui.rightThingTeamRB.setStyleSheet(style)
@@ -483,18 +482,16 @@ class ImproTronControlBoard(QWidget):
         self.auxiliaryDisplay.colorizeRightScore(style)
 
     @Slot()
-    def pickLeftTeamColor(self):
-        colorSelected = QColorDialog.getColor(self._settings.get_left_team_color(), self.ui,title = 'Pick Left Team Color')
-        if colorSelected.isValid():
-            self._settings.set_left_team_color(colorSelected)
-            self.setLeftTeamColors(colorSelected)
+    def pick_left_team_color(self):
+        color_selected = self._settings.pick_left_team_color(self.ui)
+        if color_selected.isValid():
+            self.set_left_team_colors(color_selected)
 
     @Slot()
-    def pickRightTeamColor(self):
-        colorSelected = QColorDialog.getColor(self._settings.get_right_team_color(), self.ui,title = 'Pick Right Team Color')
-        if colorSelected.isValid():
-            self._settings.set_right_team_color(colorSelected)
-            self.setRightTeamColors(colorSelected)
+    def pick_right_team_color(self):
+        color_selected = self._settings.pick_right_team_color(self.ui)
+        if color_selected.isValid():
+            self.set_right_team_colors(color_selected)
 
     @Slot()
     def blackout_both(self):
@@ -521,52 +518,52 @@ class ImproTronControlBoard(QWidget):
                 logging.warning(f"Unsupported Video File selected: {file_name[0]}")
 
     @Slot()
-    def showScoresMain(self):
+    def show_scores_main(self):
         self.mainDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
         utilities.capture_window(self.mainDisplay, self.main_preview)
 
     @Slot()
-    def showScoresAuxiliary(self):
+    def show_scores_auxiliary(self):
         self.auxiliaryDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
         utilities.capture_window(self.auxiliaryDisplay, self.aux_preview)
 
     @Slot()
-    def showScoresBoth(self):
-        self.showScoresMain()
-        self.showScoresAuxiliary()
+    def show_scores_both(self):
+        self.show_scores_main()
+        self.show_scores_auxiliary()
 
     # Quick add buttons to update the score and immediate show on the Main Moitor
     @Slot()
     def quickAdd50(self):
         self.ui.teamScoreLeft.setValue(self.ui.teamScoreLeft.value()+5)
-        self.showScoresBoth()
+        self.show_scores_both()
 
     @Slot()
     def quickAdd05(self):
         self.ui.teamScoreRight.setValue(self.ui.teamScoreRight.value()+5)
-        self.showScoresBoth()
+        self.show_scores_both()
 
     @Slot()
     def quickAdd32(self):
         self.ui.teamScoreLeft.setValue(self.ui.teamScoreLeft.value()+3)
         self.ui.teamScoreRight.setValue(self.ui.teamScoreRight.value()+2)
-        self.showScoresBoth()
+        self.show_scores_both()
 
     @Slot()
     def quickAdd23(self):
         self.ui.teamScoreLeft.setValue(self.ui.teamScoreLeft.value()+2)
         self.ui.teamScoreRight.setValue(self.ui.teamScoreRight.value()+3)
-        self.showScoresBoth()
+        self.show_scores_both()
 
     @Slot(str)
-    def showLeftTeam(self, teamName):
+    def show_left_team(self, teamName):
         self.mainDisplay.showLeftTeam(teamName)
         self.auxiliaryDisplay.showLeftTeam(teamName)
         self.ui.leftThingTeamRB.setText(teamName)
         self._settings.set_left_team_name(teamName)
 
     @Slot(str)
-    def showRightTeam(self, teamName):
+    def show_right_team(self, teamName):
         self.mainDisplay.showRightTeam(teamName)
         self.auxiliaryDisplay.showRightTeam(teamName)
         self.ui.rightThingTeamRB.setText(teamName)
@@ -581,7 +578,6 @@ class ImproTronControlBoard(QWidget):
         else:
             self._settings.set_aux_location(self.auxiliaryDisplay.get_location())
             self._settings.set_main_location(self.mainDisplay.get_location())
-            self._settings.save()
 
             # Order matters so the main displays on top
             self.auxiliaryDisplay.maximize()

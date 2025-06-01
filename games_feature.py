@@ -200,10 +200,12 @@ class GamesFeature(QObject):
     # Select the color for the text
     @Slot()
     def pick_game_text_color(self):
-        color_chooser = QColorDialog(self.ui)
-        self._game_color_selected = color_chooser.getColor(title = 'Pick the game text color')
+        color_selected = QColorDialog.getColor(parent=self.ui, title = 'Pick the game text color')
 
-        if self._game_color_selected != None:
+        self._settings.save_custom_colors() # Store the color pallette in case it was changed
+
+        if color_selected != None:
+            self._game_color_selected = color_selected
             self.draw_games_slide(self.ui.gameBackgroundLBL)
 
     @Slot()

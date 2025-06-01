@@ -26,7 +26,7 @@ icon = .\yesand.ico
 [python]
 
 # python path
-python_path = C:\Users\guywi\OneDrive\Documents\git\ImproTron\venv\Scripts\python.exe
+python_path = C:\Users\guywi\OneDrive\Documents\git\ImproTron\.qtcreator\Python_3_12_10venv\Scripts\python.exe
 
 # python packages to install
 # packages = Nuitka==2.6.8
@@ -45,7 +45,7 @@ qml_files =
 excluded_qml_plugins = 
 
 # qt modules used. comma separated
-modules = MultimediaWidgets,Core,Widgets,Multimedia,Gui,Network,WebEngineCore,UiTools
+modules = Widgets,Core,Multimedia,Network,UiTools,MultimediaWidgets,WebEngineCore,Gui
 
 # qt plugins used by the application
 plugins = networkinformation,iconengines,platforms,multimedia,platformthemes,generic,styles,tls,platforminputcontexts,imageformats
@@ -76,7 +76,7 @@ mode = standalone
 # remove the --noinclude-qt-translations for the first build and then remove everything else, or
 # copy the single file after the build. it will remain for subsequent builds.
 # .\improtron.dist\pyside6\translations\qtwebengine_locales\en-us.pak
-extra_args = --quiet --noinclude-qt-translations --msvc=latest
+extra_args = --quiet --noinclude-qt-translations
 
 [buildozer]
 

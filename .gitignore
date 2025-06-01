@@ -2,6 +2,7 @@
 # ----------------------------------------------------------------------------
 ImproTron.dist
 venv
+.qtcreator
 __pycache__
 .ropeproject
 *.pyproject.user*

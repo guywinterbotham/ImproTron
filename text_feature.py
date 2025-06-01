@@ -1,8 +1,10 @@
 # text_feature.py
-
+import logging
 from PySide6.QtCore import QObject, Slot, QRegularExpression, QFile, QFileInfo, QIODevice
 from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QPushButton, QMessageBox
 import utilities
+
+logger = logging.getLogger(__name__)
 
 class TextFeature(QObject):
     MAX_FILE_LINES = 10
@@ -86,6 +88,8 @@ class TextFeature(QObject):
         left_presets = QRegularExpression('leftColorPreset')
         right_presets = QRegularExpression('rightColorPreset')
 
+        self._settings.save_custom_colors() # Store the color pallette in case it was changed
+
         # Use the index provided by the QColorDialog. Cap at the max number of buttons
         max_color_presets = QColorDialog.customCount()
 
@@ -105,10 +109,9 @@ class TextFeature(QObject):
 
     @Slot()
     def pick_left_text_color(self):
-        color_chooser = QColorDialog(self.ui)
-        color_selected = color_chooser.getColor(title = 'Pick Left Text Box Color')
+        color_selected = QColorDialog.getColor(parent=self.ui,title = 'Pick Left Text Box Color')
 
-        # Update the presets incase one was changed while picking a color
+        # Update the presets in case one was changed while picking a color
         self.set_preset_colors()
 
         if color_selected != None:
@@ -117,10 +120,9 @@ class TextFeature(QObject):
 
     @Slot()
     def pick_right_text_color(self):
-        color_chooser = QColorDialog(self.ui)
-        color_selected = color_chooser.getColor(title = 'Pick Right Text Box Color')
+        color_selected = QColorDialog.getColor(parent=self.ui,title = 'Pick Right Text Box Color')
 
-        # Update the presets incase one was changed while picking a color
+        # Update the presets in case one was changed while picking a color
         self.set_preset_colors()
 
         if color_selected.isValid():

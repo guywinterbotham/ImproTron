@@ -9,10 +9,11 @@ from ImproTronControlBoard import ImproTronControlBoard
 
 # Commands to use in the build process
 #
-# venv\Scripts\pyside6-deploy -c ImproTron.spec
-# venv\Scripts\pyside6-rcc -g python ImproTronIcons.qrc > ImproTronIcons.py
-# venv\Scripts\pyside6-uic ImproTronControlBoard.ui -o ui_ImproTronControlBoard.py
-# venv\Scripts\pyside6-uic ImproTron.ui -o ui_ImproTron.py
+# .qtcreator\Python_3_12_10venv\Scripts\activate
+# .qtcreator\Python_3_12_10venv\Scripts\pyside6-deploy -c ImproTron.spec
+# .qtcreator\Python_3_12_10venv\Scripts\pyside6-rcc -g python ImproTronIcons.qrc > ImproTronIcons.py
+# .qtcreator\Python_3_12_10venv\Scripts\pyside6-uic ImproTronControlBoard.ui -o ui_ImproTronControlBoard.py
+# .qtcreator\Python_3_12_10venv\Scripts\pyside6-uic ImproTron.ui -o ui_ImproTron.py
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
