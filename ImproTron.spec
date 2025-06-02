@@ -45,7 +45,7 @@ qml_files =
 excluded_qml_plugins = 
 
 # qt modules used. comma separated
-modules = Widgets,Core,Multimedia,Network,UiTools,MultimediaWidgets,WebEngineCore,Gui
+modules = WebEngineCore,QmlModels,OpenGL,Network,Core,WebChannel,Quick,Qml,OpenGLWidgets,Gui,MultimediaWidgets,QmlWorkerScript,Positioning,UiTools,Widgets,QmlMeta,Multimedia
 
 # qt plugins used by the application
 plugins = networkinformation,iconengines,platforms,multimedia,platformthemes,generic,styles,tls,platforminputcontexts,imageformats
