@@ -3,10 +3,10 @@ import logging
 
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QImageReader, QPixmap, QMovie
-from PySide6.QtWidgets import (QColorDialog, QFileDialog, QFileSystemModel, QMessageBox, QWidget,
+from PySide6.QtWidgets import (QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
 
-from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir,
+from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QTextStream,
                                 QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread)
 from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession, QMediaDevices, QMediaPlayer, QAudioOutput)
 from PySide6.QtNetwork import QNetworkAccessManager
@@ -1010,18 +1010,31 @@ class ImproTronControlBoard(QWidget):
     def startupImage(self):
         self._settings.set_startup_image(self.media_features.select_image_file())
 
+    # The About box doubles as a key setting dump and a way to clear them
     @Slot()
     def about(self):
         file = QFile(":/icons/about")
-        if file.exists():
-            if not file.open(QIODevice.ReadOnly | QIODevice.Text):
-                return
-            text = ""
+        if not file.exists():
+            return
 
-            while not file.atEnd():
-                text += file.readLine()
+        if not file.open(QIODevice.ReadOnly | QIODevice.Text):
+            return
 
-            QMessageBox.about(self.ui, "About ImproTron", text)
+        stream = QTextStream(file)
+        text = stream.readAll()
+        file.close()
+
+        text += self._settings.get_settings_text()
+
+        # Show message box with appended info
+        msg = QMessageBox(self.ui)
+        msg.setWindowTitle("About ImproTron")
+        msg.setText(text)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.RestoreDefaults)
+
+        result = msg.exec()
+        if result == QMessageBox.StandardButton.RestoreDefaults:
+            self._settings.restore_defaults()
 
     # Camera Slots
     @Slot(QCameraDevice)

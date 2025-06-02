@@ -43,6 +43,27 @@ class Settings:
     def _set(self, key, value):
         self.settings.setValue(key, value)
 
+    def restore_defaults(self):
+        self.settings.clear()
+
+    def get_settings_text(self):
+        # Append settings information
+        text = f"\n\nSettings location: {self.settings.fileName()}"
+        text += "\n--- Settings ---\n"
+        keys = self.settings.allKeys()
+        if keys:
+            for key in keys:
+                value = self.settings.value(key)  # access the underlying QSettings
+                text += f"{key}: {value}\n"
+        else:
+            text += "No settings stored.\n"
+
+        return text
+
+    def get_location(self):
+        return self.settings.fileName()
+
+
     def get_config_dir(self):
         return self._get('configDir')
 

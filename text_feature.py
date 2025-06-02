@@ -42,7 +42,10 @@ class TextFeature(QObject):
         self.ui.rightTextColorPB.clicked.connect(self.pick_right_text_color)
         self.ui.leftTextColorPB.clicked.connect(self.pick_left_text_color)
 
-        # Ininialize preset color boxes from dialog custom colors.
+        # Pull the preset colors onto the selection buttons
+        self.set_preset_colors()
+
+        # Connect preset color boxes so they change the color selection button.
         for i in range(1, 9):
             getattr(self.ui, f"leftColorPreset{i}").clicked.connect(
                 lambda _, btn=getattr(self.ui, f"leftColorPreset{i}"): self.use_color_preset(btn, self.ui.leftTextColorPB)
@@ -51,8 +54,6 @@ class TextFeature(QObject):
                 lambda _, btn=getattr(self.ui, f"rightColorPreset{i}"): self.use_color_preset(btn, self.ui.rightTextColorPB)
             )
 
-        # Pull the preset colors onto the selection buttons
-        self.set_preset_colors()
 
 # End Connections
 
@@ -88,8 +89,6 @@ class TextFeature(QObject):
         left_presets = QRegularExpression('leftColorPreset')
         right_presets = QRegularExpression('rightColorPreset')
 
-        self._settings.save_custom_colors() # Store the color pallette in case it was changed
-
         # Use the index provided by the QColorDialog. Cap at the max number of buttons
         max_color_presets = QColorDialog.customCount()
 
@@ -111,8 +110,8 @@ class TextFeature(QObject):
     def pick_left_text_color(self):
         color_selected = QColorDialog.getColor(parent=self.ui,title = 'Pick Left Text Box Color')
 
-        # Update the presets in case one was changed while picking a color
-        self.set_preset_colors()
+        self._settings.save_custom_colors() # Store the color pallette in case it was changed
+        self.set_preset_colors() # Update the presets in case one was changed while picking a color
 
         if color_selected != None:
             style = utilities.style_sheet(color_selected)
@@ -122,8 +121,8 @@ class TextFeature(QObject):
     def pick_right_text_color(self):
         color_selected = QColorDialog.getColor(parent=self.ui,title = 'Pick Right Text Box Color')
 
-        # Update the presets in case one was changed while picking a color
-        self.set_preset_colors()
+        self._settings.save_custom_colors() # Store the color pallette in case it was changed
+        self.set_preset_colors() # Update the presets in case one was changed while picking a color
 
         if color_selected.isValid():
             style = utilities.style_sheet(color_selected)
