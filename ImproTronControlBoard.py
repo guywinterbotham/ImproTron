@@ -6,7 +6,7 @@ from PySide6.QtGui import QImageReader, QPixmap, QMovie
 from PySide6.QtWidgets import (QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
 
-from PySide6.QtCore import (Slot as PySlot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QTextStream, # Renamed Slot to PySlot
+from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QTextStream, # Slot import updated
                                 QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread, QObject) # Added QObject
 from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession, QMediaDevices, QMediaPlayer, QAudioOutput)
 from PySide6.QtNetwork import QNetworkAccessManager
@@ -35,7 +35,7 @@ class JavaScriptInterface(QObject):
         super().__init__()
         self.board = board_instance
 
-    @PySlot(str, float) # Or QJsonValue if sending complex objects
+    @Slot(str, float) # Or QJsonValue if sending complex objects
     def karaokeAction(self, action, time):
         self.board.handleKaraokeAction(action, time)
 
@@ -1264,7 +1264,7 @@ class ImproTronControlBoard(QWidget):
             logger.critical(f"Unable to load YouTube video: '{video_url}'. Error: {e}", exc_info=True)
             if hasattr(self, 'ui') and self.ui is not None: QMessageBox.critical(self.ui, 'Error', f"Could not load YouTube video: {e}")
 
-    @PySlot(str, float)
+    @Slot(str, float)
     def handleKaraokeAction(self, action, time):
         logger.info(f"Karaoke action received from JS: {action} at {time}")
         if self.ui.karaokeModeCB.isChecked():
@@ -1276,7 +1276,7 @@ class ImproTronControlBoard(QWidget):
                 # Optionally handle 'ended' state, e.g., pause aux
                 self.auxiliaryDisplay.web_view.page().runJavaScript(f"karaokePause(0);")
 
-    @PySlot()
+    @Slot()
     def play_youtube(self):
         if self.ui.karaokeModeCB.isChecked():
             self.mainDisplay.play_youtube()
@@ -1288,7 +1288,7 @@ class ImproTronControlBoard(QWidget):
         else:
             QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported or no display selected.')
 
-    @PySlot()
+    @Slot()
     def mute_youtube(self):
         if self.ui.karaokeModeCB.isChecked():
             # In Karaoke mode, the mute button should only affect the main display's audio.
@@ -1304,7 +1304,7 @@ class ImproTronControlBoard(QWidget):
             else:
                 QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
 
-    @PySlot()
+    @Slot()
     def pause_youtube(self):
         if self.ui.karaokeModeCB.isChecked():
             self.mainDisplay.pause_youtube()
