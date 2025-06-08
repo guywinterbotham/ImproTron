@@ -313,56 +313,146 @@ class ImproTron(QMainWindow):
         return self.ui.cameraPlayer
 
     # Controls for YouTube playback
-    def load_youtube(self, video_url):
-        # Embed the YouTube video
-        self.movie.stop() # Stop a GIF if it is playing
+    def load_youtube(self, video_url, is_karaoke_master=False): # MODIFIED
+        self.movie.stop()
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayYouTube)
 
         html_content = f"""
         <html>
+        <head>
+            <script type="text/javascript">
+                var isKaraokeMaster = {str(is_karaoke_master).lower()};
+            </script>
+        </head>
         <body style="margin:0; overflow:hidden;">
-        <iframe width="100%" height="100%" id="player" type="text/html" src="{video_url}"
+        <iframe width="100%" height="100%" id="player" type="text/html"
+                src="{video_url}"
                 frameborder="0" allowfullscreen>
         </iframe>
         </body>
         </html>
         """
         self.web_view.setHtml(html_content)
+        # Ensure loadFinished is connected if not already globally:
+        # self.web_view.loadFinished.connect(self.inject_toggle_javascript) # Should be connected once
 
     # Inject JavaScript to define the toggleMute function after the page loads
     def inject_toggle_javascript(self):
-        # Load YouTube IFrame API script
-        self.web_view.page().runJavaScript("""
+        script = """
             var tag = document.createElement('script');
             tag.src = "https://www.youtube.com/iframe_api";
             var firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            if (firstScriptTag) {{
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            }} else {{
+                document.head.appendChild(tag); // Fallback if no script tags exist
+            }}
 
-            // Setup player
             var player;
-            function onYouTubeIframeAPIReady() {
-                player = new YT.Player('player', {
-                    events: {
-                        onReady: function(event) {
-                            console.log('Player ready');
-                        }
-                    }
-                });
-            }
+            // This global variable is set by the script tag in the HTML head
+            // var isKaraokeMaster = false; // This is defined in the HTML by Python
 
-            // Define toggleMute
-            function toggleMute() {
-                if (player) {
-                    if (player.isMuted()) {
-                        player.unMute();
-                    } else {
-                        player.mute();
-                    }
-                } else {
-                    console.log('Player not initialized.');
-                }
-            }
-        """)
+            function onYouTubeIframeAPIReady() {{
+                player = new YT.Player('player', {{
+                    events: {{
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }}
+                }});
+            }}
+
+            function onPlayerReady(event) {{
+                console.log('Player ready. isKaraokeMaster: ' + (typeof isKaraokeMaster !== 'undefined' && isKaraokeMaster));
+                // Initial mute for auxiliary karaoke player is handled by Python calling self.mute_youtube()
+                // or self.force_mute_youtube() after load.
+            }}
+
+            function onPlayerStateChange(event) {{
+                var state = event.data;
+                var command = '';
+                var value = null;
+
+                if (state === YT.PlayerState.PLAYING) {{
+                    command = 'play';
+                    if (player && typeof player.getCurrentTime === 'function') {{ value = player.getCurrentTime(); }}
+                }} else if (state === YT.PlayerState.PAUSED) {{
+                    command = 'pause';
+                    if (player && typeof player.getCurrentTime === 'function') {{ value = player.getCurrentTime(); }}
+                }} else if (state === YT.PlayerState.ENDED) {{
+                    command = 'ended';
+                    value = 0;
+                }}
+
+                // Ensure isKaraokeMaster is defined before trying to use it
+                if (command && typeof isKaraokeMaster !== 'undefined' && isKaraokeMaster) {{
+                    if (window.parent && window.parent.postMessage) {{
+                        console.log('Karaoke Master: Sending message to parent: ' + command + ' at ' + value);
+                        window.parent.postMessage({{
+                            action: command,
+                            time: value,
+                            source: 'youtubePlayerMain'
+                        }}, '*');
+                    }}
+                }}
+            }}
+
+            function toggleMute() {{
+                if (player && typeof player.isMuted === 'function') {{
+                    if (player.isMuted()) {{
+                        if (typeof player.unMute === 'function') player.unMute();
+                    }} else {{
+                        if (typeof player.mute === 'function') player.mute();
+                    }}
+                }} else {{
+                    console.log('Player not initialized or mute functions not available for toggleMute.');
+                }}
+            }}
+
+            function forceMute() {{
+                if (player && typeof player.mute === 'function' && typeof player.isMuted === 'function' && !player.isMuted()) {{
+                    player.mute();
+                    console.log('Player forced to mute.');
+                }}
+            }}
+
+            function forceUnmute() {{
+                 if (player && typeof player.unMute === 'function' && typeof player.isMuted === 'function' && player.isMuted()) {{
+                    player.unMute();
+                    console.log('Player forced to unmute.');
+                }}
+            }}
+
+            function karaokePlay(time) {{
+                if (player && typeof player.seekTo === 'function' && typeof player.playVideo === 'function') {{
+                    console.log('Karaoke Slave: Attempting to play at ' + time);
+                    player.seekTo(time, true);
+                    player.playVideo();
+                }} else {{
+                    console.log('Karaoke Slave: Player not ready for karaokePlay.');
+                }}
+            }}
+
+            function karaokePause(time) {{
+                if (player && typeof player.seekTo === 'function' && typeof player.pauseVideo === 'function') {{
+                    console.log('Karaoke Slave: Attempting to pause at ' + time);
+                    // It's important to seek first, then pause. A small delay might be needed if the player isn't responsive enough.
+                    player.seekTo(time, true);
+                    setTimeout(function() {{ player.pauseVideo(); }}, 150); // Small delay to ensure seek completes
+                }} else {{
+                    console.log('Karaoke Slave: Player not ready for karaokePause.');
+                }}
+            }}
+
+            function karaokeSeek(time) {{ // Usually handled by karaokePlay or karaokePause
+                if (player && typeof player.seekTo === 'function') {{
+                    console.log('Karaoke Slave: Attempting to seek to ' + time);
+                    player.seekTo(time, true);
+                }} else {{
+                    console.log('Karaoke Slave: Player not ready for karaokeSeek.');
+                }}
+            }}
+        """
+        self.web_view.page().runJavaScript(script)
 
     def play_youtube(self):
         # Use JavaScript to play the video
@@ -383,6 +473,11 @@ class ImproTron(QMainWindow):
         self.web_view.page().runJavaScript("""
             document.querySelector('iframe').contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
         """)
+
+    def force_mute_youtube(self):
+        # This method will call the 'forceMute()' JavaScript function
+        # forceMute() is defined in the script injected by inject_toggle_javascript()
+        self.web_view.page().runJavaScript("forceMute();")
 
     # Return the location to persist
     def get_location(self):

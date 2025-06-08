@@ -6,10 +6,11 @@ from PySide6.QtGui import QImageReader, QPixmap, QMovie
 from PySide6.QtWidgets import (QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
 
-from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QTextStream,
-                                QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread)
+from PySide6.QtCore import (Slot as PySlot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QTextStream, # Renamed Slot to PySlot
+                                QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread, QObject) # Added QObject
 from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession, QMediaDevices, QMediaPlayer, QAudioOutput)
 from PySide6.QtNetwork import QNetworkAccessManager
+from PySide6.QtWebChannel import QWebChannel # Added QWebChannel
 
 from PySide6.QtMultimediaWidgets import QVideoWidget
 
@@ -28,6 +29,16 @@ from TouchPortal import TouchPortal
 
 logger = logging.getLogger(__name__)
 
+# Define helper class (can be outside ImproTronControlBoard or nested if preferred)
+class JavaScriptInterface(QObject):
+    def __init__(self, board_instance):
+        super().__init__()
+        self.board = board_instance
+
+    @PySlot(str, float) # Or QJsonValue if sending complex objects
+    def karaokeAction(self, action, time):
+        self.board.handleKaraokeAction(action, time)
+
 class ImproTronControlBoard(QWidget):
     slideLoadSignal = Signal(str)
     def __init__(self, parent=None):
@@ -38,6 +49,13 @@ class ImproTronControlBoard(QWidget):
         loader = QUiLoader()
         self.ui = loader.load("ImproTronControlPanel.ui")
         logger.info("UI loaded.")
+
+        # In ImproTronControlBoard.__init__:
+        self.js_interface = JavaScriptInterface(self)
+        self.main_web_channel = QWebChannel() # Create a channel
+        # self.mainDisplay.web_view.page().setWebChannel(self.main_web_channel) # Set channel on main page - Moved to load_youtube
+        self.main_web_channel.registerObject("pyBridge", self.js_interface) # Expose Python object
+
 
         # Model/View/Controller model for images
         self.mediaModel = QFileSystemModel()
@@ -1175,45 +1193,125 @@ class ImproTronControlBoard(QWidget):
                 video_id = video_url  # Assume it's already a VIDEO_ID
 
             # Build embed URL
+            # Try to construct a meaningful origin for the YouTube player
+            page_url = self.mainDisplay.web_view.url()
+            origin = f"{page_url.scheme()}://{page_url.host()}"
+            if page_url.port() != -1:
+                origin += f":{page_url.port()}"
+
+            # If the scheme is 'data', origin might be 'null' or not what YouTube expects.
+            # Fallback to a generic localhost if scheme is not http/https for local content.
+            if page_url.scheme() not in ['http', 'https']:
+                 # This is a guess; YouTube might still restrict.
+                 # For file:// URLs, there's no standard origin, often treated as unique/null.
+                 # Using setHtml makes the iframe's origin potentially 'null'.
+                 # The `origin` parameter is a security feature for YouTube API.
+                 # If issues arise, this might need to be removed or handled differently.
+                 # For now, let's assume a generic localhost might work or be ignored safely by YouTube for embedded players.
+                pass # Keep embed_url simple for now if origin is tricky with setHtml
+
             embed_url = f"https://www.youtube.com/embed/{video_id}?enablejsapi=1"
-            if self.ui.videoOnMainRB.isChecked():
-                self.mainDisplay.load_youtube(embed_url)
+            # embed_url = f"https://www.youtube.com/embed/{video_id}?enablejsapi=1&origin={origin}"
+
+
+            if self.ui.karaokeModeCB.isChecked():
+                logger.info(f"Loading YouTube in Karaoke Mode: {embed_url}")
+                # Setup listener on the mainDisplay's parent page for iframe messages
+                parent_page_script = """
+                    if (!window.messageListenerAttached) { // Attach only once
+                        window.addEventListener('message', function(event) {
+                            // console.log('Parent page received message:', event.data); // For debugging
+                            if (event.data && event.data.source === 'youtubePlayerMain') {
+                                if (window.pyBridge && typeof window.pyBridge.karaokeAction === 'function') {
+                                    // console.log('Forwarding to pyBridge:', event.data.action, event.data.time); // For debugging
+                                    window.pyBridge.karaokeAction(event.data.action, event.data.time);
+                                } else {
+                                    console.error('pyBridge or karaokeAction not available on parent page.');
+                                }
+                            }
+                        });
+                        window.messageListenerAttached = true;
+                        console.log('Parent page message listener for iframe attached.');
+                    }
+                """
+                if not self.mainDisplay.web_view.page().webChannel():
+                    self.mainDisplay.web_view.page().setWebChannel(self.main_web_channel)
+
+                self.mainDisplay.load_youtube(embed_url, is_karaoke_master=True)
+                self.mainDisplay.web_view.page().runJavaScript(parent_page_script) # Inject listener
+
+                self.auxiliaryDisplay.load_youtube(embed_url, is_karaoke_master=False) # is_karaoke_master=False is default
+                self.auxiliaryDisplay.force_mute_youtube() # MODIFIED: Call new force_mute_youtube()
+
+                self.main_preview.clear() # Assuming self.main_preview is a valid object
+                self.main_preview.setStyleSheet("background:black; color:black")
+                self.aux_preview.clear() # Assuming self.aux_preview is a valid object
+                self.aux_preview.setStyleSheet("background:black; color:black")
+            elif self.ui.videoOnMainRB.isChecked():
+                self.mainDisplay.load_youtube(embed_url, is_karaoke_master=False)
                 self.main_preview.clear()
                 self.main_preview.setStyleSheet("background:black; color:black")
-            elif self.ui.videoOnAuxRB.isChecked():
-                self.auxiliaryDisplay.load_youtube(embed_url)
+                if hasattr(self, 'aux_preview') and self.aux_preview is not None: self.aux_preview.blackout() # Check if aux_preview exists and is not None
+            elif self.ui.videoOnAuxRB.isChecked(): # Assuming self.ui.videoOnAuxRB is valid
+                self.auxiliaryDisplay.load_youtube(embed_url, is_karaoke_master=False)
                 self.aux_preview.clear()
                 self.aux_preview.setStyleSheet("background:black; color:black")
+                if hasattr(self, 'main_preview') and self.main_preview is not None: self.main_preview.blackout() # Check if main_preview exists and is not None
             else:
-                QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
+                if hasattr(self, 'ui') and self.ui is not None: QMessageBox.warning(self.ui, 'Preview', 'YouTube preview not supported directly here. Select Main or Aux display.')
 
-        except Exception:
-            # Show an error message
-            logging.warn(f"Unable to load video: {video_url}")
+        except Exception as e:
+            logger.critical(f"Unable to load YouTube video: '{video_url}'. Error: {e}", exc_info=True)
+            if hasattr(self, 'ui') and self.ui is not None: QMessageBox.critical(self.ui, 'Error', f"Could not load YouTube video: {e}")
 
-    @Slot()
+    @PySlot(str, float)
+    def handleKaraokeAction(self, action, time):
+        logger.info(f"Karaoke action received from JS: {action} at {time}")
+        if self.ui.karaokeModeCB.isChecked():
+            if action == "play":
+                self.auxiliaryDisplay.web_view.page().runJavaScript(f"karaokePlay({time});")
+            elif action == "pause":
+                self.auxiliaryDisplay.web_view.page().runJavaScript(f"karaokePause({time});")
+            elif action == "ended":
+                # Optionally handle 'ended' state, e.g., pause aux
+                self.auxiliaryDisplay.web_view.page().runJavaScript(f"karaokePause(0);")
+
+    @PySlot()
     def play_youtube(self):
-        if self.ui.videoOnMainRB.isChecked():
+        if self.ui.karaokeModeCB.isChecked():
+            self.mainDisplay.play_youtube()
+            # Aux display will be controlled by JS sync later
+        elif self.ui.videoOnMainRB.isChecked():
             self.mainDisplay.play_youtube()
         elif self.ui.videoOnAuxRB.isChecked():
             self.auxiliaryDisplay.play_youtube()
         else:
-            QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
+            QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported or no display selected.')
 
-    @Slot()
+    @PySlot()
     def mute_youtube(self):
-        if self.ui.videoOnMainRB.isChecked():
-            self.mainDisplay.mute_youtube()
-        elif self.ui.videoOnAuxRB.isChecked():
-            self.auxiliaryDisplay.mute_youtube()
+        if self.ui.karaokeModeCB.isChecked():
+            # In Karaoke mode, the mute button should only affect the main display's audio.
+            # The auxiliary display is force-muted on load and should stay that way.
+            self.mainDisplay.mute_youtube() # This calls toggleMute on main display
+            logger.info("Karaoke Mode: Toggling mute for Main Display.")
         else:
-            QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
+            # Normal mode: toggle mute for the selected display
+            if self.ui.videoOnMainRB.isChecked():
+                self.mainDisplay.mute_youtube()
+            elif self.ui.videoOnAuxRB.isChecked():
+                self.auxiliaryDisplay.mute_youtube()
+            else:
+                QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
 
-    @Slot()
+    @PySlot()
     def pause_youtube(self):
-        if self.ui.videoOnMainRB.isChecked():
+        if self.ui.karaokeModeCB.isChecked():
+            self.mainDisplay.pause_youtube()
+            # Aux display will be controlled by JS sync later
+        elif self.ui.videoOnMainRB.isChecked():
             self.mainDisplay.pause_youtube()
         elif self.ui.videoOnAuxRB.isChecked():
             self.auxiliaryDisplay.pause_youtube()
         else:
-            QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
+            QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported or no display selected.')
