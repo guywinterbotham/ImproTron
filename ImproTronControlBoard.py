@@ -420,7 +420,7 @@ class ImproTronControlBoard(QWidget):
             return False
 
     # Note: This is both a local call but a slot for images emitted from the media features
-    @Slot(str)
+    @Slot(str) # Ensuring this is Slot
     def showMediaOnMain(self, file_name):
         if len(file_name) <= 0:
             return
@@ -452,7 +452,7 @@ class ImproTronControlBoard(QWidget):
             logging.warning(f"Unsupported media for main: {file_name}")
 
     # Note: This is both a local call but a slot for images emitted from the media features
-    @Slot(str)
+    @Slot(str) # Ensuring this is Slot
     def showMediaOnAux(self, file_name):
         if len(file_name) <= 0:
             return
@@ -511,20 +511,20 @@ class ImproTronControlBoard(QWidget):
         if color_selected.isValid():
             self.set_right_team_colors(color_selected)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def blackout_both(self):
         self.main_preview.blackout()
         self.aux_preview.blackout()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def getImageFileMain(self):
         self.showMediaOnMain(self.media_features.select_image_file())
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def getImageFileAuxiliary(self):
         self.showMediaOnAux(self.media_features.select_image_file())
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def getVideoFile(self):
         file_name = QFileDialog.getOpenFileName(self.ui, "Select Video", self._settings.get_video_directory() , "Video Files (*.mp4 *.m4v *.mp4v *.wmv)")
 
@@ -535,52 +535,52 @@ class ImproTronControlBoard(QWidget):
             else:
                 logging.warning(f"Unsupported Video File selected: {file_name[0]}")
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def show_scores_main(self):
         self.mainDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
         utilities.capture_window(self.mainDisplay, self.main_preview)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def show_scores_auxiliary(self):
         self.auxiliaryDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
         utilities.capture_window(self.auxiliaryDisplay, self.aux_preview)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def show_scores_both(self):
         self.show_scores_main()
         self.show_scores_auxiliary()
 
     # Quick add buttons to update the score and immediate show on the Main Moitor
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def quickAdd50(self):
         self.ui.teamScoreLeft.setValue(self.ui.teamScoreLeft.value()+5)
         self.show_scores_both()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def quickAdd05(self):
         self.ui.teamScoreRight.setValue(self.ui.teamScoreRight.value()+5)
         self.show_scores_both()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def quickAdd32(self):
         self.ui.teamScoreLeft.setValue(self.ui.teamScoreLeft.value()+3)
         self.ui.teamScoreRight.setValue(self.ui.teamScoreRight.value()+2)
         self.show_scores_both()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def quickAdd23(self):
         self.ui.teamScoreLeft.setValue(self.ui.teamScoreLeft.value()+2)
         self.ui.teamScoreRight.setValue(self.ui.teamScoreRight.value()+3)
         self.show_scores_both()
 
-    @Slot(str)
+    @Slot(str) # Ensuring this is Slot
     def show_left_team(self, teamName):
         self.mainDisplay.showLeftTeam(teamName)
         self.auxiliaryDisplay.showLeftTeam(teamName)
         self.ui.leftThingTeamRB.setText(teamName)
         self._settings.set_left_team_name(teamName)
 
-    @Slot(str)
+    @Slot(str) # Ensuring this is Slot
     def show_right_team(self, teamName):
         self.mainDisplay.showRightTeam(teamName)
         self.auxiliaryDisplay.showRightTeam(teamName)
@@ -602,11 +602,11 @@ class ImproTronControlBoard(QWidget):
             self.mainDisplay.maximize()
 
     # Slideshow Management
-    @Slot(int)
+    @Slot(int) # Ensuring this is Slot
     def slideShowSecondChanged(self, value):
         self._settings.set_slideshow_delay(value)
 
-    @Slot(QItemSelection, QItemSelection)
+    @Slot(QItemSelection, QItemSelection) # Ensuring this is Slot
     def imageSelectedfromDir(self, new_selection, old_selection):
         # get the text of the selected item
         index = self.ui.slideShowFilesTreeView.selectionModel().currentIndex()
@@ -637,14 +637,14 @@ class ImproTronControlBoard(QWidget):
         self.ui.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.slidePreviewLBL.size())))
 
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def addSlidetoList(self):
         # get the text of the selected item
         index = self.ui.slideShowFilesTreeView.selectionModel().currentIndex()
         if not self.mediaModel.isDir(index):
             SlideWidget(self.mediaModel.fileInfo(index), self.ui.slideListLW)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def slideMoveUp(self):
         slideRow = self.ui.slideListLW.currentRow()
         if slideRow < 0:
@@ -653,7 +653,7 @@ class ImproTronControlBoard(QWidget):
         self.ui.slideListLW.insertItem(slideRow-1,thing)
         self.ui.slideListLW.setCurrentRow(slideRow-1)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def slideMoveDown(self):
         slideRow = self.ui.slideListLW.currentRow()
         if slideRow < 0:
@@ -662,7 +662,7 @@ class ImproTronControlBoard(QWidget):
         self.ui.slideListLW.insertItem(slideRow+1,thing)
         self.ui.slideListLW.setCurrentRow(slideRow+1)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def removeSlidefromList(self):
         self.ui.slidePreviewLBL.clear()
         self.ui.slideListLW.takeItem(self.ui.slideListLW.row(self.ui.slideListLW.currentItem()))
@@ -677,7 +677,7 @@ class ImproTronControlBoard(QWidget):
                 file = QFileInfo(slide[1])
                 SlideWidget(file, self.ui.slideListLW)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def loadSlideShow(self):
         if self.ui.slideListLW.count() > 0:
             reply = QMessageBox.question(self.ui, 'Replace Slides', 'Are you sure you want replace the current slides?',
@@ -693,7 +693,7 @@ class ImproTronControlBoard(QWidget):
 
         self.loadSlides(file_name[0])
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def saveSlideShow(self):
         file_name = QFileDialog.getSaveFileName(self.ui, "Save Slide Show",
                                    self._settings.get_config_dir(),
@@ -709,7 +709,7 @@ class ImproTronControlBoard(QWidget):
                 json.dump(slide_data, json_file, indent=2)
                 json_file.close()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def clearSlideShow(self):
         reply = QMessageBox.question(self.ui, 'Clear Slides', 'Are you sure you want clear all slides?',
                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
@@ -724,13 +724,13 @@ class ImproTronControlBoard(QWidget):
             for file_info in QDir(_promosDirectory).entryInfoList("*.jpg *.png", QDir.Files, QDir.Name):
                 SlideWidget(file_info, self.ui.slideListLW)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def startPromosSlideShow(self):
         self.promosMode = True
         self.loadPromosSlides()
         self.slideShowPlay()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def showSlideMain(self):
         if self.ui.copytoAuxCB.isChecked(): # Duplicate to Aux if Duplicate preference set
             self.showSlideBoth()
@@ -738,19 +738,19 @@ class ImproTronControlBoard(QWidget):
             if self.ui.slideListLW.currentItem() != None:
                 self.showMediaOnMain(self.ui.slideListLW.currentItem().imagePath())
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def showSlideAuxiliary(self):
         if self.ui.slideListLW.currentItem() != None:
             self.showMediaOnAux(self.ui.slideListLW.currentItem().imagePath())
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def showSlideBoth(self):
         if self.ui.slideListLW.currentItem() != None:
             self.showMediaOnMain(self.ui.slideListLW.currentItem().imagePath())
             self.showMediaOnAux(self.ui.slideListLW.currentItem().imagePath())
 
     # Slots for handling the Slide Show Player
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def nextSlide(self):
         # Force the media player to stop just in case there is video play back occuring
         self.mediaPlayer.stop()
@@ -794,7 +794,7 @@ class ImproTronControlBoard(QWidget):
             self.currentSlide = 0
             logging.warning(f"Missing Slides: {self.currentSlide}")
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def slideShowRestart(self):
         slideCount = self.ui.slideListLW.count()
         if slideCount > 0:
@@ -802,7 +802,7 @@ class ImproTronControlBoard(QWidget):
             self.ui.slideListLW.setCurrentRow(self.currentSlide)
             self.showSlideMain()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def slideShowBack(self):
         slideCount = self.ui.slideListLW.count()
         if slideCount > 1:
@@ -812,7 +812,7 @@ class ImproTronControlBoard(QWidget):
         else:
             self.currentSlide = 1
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def slideShowPlay(self):
         if not self.paused:
             self.currentSlide = 0
@@ -825,14 +825,14 @@ class ImproTronControlBoard(QWidget):
         self.slideShowTimer.setInterval(1000)
         self.slideShowTimer.start()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def slideShowPause(self):
         self.slideShowTimer.stop()
         if self.mediaPlayer.isPlaying():
             self.mediaPlayer.pause()
         self.paused = True
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def slideShowStop(self):
         self.slideShowTimer.stop()
         if self.mediaPlayer.isPlaying():
@@ -841,11 +841,11 @@ class ImproTronControlBoard(QWidget):
         self.promosMode = False # Cancel the promo behavior on a stop
         self.currentSlide = 0
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def slideShowForward(self):
         self.nextSlide()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def slideShowSkip(self):
         slideCount = self.ui.slideListLW.count()
         if slideCount > 0:
@@ -854,24 +854,24 @@ class ImproTronControlBoard(QWidget):
             self.showSlideMain()
 
     # Countdown timer controls
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def startTimer(self):
         self.mainDisplay.timerStart(self.ui.countDownTimer.time(), self.ui.timeRedTimer.time())
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def resetTimer(self):
         self.mainDisplay.timerReset(self.ui.countDownTimer.time(), self.ui.timeRedTimer.time())
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def pauseTimerPB(self):
         self.mainDisplay.timerPause()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def timerVisibleMain(self):
         self.mainDisplay.timerVisible(self.ui.timerVisibleMainCB.isChecked())
 
     # Whammy Controlers
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def startWhamming(self):
         slideCount = self.ui.slideListLW.count()
 
@@ -886,7 +886,7 @@ class ImproTronControlBoard(QWidget):
         self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
         self.whammyTimer.start()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def nextWham(self):
         image = self.slideLoaderThread.getSlide()
         if image:
@@ -907,12 +907,12 @@ class ImproTronControlBoard(QWidget):
         self.ui.slideListLW.setCurrentRow(randomSlide)
         self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
 
-    @Slot() # Relocate to Slide show as it involves SlideWidgets
+    @Slot() # Ensuring this is Slot
     def searchtoSlideShow(self):
         if self.ui.mediaSearchResultsLW.currentItem() != None:
             SlideWidget(QFileInfo(self.ui.mediaSearchResultsLW.currentItem().imagePath()), self.ui.slideListLW)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def soundMoveUp(self):
         soundRow = self.ui.soundQueueLW.currentRow()
         if soundRow < 0:
@@ -939,7 +939,7 @@ class ImproTronControlBoard(QWidget):
         self.mediaPlayer.setPosition(0)
         self.mediaPlayer.play()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def videoPause(self):
         if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
             self.mediaPlayer.play()
@@ -948,11 +948,11 @@ class ImproTronControlBoard(QWidget):
         if self.mediaPlayer.isPlaying():
             self.mediaPlayer.pause()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def videoStop(self):
         self.mediaPlayer.stop()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def videoLoop(self):
         if self.ui.videoLoopPB.isChecked():
             self.mediaPlayer.setLoops(QMediaPlayer.Infinite)
@@ -967,7 +967,7 @@ class ImproTronControlBoard(QWidget):
 
     # Slide Timer interval setting for videos: QMediaPlayer does not have the duration available on load
     # but does so when playing commences. If the slide timer is active this slot changes the interval to match
-    @Slot(int)
+    @Slot(int) # Ensuring this is Slot
     def updateDuration(self, duration):
         self.last_media_duration = duration + 100 # Add a little buffer
         if self.slideShowTimer.isActive():
@@ -975,12 +975,12 @@ class ImproTronControlBoard(QWidget):
             self.slideShowTimer.setInterval(self.last_media_duration) # Add a little buffer
 
     # Preferences and Hot Buttons configuration settings
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def clearHotButtonsClicked(self):
         for button in range(self.ui.hotButtonHL.count()):
             self.hot_buttons[button].clear()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def loadHotButtonsClicked(self):
         file_name = QFileDialog.getOpenFileName(self.ui, "Load Hot Buttons",
                     self._settings.get_config_dir(),
@@ -998,7 +998,7 @@ class ImproTronControlBoard(QWidget):
             for button in range(self.ui.hotButtonHL.count()):
                 self.hot_buttons[button].load(button_data)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def saveHotButtonsClicked(self):
         file_name = QFileDialog.getSaveFileName(self.ui, "Save Hot Buttons",
                     self._settings.get_config_dir(),
@@ -1014,7 +1014,7 @@ class ImproTronControlBoard(QWidget):
                 json.dump(button_data, json_file, indent=2)
                 json_file.close()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def selectPromosDirectory(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
                 "Select the Promos Directory",
@@ -1024,12 +1024,12 @@ class ImproTronControlBoard(QWidget):
         # not play any startup slides
         self._settings.set_promos_directory(setDir)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def startupImage(self):
         self._settings.set_startup_image(self.media_features.select_image_file())
 
     # The About box doubles as a key setting dump and a way to clear them
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def about(self):
         file = QFile(":/icons/about")
         if not file.exists():
@@ -1055,7 +1055,7 @@ class ImproTronControlBoard(QWidget):
             self._settings.restore_defaults()
 
     # Camera Slots
-    @Slot(QCameraDevice)
+    @Slot(QCameraDevice) # Ensuring this is Slot
     def setCamera(self, cameraDevice):
 
         self.m_camera = QCamera(cameraDevice)
@@ -1067,7 +1067,7 @@ class ImproTronControlBoard(QWidget):
         self.m_camera.stop()
         self.updateCameraActive(self.m_camera.isActive())
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def startCamera(self):
 
         self.mediaPlayer.setVideoOutput(None)
@@ -1081,7 +1081,7 @@ class ImproTronControlBoard(QWidget):
 
         self.m_camera.start()
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def stopCamera(self):
         self.m_camera.stop()
         if self.ui.videoOnMainRB.isChecked():
@@ -1089,7 +1089,7 @@ class ImproTronControlBoard(QWidget):
         elif self.ui.videoOnAuxRB.isChecked():
             self.auxiliaryDisplay.blackout()
 
-    @Slot(bool)
+    @Slot(bool) # Ensuring this is Slot
     def updateCameraActive(self, active):
         if active:
             self.ui.cameraStartPB.setEnabled(False)
@@ -1098,23 +1098,23 @@ class ImproTronControlBoard(QWidget):
             self.ui.cameraStartPB.setEnabled(True)
             self.ui.cameraStopPB.setEnabled(False)
 
-    @Slot(bool)
+    @Slot(bool) # Ensuring this is Slot
     def disableCameraControls(self):
         self.ui.cameraStartPB.setEnabled(False)
         self.ui.cameraStopPB.setEnabled(False)
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def displayCameraError(self):
         if self.m_camera.error() != QCamera.NoError:
             QMessageBox.warning(self, "Camera Error",
                                 self.m_camera.errorString())
             logger.warn(f"Camera Error {self.m_camera.errorString()}")
 
-    @Slot(QListWidgetItem)
+    @Slot(QListWidgetItem) # Ensuring this is Slot
     def updateCameraDevice(self, camera):
         self.setCamera(camera.data(Qt.UserRole))
 
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def updateCameras(self):
         self.ui.camerasLW.clear()
 
@@ -1128,12 +1128,12 @@ class ImproTronControlBoard(QWidget):
                 videoDeviceItem.setSelected(True)
 
     # Respond to the request to change volume
-    @Slot(int)
+    @Slot(int) # Ensuring this is Slot
     def set_sound_volume(self, value):
         self.audioOutput.setVolume(value/self.ui.soundVolumeSL.maximum())
 
     # Touch Portal message handlers
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def connectTouchPortal(self):
         self._settings.set_touch_portal_connect(self.ui.touchPortalConCB.isChecked()) # Remember for the next session
         if self.ui.touchPortalConCB.isChecked():
@@ -1142,7 +1142,7 @@ class ImproTronControlBoard(QWidget):
             self.touchPortalClient.disconnectTouchPortal()
 
     # Handle a request to click a button
-    @Slot(str)
+    @Slot(str) # Ensuring this is Slot
     def onTouchPortalButtonAction(self, buttonID):
         button = utilities.findWidget(self.ui, QPushButton, buttonID)
         if button != None:
@@ -1151,7 +1151,7 @@ class ImproTronControlBoard(QWidget):
             logging.warning(f"QPushButton: {buttonID} not found")
 
     # Handle a request to increment or reset a QSpinbox like that used for scoring
-    @Slot(str, int)
+    @Slot(str, int) # Ensuring this is Slot
     def onTouchPortalSpinBoxAction(self, buttonID, changeValue):
         spinBox = utilities.findWidget(self.ui, QDoubleSpinBox, buttonID)
         if spinBox != None:
@@ -1163,7 +1163,7 @@ class ImproTronControlBoard(QWidget):
             logging.warning(f"QDoubleSpinBox: {buttonID} not found")
 
     # Handle a request to display an image or animation
-    @Slot(str, str)
+    @Slot(str, str) # Ensuring this is Slot
     def onTouchPortalMediaAction(self, file, monitor):
         if monitor == "Main" or monitor == "Both":
             self.showMediaOnMain(file)
@@ -1172,7 +1172,7 @@ class ImproTronControlBoard(QWidget):
             self.showMediaOnAux(file)
 
     # Handle a request to display an image or animation
-    @Slot(str)
+    @Slot(str) # Ensuring this is Slot
     def onTouchPortalSoundAction(self, file):
         if QFileInfo.exists(file):
             self.mediaPlayer.setSource(QUrl.fromLocalFile(file))
@@ -1180,7 +1180,7 @@ class ImproTronControlBoard(QWidget):
             self.mediaPlayer.play()
 
     # YouTube Player support
-    @Slot()
+    @Slot() # Ensuring this is Slot
     def load_youtube(self):
         video_url = self.ui.youTubeLinkLE.text()
         try:

@@ -37,8 +37,24 @@ class ImproTron(QMainWindow):
 
         # Connect to the loadFinished signal
         self.web_view.loadFinished.connect(self.inject_toggle_javascript)
+        self.web_view.page().javaScriptConsoleMessage.connect(self._handle_js_console_message)
 
         self.updateScores(0.0, 0.0) # Force a font scaling
+
+    def _handle_js_console_message(self, level, message, lineNumber, sourceID):
+        # Map JavaScript console levels to Python logging levels if desired,
+        # For now, just log everything as INFO or DEBUG.
+        # JS levels: 0=Info, 1=Warning, 2=Error
+        log_level = logging.INFO
+        if level == 1: # Warning
+            log_level = logging.WARNING
+        elif level == 2: # Error
+            log_level = logging.ERROR
+
+        logger.log(
+            log_level,
+            f"JS CONSOLE ({self._display_name}): Level {level}, Line {lineNumber}, Source: '{sourceID}': {message}"
+        )
 
     # Countdown Timer Passthrough controls
         self._timer = CountdownTimer(self._display_name+" Timer")
