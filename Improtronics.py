@@ -2,16 +2,30 @@
 import logging
 
 from PySide6.QtWidgets import QPushButton, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow
-from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent
+from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent # Signal is already here
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect
-from PySide6.QtWebEngineCore import QWebEngineSettings
+from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage # Added QWebEnginePage
 
 import utilities
 from Timer import CountdownTimer
 from ui_ImproTron import Ui_ImproTron
 
 logger = logging.getLogger(__name__)
+
+class ConsoleLoggingPage(QWebEnginePage):
+    # Signal to emit JavaScript console messages
+    # Arguments: level (int), message (str), lineNumber (int), sourceId (str)
+    consoleMessageReceived = Signal(int, str, int, str)
+
+    def __init__(self, parent=None): # Add parent parameter
+        super().__init__(parent)
+
+    def javaScriptConsoleMessage(self, level, message, lineNumber, sourceId):
+        # Emit the signal with the received information
+        self.consoleMessageReceived.emit(level, message, lineNumber, sourceId)
+        # Optionally, call the base class implementation if needed, though often not for simple logging.
+        # super().javaScriptConsoleMessage(level, message, lineNumber, sourceId)
 
 # Class to handle display on a separate monitor
 class ImproTron(QMainWindow):
@@ -30,14 +44,23 @@ class ImproTron(QMainWindow):
         self.movie.setSpeed(100)
         self.web_view = self.ui.youTubePlayer
 
-        #
+        # Create and set the custom page
+        custom_page = ConsoleLoggingPage(self.web_view) # Pass self.web_view as parent
+        self.web_view.setPage(custom_page)
+
+        # Connect the custom signal from the custom page
+        custom_page.consoleMessageReceived.connect(self._handle_js_console_message)
+        # REMOVE (old connection): self.web_view.page().javaScriptConsoleMessage.connect(self._handle_js_console_message)
+
+
+        # Existing web_view settings
         self.web_view.settings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
         self.web_view.settings().setAttribute(QWebEngineSettings.JavascriptEnabled, True)
         self.web_view.settings().setAttribute(QWebEngineSettings.PlaybackRequiresUserGesture, False)
 
-        # Connect to the loadFinished signal
+        # Connect to the loadFinished signal (still needed for JS injection after page load)
         self.web_view.loadFinished.connect(self.inject_toggle_javascript)
-        self.web_view.page().javaScriptConsoleMessage.connect(self._handle_js_console_message)
+        # The direct connection to javaScriptConsoleMessage is now handled by ConsoleLoggingPage
 
         self.updateScores(0.0, 0.0) # Force a font scaling
 
