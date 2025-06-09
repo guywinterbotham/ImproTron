@@ -365,8 +365,7 @@ class ImproTron(QMainWindow):
             <title>YouTube Player</title>
         </head>
         <body style="margin:0; overflow:hidden;">
-        <iframe width="100%" height="100%" id="player" type="text/html"
-                src="{video_url}"
+        <iframe width="100%" height="100%" id="player" type="text/html" src="about:blank"
                 frameborder="0" allowfullscreen>
         </iframe>
         </body>
