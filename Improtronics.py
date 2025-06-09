@@ -59,7 +59,7 @@ class ImproTron(QMainWindow):
         self.web_view.settings().setAttribute(QWebEngineSettings.PlaybackRequiresUserGesture, False)
 
         # Connect to the loadFinished signal (still needed for JS injection after page load)
-        self.web_view.loadFinished.connect(self.inject_toggle_javascript)
+        # self.web_view.loadFinished.connect(self.inject_toggle_javascript) # Temporarily disabled for debugging
         # The direct connection to javaScriptConsoleMessage is now handled by ConsoleLoggingPage
 
         self.updateScores(0.0, 0.0) # Force a font scaling
