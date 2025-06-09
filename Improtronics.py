@@ -59,7 +59,7 @@ class ImproTron(QMainWindow):
         self.web_view.settings().setAttribute(QWebEngineSettings.PlaybackRequiresUserGesture, False)
 
         # Connect to the loadFinished signal (still needed for JS injection after page load)
-        # self.web_view.loadFinished.connect(self.inject_toggle_javascript) # Temporarily disabled for debugging
+        self.web_view.loadFinished.connect(self.inject_toggle_javascript)
         # The direct connection to javaScriptConsoleMessage is now handled by ConsoleLoggingPage
 
         self.updateScores(0.0, 0.0) # Force a font scaling
@@ -359,13 +359,13 @@ class ImproTron(QMainWindow):
         html_content = f"""
         <html>
         <head>
-            <!-- <script type="text/javascript">
+            <script type="text/javascript">
                 var isKaraokeMaster = {str(is_karaoke_master).lower()};
-            </script> -->
+            </script>
             <title>YouTube Player</title>
         </head>
         <body style="margin:0; overflow:hidden;">
-        <iframe width="100%" height="100%" id="player" type="text/html" src="about:blank"
+        <iframe width="100%" height="100%" id="player" type="text/html" src="{video_url}"
                 frameborder="0" allowfullscreen>
         </iframe>
         </body>
