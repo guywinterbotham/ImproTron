@@ -1220,18 +1220,18 @@ class ImproTronControlBoard(QWidget):
                 parent_page_script = """
                     if (!window.messageListenerAttached) { // Attach only once
                         window.addEventListener('message', function(event) {
-                            console.log('Parent page received message:', event.data); // For debugging
+                            console.log('Parent page received message:', event.data);
                             if (event.data && event.data.source === 'youtubePlayerMain') {
+                                console.log('Forwarding to pyBridge:', event.data.action, event.data.time);
                                 if (window.pyBridge && typeof window.pyBridge.karaokeAction === 'function') {
-                                    console.log('Forwarding to pyBridge:', event.data.action, event.data.time); // For debugging
                                     window.pyBridge.karaokeAction(event.data.action, event.data.time);
                                 } else {
-                                    console.error('pyBridge or karaokeAction not available on parent page.');
+                                    console.error('pyBridge or karaokeAction not available on parent page for mainDisplay.');
                                 }
                             }
                         });
                         window.messageListenerAttached = true;
-                        console.log('Parent page message listener for iframe attached.');
+                        console.log('Parent page message listener for iframe on mainDisplay attached.');
                     }
                 """
                 if not self.mainDisplay.web_view.page().webChannel():

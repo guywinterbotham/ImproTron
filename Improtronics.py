@@ -359,9 +359,10 @@ class ImproTron(QMainWindow):
         html_content = f"""
         <html>
         <head>
-            <script type="text/javascript">
+            <!-- <script type="text/javascript">
                 var isKaraokeMaster = {str(is_karaoke_master).lower()};
-            </script>
+            </script> -->
+            <title>YouTube Player</title>
         </head>
         <body style="margin:0; overflow:hidden;">
         <iframe width="100%" height="100%" id="player" type="text/html"
