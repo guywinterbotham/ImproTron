@@ -385,6 +385,8 @@ class ImproTronControlBoard(QWidget):
         self.ui.show()
 
     def _inject_main_display_message_listener(self):
+        # Ensure pyBridge is available when this script runs.
+        # The QWebChannel should be set on the page beforehand.
         parent_page_script = """
             if (!window.messageListenerAttached) { // Attach only once
                 window.addEventListener('message', function(event) {
