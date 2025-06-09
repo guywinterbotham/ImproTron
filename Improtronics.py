@@ -392,7 +392,12 @@ class ImproTron(QMainWindow):
             // var isKaraokeMaster = false; // This is defined in the HTML by Python
 
             function onYouTubeIframeAPIReady() {{
-                player = new YT.Player('player', { events: {} });
+                player = new YT.Player('player', {{
+                    events: {{
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }}
+                }});
             }}
 
             function onPlayerReady(event) {{
