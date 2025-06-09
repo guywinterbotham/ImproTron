@@ -402,8 +402,11 @@ class ImproTron(QMainWindow):
 
             function onPlayerReady(event) {{
                 console.log('Player ready. isKaraokeMaster: ' + (typeof isKaraokeMaster !== 'undefined' && isKaraokeMaster));
-                // Initial mute for auxiliary karaoke player is handled by Python calling self.mute_youtube()
-                // or self.force_mute_youtube() after load.
+                if (typeof isKaraokeMaster !== 'undefined' && !isKaraokeMaster) {{
+                    // This is an auxiliary player in Karaoke mode (or any non-master player)
+                    console.log('Auxiliary player ready, calling forceMute().');
+                    forceMute(); // Automatically mute if not the master
+                }}
             }}
 
             function onPlayerStateChange(event) {{

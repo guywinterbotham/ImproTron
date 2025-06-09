@@ -1220,10 +1220,10 @@ class ImproTronControlBoard(QWidget):
                 parent_page_script = """
                     if (!window.messageListenerAttached) { // Attach only once
                         window.addEventListener('message', function(event) {
-                            // console.log('Parent page received message:', event.data); // For debugging
+                            console.log('Parent page received message:', event.data); // For debugging
                             if (event.data && event.data.source === 'youtubePlayerMain') {
                                 if (window.pyBridge && typeof window.pyBridge.karaokeAction === 'function') {
-                                    // console.log('Forwarding to pyBridge:', event.data.action, event.data.time); // For debugging
+                                    console.log('Forwarding to pyBridge:', event.data.action, event.data.time); // For debugging
                                     window.pyBridge.karaokeAction(event.data.action, event.data.time);
                                 } else {
                                     console.error('pyBridge or karaokeAction not available on parent page.');
@@ -1241,7 +1241,7 @@ class ImproTronControlBoard(QWidget):
                 self.mainDisplay.web_view.page().runJavaScript(parent_page_script) # Inject listener
 
                 self.auxiliaryDisplay.load_youtube(embed_url, is_karaoke_master=False) # is_karaoke_master=False is default
-                self.auxiliaryDisplay.force_mute_youtube() # MODIFIED: Call new force_mute_youtube()
+                # REMOVED: self.auxiliaryDisplay.force_mute_youtube()
 
                 self.main_preview.clear() # Assuming self.main_preview is a valid object
                 self.main_preview.setStyleSheet("background:black; color:black")
