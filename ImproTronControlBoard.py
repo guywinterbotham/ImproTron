@@ -399,11 +399,31 @@ class ImproTronControlBoard(QWidget):
                 window.addEventListener('message', function(event) {
                     console.log('Parent page received message:', event.data);
                     if (event.data && event.data.source === 'youtubePlayerMain') {
-                        console.log('Forwarding to pyBridge:', event.data.action, event.data.time);
-                        if (window.pyBridge && typeof window.pyBridge.karaokeAction === 'function') {
-                            window.pyBridge.karaokeAction(event.data.action, event.data.time);
+                        console.log('Attempting to forward to pyBridge. Action: ' + event.data.action + ', Time: ' + event.data.time);
+                        if (window.qwebchannel && window.qwebchannel.objects && window.qwebchannel.objects.pyBridge && typeof window.qwebchannel.objects.pyBridge.karaokeAction === 'function') {
+                            console.log('Successfully found window.qwebchannel.objects.pyBridge.karaokeAction. Calling it now.');
+                            window.qwebchannel.objects.pyBridge.karaokeAction(event.data.action, event.data.time);
                         } else {
-                            console.error('pyBridge or karaokeAction not available on parent page for mainDisplay.');
+                            console.error('Error: window.qwebchannel.objects.pyBridge or its karaokeAction method not available.');
+                            // Detailed debugging logs:
+                            if (typeof window.qwebchannel === 'undefined') {
+                                console.error('window.qwebchannel is undefined.');
+                            } else {
+                                console.log('window.qwebchannel exists.');
+                                if (typeof window.qwebchannel.objects === 'undefined') {
+                                    console.error('window.qwebchannel.objects is undefined.');
+                                } else {
+                                    console.log('window.qwebchannel.objects exists. Checking for pyBridge...');
+                                    if (typeof window.qwebchannel.objects.pyBridge === 'undefined') {
+                                        console.error('window.qwebchannel.objects.pyBridge is undefined. Available objects: ' + Object.keys(window.qwebchannel.objects).join(', '));
+                                    } else {
+                                        console.log('window.qwebchannel.objects.pyBridge exists, checking for karaokeAction method...');
+                                        if (typeof window.qwebchannel.objects.pyBridge.karaokeAction !== 'function') {
+                                            console.error('karaokeAction method is not a function on pyBridge.');
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 });
