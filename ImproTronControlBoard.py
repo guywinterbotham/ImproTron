@@ -53,9 +53,13 @@ class ImproTronControlBoard(QWidget):
         # In ImproTronControlBoard.__init__:
         self.js_interface = JavaScriptInterface(self)
         self.main_web_channel = QWebChannel() # Create a channel
-        # self.mainDisplay.web_view.page().setWebChannel(self.main_web_channel) # Set channel on main page - Moved to load_youtube
         self.main_web_channel.registerObject("pyBridge", self.js_interface) # Expose Python object
 
+        if self.mainDisplay and self.mainDisplay.web_view:
+            self.mainDisplay.web_view.loadFinished.connect(self._inject_main_display_message_listener)
+            logger.info("Connected mainDisplay.web_view.loadFinished to _inject_main_display_message_listener.")
+        else:
+            logger.error("mainDisplay or mainDisplay.web_view not initialized in __init__, cannot connect loadFinished for message listener.")
 
         # Model/View/Controller model for images
         self.mediaModel = QFileSystemModel()
@@ -379,6 +383,35 @@ class ImproTronControlBoard(QWidget):
 
         # Let the fun begin!
         self.ui.show()
+
+    def _inject_main_display_message_listener(self):
+        parent_page_script = """
+            if (!window.messageListenerAttached) { // Attach only once
+                window.addEventListener('message', function(event) {
+                    console.log('Parent page received message:', event.data);
+                    if (event.data && event.data.source === 'youtubePlayerMain') {
+                        console.log('Forwarding to pyBridge:', event.data.action, event.data.time);
+                        if (window.pyBridge && typeof window.pyBridge.karaokeAction === 'function') {
+                            window.pyBridge.karaokeAction(event.data.action, event.data.time);
+                        } else {
+                            console.error('pyBridge or karaokeAction not available on parent page for mainDisplay.');
+                        }
+                    }
+                });
+                window.messageListenerAttached = true;
+                console.log('Parent page message listener for iframe on mainDisplay attached via loadFinished.');
+            } else {
+                console.log('Parent page message listener for iframe on mainDisplay was already attached.');
+            }
+        """
+        if self.mainDisplay and self.mainDisplay.web_view and self.mainDisplay.web_view.page():
+            # Ensure pyBridge (WebChannel) is set on the page before this script runs.
+            # This is handled in load_youtube before setHtml/load is called on mainDisplay.
+            logger.info("Injecting main display message listener script.")
+            self.mainDisplay.web_view.page().runJavaScript(parent_page_script)
+        else:
+            logger.warning("Could not inject main display message listener: mainDisplay or its components not ready at the time of loadFinished.")
+
 # ################################################################################################
 # ####################### Slots and more
     def eventFilter(self, obj, event):
@@ -1214,33 +1247,25 @@ class ImproTronControlBoard(QWidget):
             # embed_url = f"https://www.youtube.com/embed/{video_id}?enablejsapi=1&origin={origin}"
 
 
-            if self.ui.karaokeModeCB.isChecked():
+            if self.ui.karaokeModeCB.isChecked(): # KARAOKE MODE
                 logger.info(f"Loading YouTube in Karaoke Mode: {embed_url}")
-                # Setup listener on the mainDisplay's parent page for iframe messages
-                parent_page_script = """
-                    if (!window.messageListenerAttached) { // Attach only once
-                        window.addEventListener('message', function(event) {
-                            console.log('Parent page received message:', event.data);
-                            if (event.data && event.data.source === 'youtubePlayerMain') {
-                                console.log('Forwarding to pyBridge:', event.data.action, event.data.time);
-                                if (window.pyBridge && typeof window.pyBridge.karaokeAction === 'function') {
-                                    window.pyBridge.karaokeAction(event.data.action, event.data.time);
-                                } else {
-                                    console.error('pyBridge or karaokeAction not available on parent page for mainDisplay.');
-                                }
-                            }
-                        });
-                        window.messageListenerAttached = true;
-                        console.log('Parent page message listener for iframe on mainDisplay attached.');
-                    }
-                """
-                if not self.mainDisplay.web_view.page().webChannel():
-                    self.mainDisplay.web_view.page().setWebChannel(self.main_web_channel)
+
+                if self.mainDisplay and self.mainDisplay.web_view and self.mainDisplay.web_view.page():
+                    # Ensure QWebChannel is set up on the page for mainDisplay BEFORE loading content
+                    # This makes pyBridge available to the parent_page_script when it runs on loadFinished
+                    if not self.mainDisplay.web_view.page().webChannel():
+                        self.mainDisplay.web_view.page().setWebChannel(self.main_web_channel)
+                        logger.info("Set WebChannel for mainDisplay page.")
+                    # Else, WebChannel already set, which is fine.
+                else:
+                    logger.error("Cannot set WebChannel for mainDisplay: mainDisplay or its components not ready.")
+                    # Consider not proceeding if this critical setup fails
 
                 self.mainDisplay.load_youtube(embed_url, is_karaoke_master=True)
-                self.mainDisplay.web_view.page().runJavaScript(parent_page_script) # Inject listener
+                # The following line is now REMOVED as it's handled by loadFinished:
+                # self.mainDisplay.web_view.page().runJavaScript(parent_page_script)
 
-                self.auxiliaryDisplay.load_youtube(embed_url, is_karaoke_master=False) # is_karaoke_master=False is default
+                self.auxiliaryDisplay.load_youtube(embed_url, is_karaoke_master=False)
                 # REMOVED: self.auxiliaryDisplay.force_mute_youtube()
 
                 self.main_preview.clear() # Assuming self.main_preview is a valid object
