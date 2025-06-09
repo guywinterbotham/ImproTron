@@ -50,21 +50,6 @@ class ImproTronControlBoard(QWidget):
         self.ui = loader.load("ImproTronControlPanel.ui")
         logger.info("UI loaded.")
 
-        # In ImproTronControlBoard.__init__:
-        self.js_interface = JavaScriptInterface(self)
-        self.main_web_channel = QWebChannel() # Create a channel
-        self.main_web_channel.registerObject("pyBridge", self.js_interface) # Expose Python object
-
-        if self.mainDisplay and self.mainDisplay.web_view:
-            self.mainDisplay.web_view.loadFinished.connect(self._inject_main_display_message_listener)
-            logger.info("Connected mainDisplay.web_view.loadFinished to _inject_main_display_message_listener.")
-        else:
-            logger.error("mainDisplay or mainDisplay.web_view not initialized in __init__, cannot connect loadFinished for message listener.")
-
-        # Model/View/Controller model for images
-        self.mediaModel = QFileSystemModel()
-        self.mediaModel.setRootPath(self._settings.get_media_directory())
-
         # MediaPlayer and audio setup for movies, webcams, and sound
         self.mediaPlayer = QMediaPlayer()
         self.audioOutput = QAudioOutput()
@@ -73,11 +58,11 @@ class ImproTronControlBoard(QWidget):
         self.audioOutput.setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
         self.m_devices = QMediaDevices()
         self.m_devices.videoInputsChanged.connect(self.updateCameras)
-        self.updateCameras()
+        # self.updateCameras() # Called later after mainDisplay is initialized
         self.last_media_duration = 0 # used to over come a problem in slides with a single video
 
         self.m_captureSession = QMediaCaptureSession()
-        self.setCamera(QMediaDevices.defaultVideoInput())
+        # self.setCamera(QMediaDevices.defaultVideoInput()) # Called later after mainDisplay is initialized
         logger.info("Default camera set up.")
 
         # Connect error signal
@@ -89,18 +74,40 @@ class ImproTronControlBoard(QWidget):
         self.auxPreviewMovie = QMovie()
         self.auxPreviewMovie.setSpeed(100)
 
-        # Create Screens and relocate. Main done second so it is on top
+        # Create Screens AND THEIR IMMEDIATE CONFIGURATION
         self.mainDisplay = ImproTron("Main")
         self.auxiliaryDisplay = ImproTron("Auxiliary")
 
         self.auxiliaryDisplay.restore()
-        self.auxiliaryDisplay.set_location(self._settings.get_aux_location())
+        self.auxiliaryDisplay.set_location(self._settings.get_aux_location()) # Assuming _settings is already loaded
         self.auxiliaryDisplay.maximize()
 
         self.mainDisplay.restore()
-        self.mainDisplay.set_location(self._settings.get_main_location())
+        self.mainDisplay.set_location(self._settings.get_main_location()) # Assuming _settings is already loaded
         self.mainDisplay.maximize()
         logger.info("Main and Auxiliary displays initialized and configured.")
+
+        # Now that mainDisplay exists, we can call methods that might depend on it (like updateCameras indirectly)
+        self.updateCameras()
+        self.setCamera(QMediaDevices.defaultVideoInput())
+
+
+        # Setup for JavaScript bridge (QWebChannel)
+        self.js_interface = JavaScriptInterface(self)
+        self.main_web_channel = QWebChannel()
+        self.main_web_channel.registerObject("pyBridge", self.js_interface)
+        logger.info("JavaScript interface and main_web_channel for pyBridge initialized.")
+
+        # Connect mainDisplay's loadFinished to inject the message listener script
+        if self.mainDisplay and hasattr(self.mainDisplay, 'web_view') and self.mainDisplay.web_view:
+            self.mainDisplay.web_view.loadFinished.connect(self._inject_main_display_message_listener)
+            logger.info("Connected mainDisplay.web_view.loadFinished to _inject_main_display_message_listener.")
+        else:
+            logger.error("CRITICAL: mainDisplay or mainDisplay.web_view not initialized in __init__ before connecting loadFinished for message listener.")
+
+        # Model/View/Controller model for images
+        self.mediaModel = QFileSystemModel()
+        self.mediaModel.setRootPath(self._settings.get_media_directory())
 
         # Create a shared QNetworkAccessManager
         self.shared_network_manager = QNetworkAccessManager()
