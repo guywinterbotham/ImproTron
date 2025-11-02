@@ -14,6 +14,6 @@
         "thingz_feature.py",
         "settings.py",
         "monitor_preview.py",
-        "lighting_feature.py"
+        "osc_client.py"
     ]
 }
