@@ -24,7 +24,7 @@ from monitor_preview import MonitorPreview
 # from lighting_feature import LightingFeature # Future DMX integration
 import utilities
 import ImproTronIcons
-from TouchPortal import TouchPortal
+from osc_server import OSCServer
 
 logger = logging.getLogger(__name__)
 
@@ -279,18 +279,15 @@ class ImproTronControlBoard(QWidget):
 
         self.ui.loadVideoPB.clicked.connect(self.getVideoFile)
 
-        # Touch Portal Connect
-        self.touchPortalClient = TouchPortal('127.0.0.1', 12136)
-        logger.info("TouchPortal client initialized.")
-        self.ui.touchPortalConCB. checkStateChanged.connect(self.connectTouchPortal)
-        tpFlag = self._settings.get_touch_portal_connect()
-        self.ui.touchPortalConCB.setChecked(tpFlag)
+        # OSC Server
+        self.oscServer = OSCServer()
+        logger.info("OSCServer client initialized.")
 
-        # Connect the Touch Portal custom signals to a slot
-        self.touchPortalClient.buttonAction.connect(self.onTouchPortalButtonAction)
-        self.touchPortalClient.spinBoxAction.connect(self.onTouchPortalSpinBoxAction)
-        self.touchPortalClient.mediaAction.connect(self.onTouchPortalMediaAction)
-        self.touchPortalClient.soundAction.connect(self.onTouchPortalSoundAction)
+        # Connect the OSC Server custom signals to a slot
+        self.oscServer.buttonAction.connect(self.onOSCServerButtonAction)
+        self.oscServer.spinBoxAction.connect(self.onOSCServerSpinBoxAction)
+        self.oscServer.mediaAction.connect(self.media_features.onOSCServerMediaAction)
+        self.oscServer.soundAction.connect(self.media_features.onOSCServerSoundAction)
 
         # Preferences
         self.ui.aboutPB.clicked.connect(self.about)
@@ -374,7 +371,7 @@ class ImproTronControlBoard(QWidget):
         logging.info("ImproTron shutting down")
         self.mainDisplay.shutdown()
         self.auxiliaryDisplay.shutdown()
-        self.touchPortalClient.disconnectTouchPortal()
+        self.oscServer.disconnectOSCServer()
         self.thread.quit()
         self.ui.removeEventFilter(self)
         self.deleteLater()
@@ -1114,27 +1111,23 @@ class ImproTronControlBoard(QWidget):
     def set_sound_volume(self, value):
         self.audioOutput.setVolume(value/self.ui.soundVolumeSL.maximum())
 
-    # Touch Portal message handlers
+    # OSC Server message handlers
     @Slot()
-    def connectTouchPortal(self):
-        self._settings.set_touch_portal_connect(self.ui.touchPortalConCB.isChecked()) # Remember for the next session
-        if self.ui.touchPortalConCB.isChecked():
-            self.touchPortalClient.connectTouchPortal()
-        else:
-            self.touchPortalClient.disconnectTouchPortal()
+    def connectOSCServer(self):
+        self.oscServer.connectOSCServer()
 
     # Handle a request to click a button
     @Slot(str)
-    def onTouchPortalButtonAction(self, buttonID):
+    def onOSCServerButtonAction(self, buttonID):
         button = utilities.findWidget(self.ui, QPushButton, buttonID)
         if button != None:
             button.click()
         else:
-            logging.warning(f"QPushButton: {buttonID} not found")
+            logging.warning(f"OSC QPushButton: {buttonID} not found")
 
     # Handle a request to increment or reset a QSpinbox like that used for scoring
     @Slot(str, int)
-    def onTouchPortalSpinBoxAction(self, buttonID, changeValue):
+    def onOSCServerSpinBoxAction(self, buttonID, changeValue):
         spinBox = utilities.findWidget(self.ui, QDoubleSpinBox, buttonID)
         if spinBox != None:
             if changeValue == 0:
@@ -1143,23 +1136,6 @@ class ImproTronControlBoard(QWidget):
                 spinBox.setValue(spinBox.value() + changeValue) # change can be positive or negative
         else:
             logging.warning(f"QDoubleSpinBox: {buttonID} not found")
-
-    # Handle a request to display an image or animation
-    @Slot(str, str)
-    def onTouchPortalMediaAction(self, file, monitor):
-        if monitor == "Main" or monitor == "Both":
-            self.showMediaOnMain(file)
-
-        if monitor == "Aux" or monitor == "Both":
-            self.showMediaOnAux(file)
-
-    # Handle a request to display an image or animation
-    @Slot(str)
-    def onTouchPortalSoundAction(self, file):
-        if QFileInfo.exists(file):
-            self.mediaPlayer.setSource(QUrl.fromLocalFile(file))
-            self.mediaPlayer.setPosition(0)
-            self.mediaPlayer.play()
 
     # YouTube Player support
     @Slot()

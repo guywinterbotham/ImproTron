@@ -142,6 +142,28 @@ class MediaFeatures(QObject):
         else:
             QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
 
+    # Responds to an OSC command to show media on a monitor
+    @Slot(str)
+    def onOSCServerMediaAction(self, tags, monitor = "both"):
+        # Zero length tag list will stop play
+        if len(tags) == 0:
+            logging.warning("OSC Show Media: missing search tags")
+            return
+
+        found_files = self.media_file_database.search_media(tags, True)
+        if len(found_files) > 0:
+            found_file = found_files[0]
+            found_file_info = QFileInfo(found_file)
+            file = found_file_info.absoluteFilePath()
+            if monitor == "main" or monitor == "both":
+                self.mainMediaShow.emit(file)
+
+            if monitor == "aux" or monitor == "both":
+                self.auxMediaShow.emit(file)
+
+        else:
+            logging.warning(f"OSC Play Media: file matching {tags} not found for {monitor}")
+
     @Slot()
     def set_media_library(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
@@ -220,6 +242,26 @@ class MediaFeatures(QObject):
             self._settings.set_sound_directory(setDir)
             soundsCount = self.media_file_database.index_sounds(setDir)
             self.ui.soundFilesCountLBL.setText(str(soundsCount))
+
+    # Responds to an OSC command to play an audio file
+    @Slot(str)
+    def onOSCServerSoundAction(self, tags):
+        # Zero length tag list will stop play
+        if len(tags) == 0:
+            self.media_player.stop()
+            return
+
+        foundSounds = self.media_file_database.search_sounds(tags, True)
+        if len(foundSounds) > 0:
+            sound = foundSounds[0]
+            soundFile = QFileInfo(sound)
+            file = soundFile.absoluteFilePath()
+            self.media_player.setSource(QUrl.fromLocalFile(file))
+            self.media_player.setPosition(0)
+            self.media_player.play()
+
+        else:
+            logging.warning(f"OSC Play Sound: sound matching {tags} not found")
 
     @Slot()
     def sound_play(self):
