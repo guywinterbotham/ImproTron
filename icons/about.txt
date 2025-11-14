@@ -1,7 +1,7 @@
 ImproTron
-Version 1.2 Release June, 2025
+Version 2.0 Release November, 2025
 by Guy Winterbotham
 
-ImproTron is Light and Sound software for managing multiple screens, lights, and audio playback, designed primarily for ComedySportz (R) and other Improv Shows. It provides a comprehensive suite of tools to enhance live improvisational performances.
+ImproTron is Light and Sound software for managing multiple screens, media, and audio playback, designed primarily for ComedySportz (R) and other Improv Shows. It provides a comprehensive suite of tools to enhance live improvisational performances.
 
 https://github.com/guywinterbotham/ImproTron

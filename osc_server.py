@@ -6,19 +6,27 @@ from PySide6.QtNetwork import QUdpSocket, QHostAddress
 logger = logging.getLogger(__name__)
 
 # Common OSC routes for integration with Improtron
-OSC_SOUND_ACTION = "/sound/play"
-OSC_STOP_ALL_ACTION = "/sound/stop_all"
-OSC_MEDIA_ACTION = "/media/play"
-OSC_SPINBOX_ACTION = "/spinbox/change"
-OSC_BUTTON_ACTION = "/button/press"
-
+OSC_SOUND_PLAY = "/sound/play"
+OSC_SOUND_SEEK = "/sound/seek"
+OSC_SOUND_STOP = "/sound/stop"
+OSC_SOUND_STINGER = "/sound/stinger"
+OSC_SOUND_FADE = "/sound/fade"
+OSC_MEDIA_SHOW = "/media/show"
+OSC_SPINBOX_CHANGE = "/spinbox/change"
+OSC_BUTTON_PRESS = "/button/press"
+OSC_SFX_PLAY = "/soundfx/play"
+OSC_SFX_STOP = "/soundfx/stop"
 
 class OSCServer(QObject):
-    """A Qt-based OSC server with Touch Portal-style integration."""
     buttonAction = Signal(str)
     spinBoxAction = Signal(str, float)
     mediaAction = Signal(str, str)
     soundAction = Signal(str)
+    stingerAction = Signal(str)
+    sfxPlayAction = Signal(str)
+    stopAllSFXSignal = Signal()
+    fadeAction = Signal(float)
+    seekAction = Signal(float, str)
 
     def __init__(self, listen_host="127.0.0.1", listen_port=9000, parent=None):
         super().__init__(parent)
@@ -66,7 +74,6 @@ class OSCServer(QObject):
     # Message parsing and routing
     # ----------------------------------------------------------------------
     def _parse_osc_message(self, data: bytes):
-        """Parse a single OSC message."""
         # Parse address
         address_end = data.find(b'\0')
         address = data[:address_end].decode('utf-8')
@@ -97,61 +104,98 @@ class OSCServer(QObject):
 
         return address, args
 
+    # Dispatch OSC message to the correct signal handler
     def _dispatch_message(self, address: str, args: list):
-        """Dispatch OSC message to the correct signal handler."""
-        if address == OSC_SOUND_ACTION:
-            self.handle_sound_action(args)
-        elif address == OSC_STOP_ALL_ACTION:
+        if address == OSC_SOUND_PLAY:
+            if args:
+                self.soundAction.emit(str(args[0]))
+            else:
+                logger.warning(f"OSCServer: Missing sound tag list in {args}")
+        elif address == OSC_SOUND_STINGER:
+            if args:
+                self.stingerAction.emit(str(args[0]))
+            else:
+                logger.warning(f"OSCServer: Missing stinger tag list in {args}")
+        elif address == OSC_SOUND_SEEK:
+            # Check for at least one arg (seek time) and a second arg (tag list)
+            if args and len(args) >= 2:
+                arg_value = args[0] # Get the first argument (potential seek time)
+
+                try:
+                    # Attempt to convert the first value to a float
+                    float_value = float(arg_value)
+
+                    # Convert the rest of the arguments (args[1:]) into a space-delimited string
+                    tag_string = " ".join(str(arg) for arg in args[1:])
+
+                    # Emit the seek time (float) and the tag string
+                    # NOTE: You MUST define self.seekAction = Signal(float, str)
+                    self.seekAction.emit(float_value, tag_string)
+
+                    logger.debug(f"OSC Seek Command: Seek Time={float_value}s, Tags='{tag_string}'")
+
+                except (ValueError, TypeError):
+                    logger.error(f"OSCServer: SEEK Command's first argument must be a float (seconds), received '{arg_value}'.")
+            else:
+                logger.warning(f"OSCServer: Missing seek parameter and/or tags in {args}. Requires float (seconds) and at least one tag.")
+        elif address == OSC_SOUND_FADE:
+            if args and args[0] is not None:
+
+                arg_value = args[0] # Get the first argument
+
+                # Use try/except to safely attempt conversion
+                try:
+                    # Attempt to convert the value to a float
+                    float_value = float(arg_value)
+
+                    # If successful, emit a signal that expects a float
+                    self.fadeAction.emit(float_value)
+
+                except (ValueError, TypeError):
+                    logger.error(f"OSCServer: Fade Command should be a floating numer of seconds {args}")
+
+            else:
+                logger.warning(f"OSCServer: Missing fade parameter in {args}")
+        elif address == OSC_SOUND_STOP:
             self.soundAction.emit("")  # empty string = stop all
-        elif address == OSC_MEDIA_ACTION:
+        elif address == OSC_MEDIA_SHOW:
             self.handle_media_action(args)
-        elif address == OSC_SPINBOX_ACTION:
-            self.handle_spinbox_action(args)
-        elif address == OSC_BUTTON_ACTION:
-            self.handle_button_action(args)
+        elif address == OSC_SPINBOX_CHANGE:
+            if len(args) >= 2:
+                self.spinBoxAction.emit(str(args[0]), float(args[1]))
+            else:
+                logger.warning(f"OSCServer: Invalid spinbox args {args}")
+        elif address == OSC_BUTTON_PRESS:
+            button_id = str(args[0]) if args else ""
+            self.buttonAction.emit(button_id)
+        elif address == OSC_SFX_PLAY:
+            if args:
+                self.sfxPlayAction.emit(str(args[0]))
+            else:
+                logger.warning(f"OSCServer: Missing sound fx tag list in {args}")
+        elif address == OSC_SFX_STOP:
+            self.sfxPlayAction.emit("")  # empty string = stop all sound fx
         else:
             logger.info(f"OSCServer: Unhandled OSC address {address} with args {args}")
 
-    # ----------------------------------------------------------------------
-    # Handlers (Signal Emitters)
-    # ----------------------------------------------------------------------
-    def handle_button_action(self, args):
-        button_id = str(args[0]) if args else ""
-        self.buttonAction.emit(button_id)
-
-    def handle_spinbox_action(self, args):
-        if len(args) >= 2:
-            self.spinBoxAction.emit(str(args[0]), float(args[1]))
-        else:
-            logger.warning(f"OSCServer: Invalid spinbox args {args}")
-
+    # Handles OSC messages for media playback. Expects args[0] to be the monitor name.
+    # The remaining args are concatenated into a space-delimited string of search tags.
     def handle_media_action(self, args):
-        """
-        Handles OSC messages for media playback.
-        Expects args[0] to be the monitor name.
-        The remaining args are concatenated into a space-delimited string (the file path).
-        """
         # Ensure there is at least one argument (the monitor)
         if not args:
             self.logger.warning("OSCServer: Missing monitor argument for media action.")
             return
 
-        # 1. Extract the monitor name from args[0]
+        # Extract the monitor name from args[0]
         # Use str() to ensure it's a string, regardless of the OSC type tag.
         monitor = str(args[0]).lower()
 
-        # 2. Extract the remaining arguments (args[1] onwards)
+        # Extract the remaining arguments (args[1] onwards)
         tag_components = [str(arg) for arg in args[1:]]
 
-        # 3. Concatenate the components into a single, space-delimited file string
+        # Concatenate the components into a single, space-delimited file string
         # If there are no components, 'file' will be an empty string.
         tags = " ".join(tag_components)
 
-        # 4. Emit the signal with the new order (file, monitor)
-        self.mediaAction.emit(tags, monitor)
-
-    def handle_sound_action(self, args):
-        if args:
-            self.soundAction.emit(str(args[0]))
-        else:
-            logger.warning(f"OSCServer: Missing tag list in {args}")
+        # Emit the signal with the new order (monitor,file)
+        self.mediaAction.emit(monitor, tags)

@@ -1,10 +1,10 @@
 # media_features.py
 import json
 import logging
-from PySide6.QtCore import QObject, Slot, Signal, QFileInfo, QDirIterator, QUrl
+from PySide6.QtCore import QObject, Slot, Signal, QFileInfo, QDirIterator, QUrl, QRandomGenerator, QTimer
 from PySide6.QtGui import QImageReader, QPixmap, QMovie
 from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QStyle, QPushButton
-from PySide6.QtMultimedia import QMediaPlayer
+from PySide6.QtMultimedia import QMediaPlayer, QSoundEffect
 from Improtronics import SoundFX, SlideWidget
 from MediaFileDatabase import MediaFileDatabase
 
@@ -14,14 +14,22 @@ logger = logging.getLogger(__name__)
 class MediaFeatures(QObject):
     mainMediaShow = Signal(str)    # Custom signal that decouples the media display from controlboard
     auxMediaShow  = Signal(str)    # Custom signal that decouples the media display from controlboard
+    stopAllSFX    = Signal()    # Custom signal that signals all sound to stop
 
     def __init__(self, ui, settings, media_model, media_player):
         super(MediaFeatures, self).__init__()
 
         self.ui = ui
+        self.active_sound_effects = []
         self._settings = settings
         self.media_model = media_model
         self.media_player = media_player
+
+        # Variables for fade control
+        self.fade_timer = QTimer(self)
+        self.fade_step_duration_ms = 50.0       # How often the timer fires (50ms)
+        self.volume_per_step = 0.0              # Calculated when fade starts
+        self.original_volume = 1.0            # Store original volume for step calculation
 
         # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
         self.search_preview_movie = QMovie()
@@ -55,7 +63,6 @@ class MediaFeatures(QObject):
         self.ui.soundPlayPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
         self.ui.soundPausePB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPause))
         self.ui.soundStopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaStop))
-        self.ui.soundLoopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_BrowserReload))
         self.ui.soundMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
         self.ui.soundMoveDownPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowDown))
         self.ui.soundAddToListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
@@ -87,8 +94,6 @@ class MediaFeatures(QObject):
         self.ui.soundPlayPB.clicked.connect(self.sound_play)
         self.ui.soundPausePB.clicked.connect(self.sound_pause)
         self.ui.soundStopPB.clicked.connect(self.sound_stop)
-        self.ui.soundLoopPB.clicked.connect(self.sound_loop)
-
 
         self.ui.loadSoundQueuePB.clicked.connect(self.load_sound_queue)
         self.ui.saveSoundQueuePB.clicked.connect(self.save_sound_queue)
@@ -103,6 +108,9 @@ class MediaFeatures(QObject):
 
         # Sound Palletes
         self.palletteSelect.currentIndexChanged.connect(self.load_sound_effects)
+
+        # Connect the timer's timeout signal to the fade handler
+        self.fade_timer.timeout.connect(self._handle_fade_step)
 # #### connections
 
     # Media Utilties
@@ -143,18 +151,31 @@ class MediaFeatures(QObject):
             QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
 
     # Responds to an OSC command to show media on a monitor
-    @Slot(str)
-    def onOSCServerMediaAction(self, tags, monitor = "both"):
-        # Zero length tag list will stop play
+    # Responds to an OSC command to show media on a monitor
+    @Slot(str, str)
+    def onOSCServerMediaAction(self, monitor, tags):
+
+        # Define the set of valid monitor targets
+        VALID_MONITORS = {"aux", "main", "both"}
+
+        # Check for valid monitor string
+        if monitor not in VALID_MONITORS:
+            logging.warning(f"OSC Show Media: Invalid monitor target '{monitor}'. Must be one of {VALID_MONITORS}.")
+            return # Stop execution if the monitor is invalid
+
+        # Check for missing tags
         if len(tags) == 0:
             logging.warning("OSC Show Media: missing search tags")
             return
 
         found_files = self.media_file_database.search_media(tags, True)
+
         if len(found_files) > 0:
             found_file = found_files[0]
             found_file_info = QFileInfo(found_file)
             file = found_file_info.absoluteFilePath()
+
+            # The monitor checks for emitting the signal remain the same
             if monitor == "main" or monitor == "both":
                 self.mainMediaShow.emit(file)
 
@@ -164,6 +185,7 @@ class MediaFeatures(QObject):
         else:
             logging.warning(f"OSC Play Media: file matching {tags} not found for {monitor}")
 
+    # Allow the location of the top directory of the media library to be changed. Reindex the database after the change.
     @Slot()
     def set_media_library(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
@@ -244,7 +266,7 @@ class MediaFeatures(QObject):
             self.ui.soundFilesCountLBL.setText(str(soundsCount))
 
     # Responds to an OSC command to play an audio file
-    @Slot(str)
+    @Slot(float, str)
     def onOSCServerSoundAction(self, tags):
         # Zero length tag list will stop play
         if len(tags) == 0:
@@ -258,10 +280,179 @@ class MediaFeatures(QObject):
             file = soundFile.absoluteFilePath()
             self.media_player.setSource(QUrl.fromLocalFile(file))
             self.media_player.setPosition(0)
+            self.media_player.audioOutput().setVolume(1)
             self.media_player.play()
 
         else:
             logging.warning(f"OSC Play Sound: sound matching {tags} not found")
+
+    # Responds to an OSC command to play an audio file
+    @Slot(float, str)
+    def onOSCServerSeekAction(self, seek_point, tags):
+        # Zero length tag list will stop play
+        if len(tags) == 0:
+            self.media_player.stop()
+            return
+
+        foundSounds = self.media_file_database.search_sounds(tags, True)
+        if len(foundSounds) > 0:
+            sound = foundSounds[0]
+            soundFile = QFileInfo(sound)
+            file = soundFile.absoluteFilePath()
+            self.media_player.setSource(QUrl.fromLocalFile(file))
+            self.media_player.setPosition(0)
+            if self.media_player.isSeekable():
+                self.media_player.setPosition(int(seek_point*1000.0))
+            else:
+                logging.warning(f"OSC Seek and Play Sound: Audio file does not support seeking")
+            self.media_player.audioOutput().setVolume(1)
+            self.media_player.play()
+
+        else:
+            logging.warning(f"OSC Play Sound: sound matching {tags} not found")
+
+
+    # Responds to an OSC command to play a random audio file from the query set
+    @Slot(str)
+    def onOSCServerStingerAction(self, tags):
+        # Zero length tag list will stop play
+        if len(tags) == 0:
+            self.media_player.stop()
+            return
+
+        foundSounds = self.media_file_database.search_sounds(tags, True)
+        if len(foundSounds) > 0:
+
+            # Use QRandomGenerator to get a random index from 0 (inclusive) to list_length (exclusive)
+            list_length = len(foundSounds)
+            random_index = QRandomGenerator.global_().bounded(list_length)
+            sound = foundSounds[random_index]
+
+            soundFile = QFileInfo(sound)
+            file = soundFile.absoluteFilePath()
+            self.media_player.setSource(QUrl.fromLocalFile(file))
+            self.media_player.setPosition(0)
+            self.media_player.audioOutput().setVolume(1)
+            self.media_player.play()
+
+        else:
+            logging.warning(f"OSC Play Sound: sound matching {tags} not found")
+
+    # Initiates a fade out of the currently playing sound over the specified time (in seconds).
+    @Slot(float) # The OSC command provides a single float argument (fade time in seconds)
+    def onOSCServerFadeAction(self, fade_time_s: float):
+
+        # Ensure a sound is actually playing
+        if self.media_player.playbackState() != QMediaPlayer.PlayingState:
+            logging.info("OSC Server Fade requested, but QMediaPlayer is not playing.")
+            return
+
+        # Ensure fade time is positive and convert to milliseconds
+        fade_duration_ms = max(100, int(fade_time_s * 1000)) # Use a minimum of 100ms
+
+        # Store current state and calculate the fade step
+        self.original_volume = self.media_player.audioOutput().volume()
+
+        if self.original_volume <= 0:
+            logging.info("Volume already at zero. Stopping playback.")
+            self.media_player.stop()
+            return
+
+        # Calculate the number of steps required
+        num_steps = fade_duration_ms / self.fade_step_duration_ms
+
+        # Avoid division by zero if fade_duration_ms is somehow smaller than fade_step_duration_ms
+        if num_steps < 1:
+            num_steps = 1
+
+        # Calculate how much volume to reduce per step
+        self.volume_per_step = self.original_volume / num_steps
+
+        logging.debug(f"Starting fade from {self.original_volume} over {fade_duration_ms}ms ({fade_time_s}s).")
+
+        # Start the timer
+        self.fade_timer.start(self.fade_step_duration_ms)
+
+    # Executes one step of the volume fade-out.
+    @Slot()
+    def _handle_fade_step(self):
+        current_volume = self.media_player.audioOutput().volume()
+
+        if current_volume <= self.volume_per_step:
+            # Reached the end: set to zero, stop player, and stop timer
+            self.media_player.audioOutput().setVolume(0.0)
+            self.media_player.stop()
+            self.fade_timer.stop()
+            logging.debug("Fade complete and playback stopped.")
+
+        else:
+            # Decrease volume and continue
+            new_volume = current_volume - self.volume_per_step
+            self.media_player.audioOutput().setVolume(new_volume)
+
+    # Responds to an OSC command to play an audio file
+    @Slot(str)
+    def onOSCServerSFXPlayAction(self, tags):
+        # Zero length tag list will stop play
+        if len(tags) == 0:
+            self.stopAllSFX.emit()
+            return
+
+        wav_tags = "wav " + tags
+
+        foundSounds = self.media_file_database.search_sounds(wav_tags, True)
+        if len(foundSounds) > 0:
+            found_sound = foundSounds[0]
+            soundFile = QFileInfo(found_sound)
+
+            # Use canonicalFilePath() for better file resolution stability
+            file = soundFile.canonicalFilePath()
+
+            # Instantiate and parent correctly
+            sound = QSoundEffect(self)
+            sound.setSource(QUrl.fromLocalFile(file))
+
+            # Add to the list to prevent premature GC while loading
+            self.active_sound_effects.append(sound)
+
+            # Connect the correct self-destruct signal (playingChanged)
+            sound.playingChanged.connect(self._handle_soundfx_state_change)
+
+            # Connect the global stop signal
+            self.stopAllSFX.connect(sound.stop)
+
+            # TRUST the load and initiate play
+            sound.setVolume(1.0)
+            sound.play()
+            logging.debug("OSC Play Sound Effect initiated play.")
+
+        else:
+            logging.warning(f"OSC Play Sound Effect: sound matching {tags} not found")
+
+    # Called when the OSC server receives the /sfx/stop_all command.
+    @Slot()
+    def onOSCServerSFXStopAllAction(self):
+        logger.debug("Triggering global stop for all active sound effects.")
+        # Emit the signal, which triggers the .stop() method on ALL connected QSoundEffect objects
+        self.stopAllSFX.emit()
+
+    # Triggers deletion of the QSoundEffect object when playback finishes.
+    @Slot()
+    def _handle_soundfx_state_change(self):
+        # Get the QSoundEffect object that emitted the signal
+        sound = self.sender()
+
+        if sound and isinstance(sound, QSoundEffect) and not sound.isPlaying():
+
+            if sound in self.active_sound_effects:
+                self.active_sound_effects.remove(sound)
+                logging.debug("Sound effect removed from active_sound_effects list.")
+
+            # 2. Then, safely destroy the object
+            sound.deleteLater()
+            logger.debug("QSoundEffect object deleted after playing.")
+        else:
+            logger.debug("SoundFX sound sender was empty or not a QSoundEffect")
 
     @Slot()
     def sound_play(self):
@@ -287,9 +478,10 @@ class MediaFeatures(QObject):
     def sound_stop(self):
         self.media_player.stop()
 
+    # Provide a single loop control for all media player use cases, visable at all time on the mini player
     @Slot()
-    def sound_loop(self):
-        if self.ui.soundLoopPB.isChecked():
+    def loop_media(self):
+        if self.ui.loopPlayerPB.isChecked():
             self.media_player.setLoops(QMediaPlayer.Infinite)
         else:
             self.media_player.setLoops(QMediaPlayer.Once)

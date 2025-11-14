@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QFileDialog, QFileSystemModel, QMessageBox, QWidg
 
 from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QTextStream,
                                 QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread)
-from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession, QMediaDevices, QMediaPlayer, QAudioOutput)
+from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession, QMediaDevices, QMediaPlayer, QAudioOutput, QMediaMetaData)
 from PySide6.QtNetwork import QNetworkAccessManager
 
 from PySide6.QtMultimediaWidgets import QVideoWidget
@@ -109,12 +109,6 @@ class ImproTronControlBoard(QWidget):
         self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel, self.mediaPlayer)
         self.media_features.reset_media_view(self._settings.get_media_directory())
 
-        # Disable the DMX Feature which is under design and development
-        #self.lighting_feature = LightingFeature(self.ui, self._settings, "127.0.0.1", 7700) # Future DMX integration
-        index = self.ui.featureTabs.indexOf(self.ui.lightingTab)
-        if index != -1:
-            self.ui.featureTabs.removeTab(index)
-
         logger.info("Core feature modules (Games, Text, Thingz, Media) initialized.")
 
         # Custom Signals allows the media feature to leave screen control encapulated in the control panel
@@ -131,6 +125,8 @@ class ImproTronControlBoard(QWidget):
 
         # Connect the media player to retrieve duration after the file is loaded
         self.mediaPlayer.durationChanged.connect(self.updateDuration)
+        self.mediaPlayer.positionChanged.connect(self.update_time_remaining)
+        self.mediaPlayer.metaDataChanged.connect(self.update_metadata_display)
 
         # Set up volume control
         self.ui.soundVolumeSL.valueChanged.connect(self.set_sound_volume)
@@ -217,6 +213,19 @@ class ImproTronControlBoard(QWidget):
         self.slideLoaderThread.moveToThread(self.thread)
         self.thread.start()
 
+        # Mini Player Controls
+        self.ui.playPlayerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
+        self.ui.playPlayerPB.clicked.connect(self.videoPlay)
+
+        self.ui.pausePlayerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPause))
+        self.ui.pausePlayerPB.clicked.connect(self.videoPause)
+
+        self.ui.stopPlayerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaStop))
+        self.ui.stopPlayerPB.clicked.connect(self.videoStop)
+
+        self.ui.loopPlayerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_BrowserReload))
+        self.ui.loopPlayerPB.clicked.connect(self.media_features.loop_media)
+
         # Slide controls connections
         self.ui.slideShowSkipPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaSkipForward))
         self.ui.slideShowSkipPB.clicked.connect(self.slideShowSkip)
@@ -274,20 +283,25 @@ class ImproTronControlBoard(QWidget):
         self.ui.videoStopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaStop))
         self.ui.videoStopPB.clicked.connect(self.videoStop)
 
-        self.ui.videoLoopPB.setIcon(QApplication.style().standardIcon(QStyle.SP_BrowserReload))
-        self.ui.videoLoopPB.clicked.connect(self.videoLoop)
-
         self.ui.loadVideoPB.clicked.connect(self.getVideoFile)
 
-        # OSC Server
-        self.oscServer = OSCServer()
-        logger.info("OSCServer client initialized.")
+        # OSC Support
+        _osc_port = self._settings.get_osc_port()
+        self.ui.oscPortSB.setValue(_osc_port)
+        self.oscServer = OSCServer(listen_port = _osc_port)
+        logger.info(f"OSC Client/Server initialized on port {_osc_port}.")
+        self.ui.oscPortSB.valueChanged.connect(self.oscPortChanged)
 
         # Connect the OSC Server custom signals to a slot
         self.oscServer.buttonAction.connect(self.onOSCServerButtonAction)
         self.oscServer.spinBoxAction.connect(self.onOSCServerSpinBoxAction)
         self.oscServer.mediaAction.connect(self.media_features.onOSCServerMediaAction)
         self.oscServer.soundAction.connect(self.media_features.onOSCServerSoundAction)
+        self.oscServer.stingerAction.connect(self.media_features.onOSCServerStingerAction)
+        self.oscServer.sfxPlayAction.connect(self.media_features.onOSCServerSFXPlayAction)
+        self.oscServer.stopAllSFXSignal.connect(self.media_features.onOSCServerSFXStopAllAction)
+        self.oscServer.fadeAction.connect(self.media_features.onOSCServerFadeAction)
+        self.oscServer.seekAction.connect(self.media_features.onOSCServerSeekAction)
 
         # Preferences
         self.ui.aboutPB.clicked.connect(self.about)
@@ -579,6 +593,10 @@ class ImproTronControlBoard(QWidget):
             # Order matters so the main displays on top
             self.auxiliaryDisplay.maximize()
             self.mainDisplay.maximize()
+
+    @Slot(int)
+    def oscPortChanged(self, value):
+        self._settings.set_osc_port(value)
 
     # Slideshow Management
     @Slot(int)
@@ -931,15 +949,6 @@ class ImproTronControlBoard(QWidget):
     def videoStop(self):
         self.mediaPlayer.stop()
 
-    @Slot()
-    def videoLoop(self):
-        if self.ui.videoLoopPB.isChecked():
-            self.mediaPlayer.setLoops(QMediaPlayer.Infinite)
-        else:
-            self.mediaPlayer.setLoops(QMediaPlayer.Once)
-            if self.mediaPlayer.isPlaying():
-                self.mediaPlayer.stop()
-
     def mediaplayer_handle_error(self, error, error_string):
         # Log the error
         logger.error(f"Media Player Error: {error} - {error_string}")
@@ -950,8 +959,85 @@ class ImproTronControlBoard(QWidget):
     def updateDuration(self, duration):
         self.last_media_duration = duration + 100 # Add a little buffer
         if self.slideShowTimer.isActive():
-            logger.info(f"Changing Video Length {duration}")
+            logger.debug(f"Changing Video Length {duration}")
             self.slideShowTimer.setInterval(self.last_media_duration) # Add a little buffer
+
+    #Calculates time remaining and updates the timeRemainingLBL.
+    #param position_ms: The current playback position in milliseconds.
+    @Slot(int)
+    def update_time_remaining(self, position_ms: int):
+
+        # Get total duration (in milliseconds)
+        duration_ms = self.mediaPlayer.duration()
+
+        if duration_ms <= 0 or not self.mediaPlayer.isPlaying():
+            # Cannot calculate time remaining if duration is unknown
+            self.ui.timeRemainingLBL.setText("--:--")
+            return
+
+        # Calculate remaining time
+        remaining_ms = duration_ms - position_ms
+
+        # Ensure remaining time is not negative
+        if remaining_ms < 0:
+            remaining_ms = 0
+
+        # Convert milliseconds to MM:SS format using Qt functionality
+
+        # Total seconds remaining
+        total_seconds = remaining_ms // 1000
+
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+
+        # Use f-string formatting to ensure two digits (00:00)
+        time_str = f"{minutes:02d}:{seconds:02d}"
+
+        self.ui.timeRemainingLBL.setText(time_str)
+
+    # Reads standard metadata (Title, Artist) from QMediaPlayer and updates the UI labels.
+    # Uses file name as a fallback if metadata is missing.
+    # Assuming you are using PySide6 (Qt 6)
+
+    # Reads metadata from the QMediaPlayer and updates the Title and Artist labels."""
+    @Slot()
+    def update_metadata_display(self):
+        # Get the dedicated metadata object from the player first.
+        # The metaData(key) method must be called on this object, not the player itself.
+        metadata_object = self.mediaPlayer.metaData()
+
+        # Get Title
+        title = metadata_object.stringValue(QMediaMetaData.Key.Title)
+
+        if not title:
+            # Fallback: Use the file name without extension
+            url = self.mediaPlayer.source()
+            if not url.isEmpty():
+                file_name = QFileInfo(url.url()).fileName()
+                title = QFileInfo(file_name).baseName()
+            else:
+                title = "Unknown Title"
+
+        self.ui.mediaTitleLBL.setText(title)
+
+        # Get Artist
+        artist = metadata_object.stringValue(QMediaMetaData.Key.ContributingArtist)
+
+        if not artist:
+            # Priority 2: Check for AlbumArtist tag
+            artist = metadata_object.stringValue(QMediaMetaData.AlbumArtist)
+
+        if not artist:
+            # Priority 3: Check for Author tag
+            artist = metadata_object.stringValue(QMediaMetaData.Author)
+
+        if not artist:
+            # Final Fallback
+            artist = "Unknown Artist"
+
+        self.ui.artistNameLBL.setText(artist)
+
+        logging.debug(f"Media Metadata Updated: Title='{title}', Artist='{artist}'")
 
     # Preferences and Hot Buttons configuration settings
     @Slot()
