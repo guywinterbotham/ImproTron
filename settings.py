@@ -20,7 +20,7 @@ class Settings:
         'soundDirectory': QStandardPaths.writableLocation(QStandardPaths.MusicLocation),
         'documentDirectory': QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation),
         'lastHotButton': "",
-        'touchPortalConnect': False,
+        'oscPort': 9000,
         'gamesFile': "",
         'mainLocation': QPoint(0, 0),
         'auxLocation': QPoint(0, 0),
@@ -168,11 +168,11 @@ class Settings:
     def get_aux_location(self):
         return self._get('auxLocation') or QPoint(0, 0)
 
-    def set_touch_portal_connect(self, flag: bool):
-        self._set('touchPortalConnect', flag)
+    def set_osc_port(self, port: int):
+        self._set('oscPort', port)
 
-    def get_touch_portal_connect(self):
-        return self._get('touchPortalConnect') in [True, 'true', '1']
+    def get_osc_port(self):
+        return int(self._get('oscPort'))
 
     def set_last_hot_button_file(self, path):
         self._set('lastHotButton', path)

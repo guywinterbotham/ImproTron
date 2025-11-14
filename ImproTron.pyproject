@@ -5,7 +5,6 @@
         "Improtronics.py",
         "MediaFileDatabase.py",
         "Timer.py",
-        "TouchPortal.py",
         "ImproTron.spec",
         "games_feature.py",
         "text_feature.py",
@@ -14,6 +13,6 @@
         "thingz_feature.py",
         "settings.py",
         "monitor_preview.py",
-        "lighting_feature.py"
+        "osc_server.py"
     ]
 }

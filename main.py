@@ -3,7 +3,7 @@ import os
 import logging
 import argparse
 import traceback
-from PySide6.QtCore import QStandardPaths
+from PySide6.QtCore import QStandardPaths, QLoggingCategory
 from PySide6.QtWidgets import QApplication
 from ImproTronControlBoard import ImproTronControlBoard
 
@@ -33,7 +33,6 @@ def setup_logging():
     log_dir_list = QStandardPaths.standardLocations(QStandardPaths.GenericConfigLocation)
     log_dir = log_dir_list[0] + "/ImproTron" if log_dir_list else os.path.join(os.getcwd(), "ImproTron")
     os.makedirs(log_dir, exist_ok=True)
-
     log_level = args.log_level or os.getenv("IMPROTRON_LOG_LEVEL", "INFO").upper()
     logging.basicConfig(
         level=logging.getLevelName(log_level) if log_level in logging._nameToLevel else logging.INFO,
@@ -45,10 +44,18 @@ def setup_logging():
     )
 
 def main():
+    # Suppress FFmpeg output from Qt Multimedia
+    os.environ['QT_LOGGING_RULES'] = 'qt.multimedia*=false'
+    os.environ['FFREPORT'] = 'level=quiet'
+
     logging.info("ImproTron starting")
     logging.info("Environment Details: OS=%s, Python=%s", sys.platform, sys.version)
 
     app = QApplication(sys.argv)
+
+    # Additional suppression after QApplication creation
+    QLoggingCategory.setFilterRules("qt.multimedia*=false")
+
     improTronControlBoard = ImproTronControlBoard()
     result = app.exec()
     del improTronControlBoard

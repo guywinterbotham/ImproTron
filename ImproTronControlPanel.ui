@@ -339,141 +339,270 @@ background-color: rgb(0, 0, 0);</string>
            </layout>
           </item>
           <item>
-           <widget class="QGroupBox" name="timerGB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
+           <widget class="QTabWidget" name="tabWidget">
+            <property name="currentIndex">
+             <number>0</number>
             </property>
-            <property name="title">
-             <string>Countdown Timer</string>
-            </property>
-            <layout class="QVBoxLayout" name="countDownVL">
-             <item>
-              <layout class="QVBoxLayout" name="timerLayout">
-               <item>
-                <layout class="QVBoxLayout" name="timeVL">
-                 <item>
-                  <layout class="QHBoxLayout" name="timeLeftHL">
-                   <item>
-                    <widget class="QLabel" name="timeLeftLBL">
-                     <property name="font">
-                      <font>
-                       <pointsize>12</pointsize>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>Time:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QTimeEdit" name="countDownTimer">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="font">
-                      <font>
-                       <pointsize>12</pointsize>
-                      </font>
-                     </property>
-                     <property name="displayFormat">
-                      <string>hh:mm:ss</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="turnRedHL">
-                   <item>
-                    <widget class="QLabel" name="timeRedLBL">
-                     <property name="font">
-                      <font>
-                       <family>Segoe UI</family>
-                       <pointsize>12</pointsize>
-                       <italic>false</italic>
-                       <bold>false</bold>
-                      </font>
-                     </property>
-                     <property name="styleSheet">
-                      <string notr="true">color: rgb(255, 0, 0);
+            <widget class="QWidget" name="playingTab">
+             <attribute name="title">
+              <string>Playing</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <layout class="QHBoxLayout" name="playerButtonsHL">
+                <item>
+                 <widget class="QPushButton" name="playPlayerPB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pausePlayerPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="stopPlayerPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="loopPlayerPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="playerHS">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="formLayout">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="titleLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Title:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="artistLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Artist:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="reaminingLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Time:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLabel" name="timeRemainingLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLabel" name="mediaTitleLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLabel" name="artistNameLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="timerTab">
+             <attribute name="title">
+              <string>Timer</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <layout class="QHBoxLayout" name="timeLeftHL">
+                <item>
+                 <widget class="QLabel" name="timeLeftLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Time:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QTimeEdit" name="countDownTimer">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="displayFormat">
+                   <string>hh:mm:ss</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="turnRedHL">
+                <item>
+                 <widget class="QLabel" name="timeRedLBL">
+                  <property name="font">
+                   <font>
+                    <family>Segoe UI</family>
+                    <pointsize>12</pointsize>
+                    <italic>false</italic>
+                    <bold>false</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 0, 0);
 font: 12pt &quot;Segoe UI&quot;;</string>
-                     </property>
-                     <property name="text">
-                      <string>Turn Red:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QTimeEdit" name="timeRedTimer">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="font">
-                      <font>
-                       <pointsize>12</pointsize>
-                      </font>
-                     </property>
-                     <property name="displayFormat">
-                      <string>hh:mm:ss</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="timerControlsHL">
-                 <item>
-                  <widget class="QPushButton" name="startTimerPB">
-                   <property name="autoFillBackground">
-                    <bool>false</bool>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="pauseTimerPB">
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="resetTimerPB">
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QCheckBox" name="timerVisibleMainCB">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Show</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </item>
-            </layout>
+                  </property>
+                  <property name="text">
+                   <string>Turn Red:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QTimeEdit" name="timeRedTimer">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="displayFormat">
+                   <string>hh:mm:ss</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="timerControlsHL">
+                <item>
+                 <widget class="QPushButton" name="startTimerPB">
+                  <property name="autoFillBackground">
+                   <bool>false</bool>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pauseTimerPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="resetTimerPB">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="timerVisibleMainCB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Show</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
           <item>
@@ -822,7 +951,7 @@ background-color: rgb(0, 0, 0);</string>
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>5</number>
       </property>
       <property name="iconSize">
        <size>
@@ -2759,6 +2888,12 @@ background-color: rgb(255, 255, 0);</string>
             </item>
             <item>
              <widget class="QPushButton" name="slideShowStopPB">
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(194, 0, 0);</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -3281,6 +3416,12 @@ background-color: rgb(255, 255, 0);</string>
             </property>
             <item>
              <widget class="QPushButton" name="soundPlayPB">
+              <property name="minimumSize">
+               <size>
+                <width>50</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -3288,6 +3429,12 @@ background-color: rgb(255, 255, 0);</string>
             </item>
             <item>
              <widget class="QPushButton" name="soundPausePB">
+              <property name="minimumSize">
+               <size>
+                <width>50</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -3295,20 +3442,29 @@ background-color: rgb(255, 255, 0);</string>
             </item>
             <item>
              <widget class="QPushButton" name="soundStopPB">
+              <property name="minimumSize">
+               <size>
+                <width>50</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string/>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="soundLoopPB">
-              <property name="text">
-               <string/>
+             <spacer name="soundPlayerHSP">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
-              <property name="checkable">
-               <bool>true</bool>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
               </property>
-             </widget>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -4529,86 +4685,11 @@ background-color: rgb(255, 255, 0);</string>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QPushButton" name="videoLoopPB">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
          </layout>
         </item>
        </layout>
-      </widget>
-      <widget class="QWidget" name="lightingTab">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <attribute name="title">
-        <string>DMX Alpha</string>
-       </attribute>
-       <widget class="QLineEdit" name="oscMessageLE">
-        <property name="geometry">
-         <rect>
-          <x>390</x>
-          <y>50</y>
-          <width>113</width>
-          <height>22</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-       </widget>
-       <widget class="QSpinBox" name="oscValueSP">
-        <property name="geometry">
-         <rect>
-          <x>540</x>
-          <y>50</y>
-          <width>88</width>
-          <height>22</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="oscMessagePB">
-        <property name="geometry">
-         <rect>
-          <x>630</x>
-          <y>50</y>
-          <width>101</width>
-          <height>24</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>PushButton</string>
-        </property>
-       </widget>
       </widget>
       <widget class="QWidget" name="preferencesTab">
        <property name="minimumSize">
@@ -5265,13 +5346,6 @@ background-color: rgb(255, 255, 0);</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
-              <widget class="QCheckBox" name="touchPortalConCB">
-               <property name="text">
-                <string>Connect Touch Panel</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QCheckBox" name="copytoAuxCB">
                <property name="font">
                 <font>
@@ -5282,6 +5356,55 @@ background-color: rgb(255, 255, 0);</string>
                 <string>Duplicate to Aux</string>
                </property>
               </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="osc_layout">
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="oscPortLBL">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>OSC Port:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="oscPortSB">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                 <property name="maximum">
+                  <number>32767</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
               <widget class="QPushButton" name="setGamesListPB">
@@ -5327,6 +5450,52 @@ background-color: rgb(255, 255, 0);</string>
          </layout>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="toolsTab">
+       <attribute name="title">
+        <string>Tools</string>
+       </attribute>
+       <widget class="QGroupBox" name="timerGB">
+        <property name="geometry">
+         <rect>
+          <x>400</x>
+          <y>150</y>
+          <width>130</width>
+          <height>149</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="title">
+         <string>Countdown Timer</string>
+        </property>
+        <layout class="QVBoxLayout" name="countDownVL"/>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>670</x>
+          <y>120</y>
+          <width>197</width>
+          <height>108</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="timerLayout"/>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>460</x>
+          <y>20</y>
+          <width>195</width>
+          <height>60</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="playingControlsHL"/>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -5394,12 +5563,6 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>blackoutMainPB</tabstop>
   <tabstop>blackoutAuxPB</tabstop>
   <tabstop>stretchMainCB</tabstop>
-  <tabstop>countDownTimer</tabstop>
-  <tabstop>timeRedTimer</tabstop>
-  <tabstop>startTimerPB</tabstop>
-  <tabstop>pauseTimerPB</tabstop>
-  <tabstop>resetTimerPB</tabstop>
-  <tabstop>timerVisibleMainCB</tabstop>
   <tabstop>teamScoreRight</tabstop>
   <tabstop>add23PB</tabstop>
   <tabstop>add05PB</tabstop>
@@ -5467,7 +5630,6 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>soundPlayPB</tabstop>
   <tabstop>soundPausePB</tabstop>
   <tabstop>soundStopPB</tabstop>
-  <tabstop>soundLoopPB</tabstop>
   <tabstop>soundMoveUpPB</tabstop>
   <tabstop>soundMoveDownPB</tabstop>
   <tabstop>soundAddToListPB</tabstop>
@@ -5519,7 +5681,6 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>videoPlayPB</tabstop>
   <tabstop>videoPausePB</tabstop>
   <tabstop>videoStopPB</tabstop>
-  <tabstop>videoLoopPB</tabstop>
   <tabstop>gameTextFontCB</tabstop>
   <tabstop>gameTextColorPB</tabstop>
   <tabstop>gameTextSLD</tabstop>
@@ -5578,7 +5739,6 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>hotButtonLoadPB</tabstop>
   <tabstop>hotButtonSavePB</tabstop>
   <tabstop>hotButtonClearPB</tabstop>
-  <tabstop>touchPortalConCB</tabstop>
   <tabstop>copytoAuxCB</tabstop>
   <tabstop>setGamesListPB</tabstop>
   <tabstop>aboutPB</tabstop>
