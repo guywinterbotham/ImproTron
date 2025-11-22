@@ -67,9 +67,12 @@ class ImproTronControlBoard(QWidget):
         self.auxPreviewMovie = QMovie()
         self.auxPreviewMovie.setSpeed(100)
 
+        logger.info("GIF runnings created")
+
         # Create Screens and relocate. Main done second so it is on top
         self.mainDisplay = ImproTron("Main")
         self.auxiliaryDisplay = ImproTron("Auxiliary")
+        logger.info("Displays created")
 
         self.auxiliaryDisplay.restore()
         self.auxiliaryDisplay.set_location(self._settings.get_aux_location())
@@ -350,13 +353,6 @@ class ImproTronControlBoard(QWidget):
         self.ui.hotButtonClearPB.clicked.connect(self.clearHotButtonsClicked)
         self.ui.hotButtonLoadPB.clicked.connect(self.loadHotButtonsClicked)
         self.ui.hotButtonSavePB.clicked.connect(self.saveHotButtonsClicked)
-
-
-        # YouTube Player support
-        self.ui.loadYouTubePB.clicked.connect(self.load_youtube)
-        self.ui.pauseYouTubePB.clicked.connect(self.pause_youtube)
-        #self.ui.muteYouTubePB.clicked.connect(self.mute_youtube) Currently doesn't work
-        self.ui.playYouTubePB.clicked.connect(self.play_youtube)
 
         # Set up an event filter to handle the orderly shutdown of the app.
         self.ui.installEventFilter(self)
@@ -1222,60 +1218,3 @@ class ImproTronControlBoard(QWidget):
                 spinBox.setValue(spinBox.value() + changeValue) # change can be positive or negative
         else:
             logging.warning(f"QDoubleSpinBox: {buttonID} not found")
-
-    # YouTube Player support
-    @Slot()
-    def load_youtube(self):
-        video_url = self.ui.youTubeLinkLE.text()
-        try:
-            # Extract VIDEO_ID from YouTube URL
-            if "youtu.be" in video_url:
-                video_id = video_url.split("/")[-1]
-            elif "youtube.com/watch?v=" in video_url:
-                video_id = video_url.split("v=")[-1].split("&")[0]
-            else:
-                video_id = video_url  # Assume it's already a VIDEO_ID
-
-            # Build embed URL
-            embed_url = f"https://www.youtube.com/embed/{video_id}?enablejsapi=1"
-            if self.ui.videoOnMainRB.isChecked():
-                self.mainDisplay.load_youtube(embed_url)
-                self.main_preview.clear()
-                self.main_preview.setStyleSheet("background:black; color:black")
-            elif self.ui.videoOnAuxRB.isChecked():
-                self.auxiliaryDisplay.load_youtube(embed_url)
-                self.aux_preview.clear()
-                self.aux_preview.setStyleSheet("background:black; color:black")
-            else:
-                QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
-
-        except Exception:
-            # Show an error message
-            logging.warn(f"Unable to load video: {video_url}")
-
-    @Slot()
-    def play_youtube(self):
-        if self.ui.videoOnMainRB.isChecked():
-            self.mainDisplay.play_youtube()
-        elif self.ui.videoOnAuxRB.isChecked():
-            self.auxiliaryDisplay.play_youtube()
-        else:
-            QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
-
-    @Slot()
-    def mute_youtube(self):
-        if self.ui.videoOnMainRB.isChecked():
-            self.mainDisplay.mute_youtube()
-        elif self.ui.videoOnAuxRB.isChecked():
-            self.auxiliaryDisplay.mute_youtube()
-        else:
-            QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')
-
-    @Slot()
-    def pause_youtube(self):
-        if self.ui.videoOnMainRB.isChecked():
-            self.mainDisplay.pause_youtube()
-        elif self.ui.videoOnAuxRB.isChecked():
-            self.auxiliaryDisplay.pause_youtube()
-        else:
-            QMessageBox.warning(self.ui, 'Preview', 'Youtube preview not supported.')

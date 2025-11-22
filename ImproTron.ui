@@ -33,7 +33,7 @@
     <item row="0" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>4</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="displayText">
        <layout class="QVBoxLayout" name="displayTextGL">
@@ -86,19 +86,19 @@ background-color: rgb(0, 0, 0);</string>
            <string>Witty Comment</string>
           </property>
           <property name="textFormat">
-           <enum>Qt::AutoText</enum>
+           <enum>Qt::TextFormat::AutoText</enum>
           </property>
           <property name="scaledContents">
            <bool>false</bool>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
           <property name="wordWrap">
            <bool>false</bool>
           </property>
           <property name="textInteractionFlags">
-           <set>Qt::NoTextInteraction</set>
+           <set>Qt::TextInteractionFlag::NoTextInteraction</set>
           </property>
          </widget>
         </item>
@@ -107,7 +107,7 @@ background-color: rgb(0, 0, 0);</string>
       <widget class="QWidget" name="displayScore">
        <layout class="QGridLayout" name="displayScoreGL">
         <property name="sizeConstraint">
-         <enum>QLayout::SetDefaultConstraint</enum>
+         <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
         </property>
         <property name="leftMargin">
          <number>5</number>
@@ -151,7 +151,7 @@ background-color: rgb(0, 0, 0);</string>
            </font>
           </property>
           <property name="frameShape">
-           <enum>QFrame::Box</enum>
+           <enum>QFrame::Shape::Box</enum>
           </property>
           <property name="lineWidth">
            <number>1</number>
@@ -160,13 +160,13 @@ background-color: rgb(0, 0, 0);</string>
            <string>Left Team</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
           <property name="indent">
            <number>0</number>
           </property>
           <property name="textInteractionFlags">
-           <set>Qt::NoTextInteraction</set>
+           <set>Qt::TextInteractionFlag::NoTextInteraction</set>
           </property>
          </widget>
         </item>
@@ -197,7 +197,7 @@ background-color: rgb(0, 0, 0);</string>
            </font>
           </property>
           <property name="frameShape">
-           <enum>QFrame::Box</enum>
+           <enum>QFrame::Shape::Box</enum>
           </property>
           <property name="lineWidth">
            <number>1</number>
@@ -206,13 +206,13 @@ background-color: rgb(0, 0, 0);</string>
            <string>Right Team</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
           <property name="indent">
            <number>0</number>
           </property>
           <property name="textInteractionFlags">
-           <set>Qt::NoTextInteraction</set>
+           <set>Qt::TextInteractionFlag::NoTextInteraction</set>
           </property>
          </widget>
         </item>
@@ -238,7 +238,7 @@ background-color: rgb(0, 0, 0);</string>
            </font>
           </property>
           <property name="frameShape">
-           <enum>QFrame::Box</enum>
+           <enum>QFrame::Shape::Box</enum>
           </property>
           <property name="lineWidth">
            <number>1</number>
@@ -250,13 +250,13 @@ background-color: rgb(0, 0, 0);</string>
            <bool>false</bool>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
           <property name="indent">
            <number>0</number>
           </property>
           <property name="textInteractionFlags">
-           <set>Qt::NoTextInteraction</set>
+           <set>Qt::TextInteractionFlag::NoTextInteraction</set>
           </property>
          </widget>
         </item>
@@ -281,7 +281,7 @@ background-color: rgb(0, 0, 0);</string>
            </font>
           </property>
           <property name="frameShape">
-           <enum>QFrame::Box</enum>
+           <enum>QFrame::Shape::Box</enum>
           </property>
           <property name="lineWidth">
            <number>1</number>
@@ -290,13 +290,13 @@ background-color: rgb(0, 0, 0);</string>
            <string>0</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
           <property name="indent">
            <number>0</number>
           </property>
           <property name="textInteractionFlags">
-           <set>Qt::NoTextInteraction</set>
+           <set>Qt::TextInteractionFlag::NoTextInteraction</set>
           </property>
          </widget>
         </item>
@@ -346,17 +346,6 @@ background-color: rgb(0, 0, 0);</string>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="displayYouTube">
-       <layout class="QGridLayout" name="displayYouTubeGL">
-        <item row="0" column="0">
-         <widget class="QWebEngineView" name="youTubePlayer" native="true">
-          <property name="styleSheet">
-           <string notr="true">background-color: rgb(0, 0, 0);</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
      </widget>
     </item>
    </layout>
@@ -367,12 +356,6 @@ background-color: rgb(0, 0, 0);</string>
    <class>QVideoWidget</class>
    <extends>QWidget</extends>
    <header location="global">PySide6.QtMultimediaWidgets</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QWebEngineView</class>
-   <extends>QWidget</extends>
-   <header location="global">PySide6.QtWebEngineWidgets</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

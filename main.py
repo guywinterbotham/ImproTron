@@ -8,7 +8,6 @@ from PySide6.QtWidgets import QApplication
 from ImproTronControlBoard import ImproTronControlBoard
 
 # Commands to use in the build process
-#
 # .qtcreator\Python_3_12_10venv\Scripts\activate
 # .qtcreator\Python_3_12_10venv\Scripts\pyside6-deploy -c ImproTron.spec
 # .qtcreator\Python_3_12_10venv\Scripts\pyside6-rcc -g python ImproTronIcons.qrc > ImproTronIcons.py

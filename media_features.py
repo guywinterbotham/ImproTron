@@ -463,6 +463,7 @@ class MediaFeatures(QObject):
         if self.ui.soundSearchResultsLW.currentItem() != None:
             self.media_player.setSource(QUrl.fromLocalFile(self.ui.soundSearchResultsLW.currentItem().imagePath()))
             self.media_player.setPosition(0)
+            self.media_player.audioOutput().setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
             self.media_player.play()
 
     @Slot()

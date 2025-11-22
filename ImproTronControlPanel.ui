@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1056</width>
-    <height>761</height>
+    <height>763</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -442,6 +442,18 @@ background-color: rgb(0, 0, 0);</string>
                 </item>
                 <item row="2" column="1">
                  <widget class="QLabel" name="timeRemainingLBL">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -449,11 +461,20 @@ background-color: rgb(0, 0, 0);</string>
                   </property>
                   <property name="text">
                    <string/>
+                  </property>
+                  <property name="textInteractionFlags">
+                   <set>Qt::TextInteractionFlag::NoTextInteraction</set>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
                  <widget class="QLabel" name="mediaTitleLBL">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -461,11 +482,23 @@ background-color: rgb(0, 0, 0);</string>
                   </property>
                   <property name="text">
                    <string/>
+                  </property>
+                  <property name="scaledContents">
+                   <bool>false</bool>
+                  </property>
+                  <property name="textInteractionFlags">
+                   <set>Qt::TextInteractionFlag::NoTextInteraction</set>
                   </property>
                  </widget>
                 </item>
                 <item row="1" column="1">
                  <widget class="QLabel" name="artistNameLBL">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -473,6 +506,9 @@ background-color: rgb(0, 0, 0);</string>
                   </property>
                   <property name="text">
                    <string/>
+                  </property>
+                  <property name="textInteractionFlags">
+                   <set>Qt::TextInteractionFlag::NoTextInteraction</set>
                   </property>
                  </widget>
                 </item>
@@ -950,8 +986,14 @@ background-color: rgb(0, 0, 0);</string>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>450</height>
+       </size>
+      </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>7</number>
       </property>
       <property name="iconSize">
        <size>
@@ -4443,6 +4485,19 @@ background-color: rgb(255, 255, 0);</string>
        </attribute>
        <layout class="QHBoxLayout" name="videoTabHL">
         <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <layout class="QVBoxLayout" name="videoPreviewVL"/>
         </item>
         <item>
@@ -4491,66 +4546,6 @@ background-color: rgb(255, 255, 0);</string>
             <property name="text">
              <string>Stop Camera</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="youTubeGB">
-            <property name="title">
-             <string>YouTube</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_3">
-             <item>
-              <widget class="QLineEdit" name="youTubeLinkLE">
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="inputMask">
-                <string/>
-               </property>
-               <property name="placeholderText">
-                <string>Paste YouTube Link</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="loadYouTubePB">
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Load</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="playYouTubePB">
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Play</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pauseYouTubePB">
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Pause</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </widget>
           </item>
          </layout>
@@ -5450,52 +5445,6 @@ background-color: rgb(255, 255, 0);</string>
          </layout>
         </item>
        </layout>
-      </widget>
-      <widget class="QWidget" name="toolsTab">
-       <attribute name="title">
-        <string>Tools</string>
-       </attribute>
-       <widget class="QGroupBox" name="timerGB">
-        <property name="geometry">
-         <rect>
-          <x>400</x>
-          <y>150</y>
-          <width>130</width>
-          <height>149</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="title">
-         <string>Countdown Timer</string>
-        </property>
-        <layout class="QVBoxLayout" name="countDownVL"/>
-       </widget>
-       <widget class="QWidget" name="">
-        <property name="geometry">
-         <rect>
-          <x>670</x>
-          <y>120</y>
-          <width>197</width>
-          <height>108</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="timerLayout"/>
-       </widget>
-       <widget class="QWidget" name="">
-        <property name="geometry">
-         <rect>
-          <x>460</x>
-          <y>20</y>
-          <width>195</width>
-          <height>60</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="playingControlsHL"/>
-       </widget>
       </widget>
      </widget>
     </item>

@@ -1,9 +1,9 @@
 [app]
 
+# use "x64 native tools command prompt for vs 2022" instead of the generic command prompt
+# this ensures the 64-bit msvc compiler is used, which is faster and better integrated
 # additional files to copy to the distribution folder before packaing
-# improtroncontrolpanel.ui
 # documentation/improtron user guide.pdf
-# touch portal/improportal.tpp
 # title of your application
 title = ImproTron
 
@@ -12,7 +12,7 @@ title = ImproTron
 project_dir = .
 
 # source file path
-input_file = C:\Users\guywi\OneDrive\Documents\git\ImproTron\main.py
+input_file = main.py
 
 # directory where exec is stored
 exec_directory = .
@@ -29,8 +29,8 @@ icon = .\yesand.ico
 python_path = C:\Users\guywi\OneDrive\Documents\git\ImproTron\.qtcreator\Python_3_12_10venv\Scripts\python.exe
 
 # python packages to install
-# packages = Nuitka==2.6.8
-packages = Nuitka==2.7.3
+#packages = Nuitka==2.7.3
+packages = Nuitka==2.8.4
 
 # buildozer = for deploying Android application
 android_packages = buildozer==1.5.0,cython==0.29.33
@@ -45,7 +45,7 @@ qml_files =
 excluded_qml_plugins = 
 
 # qt modules used. comma separated
-modules = WebEngineCore,QmlModels,OpenGL,Network,Core,WebChannel,Quick,Qml,OpenGLWidgets,Gui,MultimediaWidgets,QmlWorkerScript,Positioning,UiTools,Widgets,QmlMeta,Multimedia
+modules = Core,Gui,Multimedia,MultimediaWidgets,Network,OpenGL,OpenGLWidgets,UiTools,Widgets
 
 # qt plugins used by the application
 plugins = networkinformation,iconengines,platforms,multimedia,platformthemes,generic,styles,tls,platforminputcontexts,imageformats
@@ -76,7 +76,9 @@ mode = standalone
 # remove the --noinclude-qt-translations for the first build and then remove everything else, or
 # copy the single file after the build. it will remain for subsequent builds.
 # .\improtron.dist\pyside6\translations\qtwebengine_locales\en-us.pak
-extra_args = --quiet --noinclude-qt-translations
+# if you don't have language paks, the lack causes the webengine to silently crash the app in the monitor setups
+#extra_args = --quiet --noinclude-qt-translations
+extra_args = --noinclude-qt-translations --include-data-files=./ImproTronControlPanel.ui=ImproTronControlPanel.ui --include-data-files=./Games_Database.csv=Games_Database.csv --include-data-files=./ImproTronUserGuide.pdf=ImproTronUserGuide.pdf
 
 [buildozer]
 
