@@ -25,7 +25,7 @@ The application assumes the theater has Windows running with two additional moni
 Note: A deployment built using pyside6-deploy is available for download.
 
 1.  **Prerequisites:**
-    *   Ensure you have Python installed (version 3.1.12 recommended). You can download it from [python.org](https://www.python.org/).
+    *   Ensure you have Python installed (version 3.12 recommended). You can download it from [python.org](https://www.python.org/).
     *   This application uses PySide6.
 
 2.  **Get the Code:**
@@ -76,7 +76,7 @@ For detailed information on all features and how to use them, please refer to th
 
 ## Dependencies
 
-*   **Python 3.1.12**
+*   **Python 3.12**
 *   **PySide6 v.6.10.0:** This is the core GUI framework used by ImproTron.
 *   **TinyDB:** Used for database functionalities (e.g., media file indexing).
 
