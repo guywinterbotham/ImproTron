@@ -285,6 +285,20 @@ class ImproTron(QMainWindow):
 
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayScore)
 
+        # Set the background image and style for the score labels
+        style = """
+            QLabel {{
+                background-image: url(icons/yesand.png);
+                background-color: rgba(0, 0, 0, 0.5);
+                color: white;
+            }}
+        """
+        self.ui.leftTeamLabel.setStyleSheet(style)
+        self.ui.rightTeamLabel.setStyleSheet(style)
+        self.ui.leftScoreLCD.setStyleSheet(style)
+        self.ui.rightScoreLCD.setStyleSheet(style)
+
+
         # Force a resize after display so as to ensure the final dimensions are locked it
         # Changing before viewing for the first time doesn't work due the stacked tab not being fully initialized
         self.find_optimal_team_font_size(self.ui.leftTeamLabel)
