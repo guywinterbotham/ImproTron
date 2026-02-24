@@ -1,6 +1,8 @@
 # text_feature.py
 import logging
+import re
 from PySide6.QtCore import QObject, Slot, QRegularExpression, QFile, QFileInfo, QIODevice
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QPushButton, QMessageBox
 import utilities
 
@@ -20,6 +22,9 @@ class TextFeature(QObject):
         self.ui.clearRightTextPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
         self.ui.loadTextboxLeftPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowLeft))
         self.ui.loadTextboxRightPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
+
+        self.set_text_box_color(self.ui.leftTextColorPB, utilities.style_sheet(self._settings.get_left_text_color()))
+        self.set_text_box_color(self.ui.rightTextColorPB, utilities.style_sheet(self._settings.get_right_text_color()))
 
         self.connect_slots()
 
@@ -82,7 +87,38 @@ class TextFeature(QObject):
 
     # Text box color management
     def set_text_box_color(self, coloredButton, colorStyle):
+        # 1. Apply the visual style
         coloredButton.setStyleSheet(colorStyle)
+
+        # 2. Extract the background value
+        bg_match = re.search(r'background(?:-color)?\s*:\s*([^;]+)', colorStyle)
+        if not bg_match:
+            logger.error(f"No background property found in: {colorStyle}")
+            return
+
+        color_str = bg_match.group(1).strip()
+        new_color = QColor()
+
+        # 3. Parse based on format
+        if 'rgb' in color_str:
+            # Extract digits: finds all numbers in 'rgb(255, 85, 0)' -> ['255', '85', '0']
+            nums = re.findall(r'\d+', color_str)
+            if len(nums) >= 3:
+                new_color = QColor(int(nums[0]), int(nums[1]), int(nums[2]))
+        else:
+            # Fallback for hex (#RRGGBB) or named colors (red, blue)
+            new_color = QColor(color_str)
+
+        # 4. Safety check and save
+        if new_color.isValid():
+            if coloredButton == self.ui.leftTextColorPB:
+                self._settings.set_left_text_color(new_color)
+                logger.info(f"Left Preset Saved: {new_color.getRgb()[:3]}")
+            elif coloredButton == self.ui.rightTextColorPB:
+                self._settings.set_right_text_color(new_color)
+                logger.info(f"Right Preset Saved: {new_color.getRgb()[:3]}")
+        else:
+            logger.error(f"Final attempt to parse '{color_str}' failed.")
 
     # Populate the preset color buttons with the presets defined in the color dialog
     def set_preset_colors(self):
@@ -108,9 +144,8 @@ class TextFeature(QObject):
 
     @Slot()
     def pick_left_text_color(self):
-        color_selected = QColorDialog.getColor(parent=self.ui,title = 'Pick Left Text Box Color')
+        color_selected = self._settings.pick_left_text_color(self.ui)
 
-        self._settings.save_custom_colors() # Store the color pallette in case it was changed
         self.set_preset_colors() # Update the presets in case one was changed while picking a color
 
         if color_selected != None:
@@ -119,9 +154,8 @@ class TextFeature(QObject):
 
     @Slot()
     def pick_right_text_color(self):
-        color_selected = QColorDialog.getColor(parent=self.ui,title = 'Pick Right Text Box Color')
+        color_selected = self._settings.pick_right_text_color(self.ui)
 
-        self._settings.save_custom_colors() # Store the color pallette in case it was changed
         self.set_preset_colors() # Update the presets in case one was changed while picking a color
 
         if color_selected.isValid():
