@@ -10,7 +10,7 @@ from ImproTronControlBoard import ImproTronControlBoard
 # Commands to use in the build process
 # .qtcreator\Python_3_12_10venv\Scripts\activate
 # .qtcreator\Python_3_12_10venv\Scripts\pyside6-deploy -c ImproTron.spec
-# .qtcreator\Python_3_12_10venv\Scripts\pyside6-rcc -g python ImproTronIcons.qrc > ImproTronIcons.py
+# .qtcreator\Python_3_12_10venv\Scripts\pyside6-rcc -g python ImproTronIcons.qrc -o ImproTronIcons.py
 # .qtcreator\Python_3_12_10venv\Scripts\pyside6-uic ImproTronControlBoard.ui -o ui_ImproTronControlBoard.py
 # .qtcreator\Python_3_12_10venv\Scripts\pyside6-uic ImproTron.ui -o ui_ImproTron.py
 
@@ -37,7 +37,7 @@ def setup_logging():
         level=logging.getLevelName(log_level) if log_level in logging._nameToLevel else logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(os.path.join(log_dir, "improton_error.log")),
+            logging.FileHandler(os.path.join(log_dir, "improtron_error.log")),
             logging.StreamHandler(sys.stdout)
         ]
     )
@@ -51,6 +51,7 @@ def main():
     logging.info("Environment Details: OS=%s, Python=%s", sys.platform, sys.version)
 
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
 
     # Additional suppression after QApplication creation
     QLoggingCategory.setFilterRules("qt.multimedia*=false")
