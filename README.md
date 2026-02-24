@@ -72,7 +72,7 @@ To run ImproTron after installation, navigate to the project's root directory in
 python main.py
 ```
 
-For detailed information on all features and how to use them, please refer to the "ImproTron User Guide.pdf". This guide is typically available on the [project's GitHub releases page](https://github.com/guywinterbotham/ImproTron/releases) or alongside the application if you have a built version.
+For detailed information on all features and how to use them, please refer to the "ImproTronUserGuide.pdf". This guide is typically available on the [project's GitHub releases page](https://github.com/guywinterbotham/ImproTron/releases) or alongside the application if you have a built version.
 
 ## Dependencies
 
