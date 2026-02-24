@@ -11,6 +11,7 @@ OSC_SOUND_SEEK = "/sound/seek"
 OSC_SOUND_STOP = "/sound/stop"
 OSC_SOUND_STINGER = "/sound/stinger"
 OSC_SOUND_FADE = "/sound/fade"
+OSC_SOUND_PLAYLIST = "/sound/playlist"
 OSC_MEDIA_SHOW = "/media/show"
 OSC_SPINBOX_CHANGE = "/spinbox/change"
 OSC_BUTTON_PRESS = "/button/press"
@@ -22,6 +23,7 @@ class OSCServer(QObject):
     spinBoxAction = Signal(str, float)
     mediaAction = Signal(str, str)
     soundAction = Signal(str)
+    playlistAction = Signal(str)
     stingerAction = Signal(str)
     sfxPlayAction = Signal(str)
     stopAllSFXSignal = Signal()
@@ -102,7 +104,7 @@ class OSCServer(QObject):
             else:
                 logger.warning(f"OSCServer: Unknown typetag '{tag}' in message {address}")
 
-        return address, args
+        return address.strip(), args
 
     # Dispatch OSC message to the correct signal handler
     def _dispatch_message(self, address: str, args: list):
@@ -111,6 +113,11 @@ class OSCServer(QObject):
                 self.soundAction.emit(str(args[0]))
             else:
                 logger.warning(f"OSCServer: Missing sound tag list in {args}")
+        elif address == OSC_SOUND_PLAYLIST:
+            if args:
+                self.playlistAction.emit(str(args[0]))
+            else:
+                logger.warning(f"OSCServer: Missing playlist in {args}")
         elif address == OSC_SOUND_STINGER:
             if args:
                 self.stingerAction.emit(str(args[0]))
