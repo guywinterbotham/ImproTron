@@ -1,8 +1,8 @@
 # The display is a container for all the possible features that can be displayed
 import logging
 
-from PySide6.QtWidgets import QPushButton, QLineEdit, QListWidgetItem, QStyle, QApplication, QMainWindow
-from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent
+from PySide6.QtWidgets import QPushButton, QLineEdit, QStyle, QApplication, QMainWindow, QLabel, QGraphicsDropShadowEffect
+from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent, QVariantAnimation, QEasingCurve
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect
 
@@ -29,11 +29,88 @@ class ImproTron(QMainWindow):
         self.movie = QMovie() # Keep the memory allocated
         self.movie.setSpeed(100)
 
-        logger.info(f"About to force a score update {name}")
-        self.updateScores(0.0, 0.0) # Force a font scaling
+        self.logoLabel = QLabel(self.ui.displayScore) # Parented to the score container
+        self.logoLabel.setAlignment(Qt.AlignCenter)
+        self.logoLabel.setAttribute(Qt.WA_TransparentForMouseEvents) # Don't block clicks
+        self.logoLabel.setScaledContents(True)
+        self.logoLabel.hide() # Hide by default until a logo is loaded
+
+        # Match the size logic used in repositionLogo (30% vs 20%)
+        side = int(self.height() * 0.30)
+        self.logoLabel.setFixedSize(side, side)
+
+        self.logoMovie = QMovie(":/icons/scorelogo")
+        # Important: Check if movie is valid before starting
+        if self.logoMovie.isValid():
+            self.logoMovie.setScaledSize(self.logoLabel.size())
+            self.logoLabel.setMovie(self.logoMovie)
+            self.logoMovie.start()
+        else:
+            logger.error("GIF failed to load from resources! Check resources_rc import.")
+
+        self.logoLabel.show()
+        self.repositionLogo()
+
+        # Force the grid layout to have zero gaps between the 4 labels
+        self.ui.displayScoreGL.setSpacing(0)
+        self.ui.displayScoreGL.setContentsMargins(0, 0, 0, 0)
+        self.setup_consistent_shadows()
+
+        # Force a score update to force a font scaling
+        self.updateScores(0.0, 0.0)
 
     # Countdown Timer Passthrough controls
         self._timer = CountdownTimer(self._display_name+" Timer")
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.repositionLogo()
+
+    def setup_consistent_shadows(self):
+        for label in [self.ui.leftScoreLCD, self.ui.rightScoreLCD]:
+            shadow = QGraphicsDropShadowEffect()
+            # High blur radius (15-20) smooths out differences between digit shapes
+            shadow.setBlurRadius(18)
+            shadow.setColor(QColor(0, 0, 0, 230)) # Dense black
+            # A 6px vertical offset anchors the text downward, away from the glass shine
+            shadow.setOffset(0, 6)
+            label.setGraphicsEffect(shadow)
+
+    def repositionLogo(self):
+        if not self.logoLabel.isVisible():
+            return
+
+        # Define the size of the logo
+        side = int(self.height() * 0.30)
+        self.logoLabel.setFixedSize(side, side)
+
+        # Horizontal Center (Midpoint of the thick divider)
+        left_edge_of_right_col = self.ui.rightTeamLabel.geometry().left()
+        right_edge_of_left_col = self.ui.leftTeamLabel.geometry().right()
+        center_x = (right_edge_of_left_col + left_edge_of_right_col) // 2
+
+        # Vertical Position (Aligned to top of scores)
+        # We take the top Y-coordinate of the score labels
+        score_top_y = self.ui.leftScoreLCD.geometry().top()
+
+        # Final Placement
+        final_x = center_x - (side // 2) -5 # this last constant is a visual tweak based on the gif
+        final_y = score_top_y - 50
+        self.logoLabel.move(final_x, final_y)
+
+        # Add Glow Behind the label
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 150))
+        shadow.setOffset(0, 4)
+        self.logoLabel.setGraphicsEffect(shadow)
+
+        # Ensure GIF continues to render at the correct resolution
+        if self.logoMovie.state() != QMovie.NotRunning:
+            if self.logoMovie.scaledSize() != self.logoLabel.size():
+                self.logoMovie.setScaledSize(self.logoLabel.size())
+
+        self.logoLabel.raise_()
 
     def timerStart(self, time, redTime):
         self._timer.start(time, redTime)
@@ -52,14 +129,24 @@ class ImproTron(QMainWindow):
         self._timer.showTimer(self.frameGeometry(), visible)
 
     # Colorize the Left score display
-    def colorizeLeftScore(self, scoreStyle):
-        self.ui.leftTeamLabel.setStyleSheet(scoreStyle)
-        self.ui.leftScoreLCD.setStyleSheet(scoreStyle)
+    def colorizeLeftScore(self, color):
+        # Ensure we have a hex string (e.g., "#0000FF")
+        hex_color = color.name() if isinstance(color, QColor) else color
+
+        name_s, score_s = utilities.get_modern_styles(hex_color, is_left=True)
+
+        self.ui.leftTeamLabel.setStyleSheet(name_s)
+        self.ui.leftScoreLCD.setStyleSheet(score_s)
 
     # Colorize the Right score display
-    def colorizeRightScore(self, scoreStyle):
-        self.ui.rightTeamLabel.setStyleSheet(scoreStyle)
-        self.ui.rightScoreLCD.setStyleSheet(scoreStyle)
+    def colorizeRightScore(self, color):
+        # Ensure we have a hex string
+        hex_color = color.name() if isinstance(color, QColor) else color
+
+        name_s, score_s = utilities.get_modern_styles(hex_color, is_left=False)
+
+        self.ui.rightTeamLabel.setStyleSheet(name_s)
+        self.ui.rightScoreLCD.setStyleSheet(score_s)
 
     # Clear the text display and show
     def clearText(self):
@@ -205,6 +292,7 @@ class ImproTron(QMainWindow):
 
     # Find the optimal width for the team name
     def find_optimal_team_font_size(self, nameLabel):
+
         # Get the team name
         labelText = nameLabel.text()
 
@@ -217,8 +305,8 @@ class ImproTron(QMainWindow):
             return
 
         labelRect = nameLabel.rect()
-        labelHeight = labelRect.height() - 30 # as a margin
-        labelWidth = labelRect.width() - 50 # as a margin
+        labelHeight = labelRect.height() * 0.8 - 30 # as a margin
+        labelWidth = labelRect.width() * 0.9 - 50 # as a margin
 
         heightRatio = textHeight/labelHeight
         widthRatio  = textWidth/labelWidth
@@ -291,6 +379,12 @@ class ImproTron(QMainWindow):
         self.find_optimal_team_font_size(self.ui.rightTeamLabel)
         self.find_optimal_team_font_size(self.ui.leftScoreLCD)
         self.find_optimal_team_font_size(self.ui.rightScoreLCD)
+
+        # After font scaling has occurred, the labels might have shifted.
+        # We reposition the logo now to ensure it sits perfectly on the new intersection.
+        if hasattr(self, 'logoLabel') and self.logoLabel.isVisible():
+            self.repositionLogo()
+            self.logoLabel.raise_() # Keep it on top of the text labels
 
     # Flip to the video player and return the widget to connect the video play to
     def showVideo(self):
@@ -396,60 +490,95 @@ class HotButtonHandler(QObject):
 
 # SoundFX Pallette Management. This class handles loading of a saved queue and converting
 # and WAV files contained into sound effect buttons
-class SoundFX():
-    def __init__(self, sfx_button):
-
+class SoundFX(QObject):
+    def __init__(self, sfx_button, media_file_database):
+        super().__init__()
         self.sfx_button = sfx_button
         self.soundFX = QSoundEffect()
+        self.media_file_database = media_file_database
 
-        # Take control of the actual button
+        # Store the "target" volume to return to after a fade or duck
+        self.user_volume = 1.0
+
+        # Animation for smooth volume transitions
+        self.fade_anim = QVariantAnimation(self)
+        self.fade_anim.setDuration(1000)  # 1 second fade
+        self.fade_anim.setEasingCurve(QEasingCurve.Type.OutQuad)
+        self.fade_anim.valueChanged.connect(self._update_fade_volume)
+        self.fade_anim.finished.connect(self._finalize_stop)
+
         self.sfx_button.clicked.connect(self.soundFXButtonClicked)
 
-    @Slot(str)
-    def loadSoundEffect(self, new_SoundFX):
-
-        self.sfx_button.setIcon(QIcon())
-        self.sfx_button.setText(new_SoundFX.baseName())
-        self.soundFX.setSource(QUrl.fromLocalFile(new_SoundFX.absoluteFilePath()))
-
-        self.sfx_button.setEnabled(True)
-
-    # Assumes a value btween 0-1
-    @Slot(str)
-    def set_fx_volume(self, value):
+    def _update_fade_volume(self, value):
+        """Internal slot called by animation to ramp volume"""
         self.soundFX.setVolume(value)
 
-    @Slot(str)
-    def disable(self):
-        self.sfx_button.setText("")
-        self.sfx_button.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCancelButton))
-        self.sfx_button.setEnabled(False)
+    def _finalize_stop(self):
+            """Called when fade-out finishes"""
+            # Changed .getVolume() to .volume()
+            if self.soundFX.volume() <= 0.01:
+                self.soundFX.stop()
+                # Reset volume to the user's preferred level so it's ready for the next play
+                self.soundFX.setVolume(self.user_volume)
+
+    @Slot(float)
+    def set_fx_volume(self, value):
+        self.user_volume = value
+        # Only update immediately if not currently fading
+        if self.fade_anim.state() != QVariantAnimation.State.Running:
+            self.soundFX.setVolume(value)
+
+    @Slot()
+    def fadeOut(self, duration=1000):
+        """Triggers a fade out if the sound is playing"""
+        if self.soundFX.isPlaying() and self.fade_anim.state() != QVariantAnimation.State.Running:
+            self.fade_anim.setDuration(duration)
+            self.fade_anim.setStartValue(self.soundFX.volume())
+            self.fade_anim.setEndValue(0.0)
+            self.fade_anim.start()
 
     @Slot()
     def soundFXButtonClicked(self):
         if self.soundFX.isPlaying():
-            self.soundFX.stop()
+            # If already fading, just stop immediately (panic mode)
+            if self.fade_anim.state() == QVariantAnimation.State.Running:
+                self.fade_anim.stop()
+                self._finalize_stop()
+            else:
+                # Start the smooth fade out
+                self.fade_anim.setStartValue(self.soundFX.volume())
+                self.fade_anim.setEndValue(0.0)
+                self.fade_anim.start()
         else:
+            self.fade_anim.stop() # Ensure no leftover fade is running
+            self.soundFX.setVolume(self.user_volume)
             self.soundFX.play()
 
-# Class to hold Slide info useful in maintaining list of images
-class SlideWidget(QListWidgetItem):
-    def __init__(self, imageFileInfo, parent=None):
-        super().__init__(imageFileInfo.fileName(), parent)
+    @Slot(object)
+    def loadSoundEffect(self, new_SoundFX):
+        # Get the extension (e.g., ".wav")
+        ext = f"*.{new_SoundFX.suffix().lower()}"
 
-        self._fileInto = imageFileInfo
-        newSlideFont = self.font()
-        newSlideFont.setPointSize(12)
-        self.setFont(newSlideFont)
+        # Simple extension check against your database
+        if ext in self.media_file_database.sfx_supported():
+            self.sfx_button.setIcon(QIcon())
+            self.sfx_button.setText(new_SoundFX.baseName())
+            self.soundFX.setSource(QUrl.fromLocalFile(new_SoundFX.absoluteFilePath()))
+            self.sfx_button.setEnabled(True)
+        else:
+            # Not a supported extension for QSoundEffect
+            self.disable_with_error(f"Unsupported: {new_SoundFX.suffix()}")
 
-    def title(self):
-        return self.text()
+    def disable_with_error(self, text):
+        self.sfx_button.setText(text)
+        self.sfx_button.setIcon(QApplication.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical))
+        self.sfx_button.setEnabled(False)
 
-    def fileInfo(self):
-        return self._fileInto
-
-    def imagePath(self):
-        return self._fileInto.absoluteFilePath()
+    @Slot()
+    def disable(self):
+        self.sfx_button.setText("")
+        self.sfx_button.setIcon(QApplication.style().standardIcon(QStyle.StandardPixmap.SP_DialogCancelButton))
+        self.sfx_button.setEnabled(False)
 
 # Used during slide shows and Whammy to load images aynchronously
 class SlideLoaderThread(QObject):
