@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1056</width>
-    <height>763</height>
+    <width>1048</width>
+    <height>738</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -384,6 +384,13 @@ background-color: rgb(0, 0, 0);</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="fadePlayerPB">
+                  <property name="text">
+                   <string/>
                   </property>
                  </widget>
                 </item>
@@ -993,7 +1000,7 @@ background-color: rgb(0, 0, 0);</string>
        </size>
       </property>
       <property name="currentIndex">
-       <number>7</number>
+       <number>2</number>
       </property>
       <property name="iconSize">
        <size>
@@ -2283,14 +2290,14 @@ background-color: rgb(255, 255, 0);</string>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="gameToBothShowPB">
+             <widget class="QPushButton" name="nextGameAuxPB">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>Show Both</string>
+               <string>Next Aux </string>
               </property>
              </widget>
             </item>
@@ -3231,9 +3238,9 @@ background-color: rgb(255, 255, 0);</string>
         </size>
        </property>
        <attribute name="title">
-        <string>Sounds</string>
+        <string>Music</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <layout class="QHBoxLayout" name="music_layout">
         <item>
          <layout class="QVBoxLayout" name="searchsoundsVL">
           <item>
@@ -3256,7 +3263,7 @@ background-color: rgb(255, 255, 0);</string>
              </font>
             </property>
             <property name="text">
-             <string>Search for sounds in the Sounds Library</string>
+             <string>Search for sounds in the Music Library</string>
             </property>
             <property name="scaledContents">
              <bool>false</bool>
@@ -3496,6 +3503,44 @@ background-color: rgb(255, 255, 0);</string>
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="soundFadePB">
+              <property name="minimumSize">
+               <size>
+                <width>50</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="fadeTimeLBL">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Fade(s):</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="fadeTimeSB">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>8</number>
+              </property>
+              <property name="value">
+               <number>2</number>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="soundPlayerHSP">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
@@ -3591,7 +3636,7 @@ background-color: rgb(255, 255, 0);</string>
           <item>
            <layout class="QHBoxLayout" name="soundFileNameHL">
             <item>
-             <widget class="QLabel" name="soundQUeueLBL">
+             <widget class="QLabel" name="soundQueueLBL">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -3625,6 +3670,11 @@ background-color: rgb(255, 255, 0);</string>
             </item>
             <item>
              <widget class="QLabel" name="soundFileNameLBL">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -3691,6 +3741,33 @@ background-color: rgb(255, 255, 0);</string>
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="playlistPlayPB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Play Queue</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="shuffleCB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Shuffle</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="soundListVS">
             <property name="orientation">
              <enum>Qt::Orientation::Vertical</enum>
@@ -3713,7 +3790,7 @@ background-color: rgb(255, 255, 0);</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <layout class="QHBoxLayout" name="soundFXPaletteHL" stretch="0,0,0,0">
+         <layout class="QHBoxLayout" name="soundFXPaletteHL" stretch="0,0,0,0,0">
           <property name="spacing">
            <number>6</number>
           </property>
@@ -3805,6 +3882,38 @@ background-color: rgb(255, 255, 0);</string>
             </property>
             <property name="tickInterval">
              <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="sfxStopAllPB">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+    background-color: red;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 1px solid darkred;
+}
+
+QPushButton:pressed {
+    background-color: darkred;
+}</string>
+            </property>
+            <property name="text">
+             <string>All Stop</string>
             </property>
            </widget>
           </item>
@@ -5639,7 +5748,7 @@ background-color: rgb(255, 255, 0);</string>
   <tabstop>loadBackgroundPB</tabstop>
   <tabstop>gameToMainShowPB</tabstop>
   <tabstop>gameToAuxShowPB</tabstop>
-  <tabstop>gameToBothShowPB</tabstop>
+  <tabstop>nextGameAuxPB</tabstop>
   <tabstop>gameSearchLE</tabstop>
   <tabstop>searchGamePB</tabstop>
   <tabstop>gamesTreeView</tabstop>
