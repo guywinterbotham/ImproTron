@@ -24,6 +24,8 @@ class Settings:
         'gamesFile': "",
         'mainLocation': QPoint(0, 0),
         'auxLocation': QPoint(0, 0),
+        'rightTextColor': QColor(Qt.black),
+        'leftTextColor': QColor(Qt.black),
     }
 
     def __init__(self):
@@ -80,6 +82,35 @@ class Settings:
             if color_name:
                 QColorDialog.setCustomColor(i, QColor(color_name))
 
+    def pick_left_text_color(self, ui):
+        colorSelected = QColorDialog.getColor(self.get_left_text_color(), ui,title = 'Pick Left Text Box Color')
+        self.save_custom_colors()
+        if colorSelected.isValid():
+            self._set('leftTextColor', colorSelected)
+
+        return colorSelected
+
+    def get_left_text_color(self):
+        return self._get('leftTextColor')
+
+    def set_left_text_color(self, color):
+        self._set('leftTextColor', color)
+
+    def pick_right_text_color(self,ui):
+        colorSelected = QColorDialog.getColor(self.get_right_text_color(), ui,title = 'Pick Right Text Box Color')
+        self.save_custom_colors()
+        if colorSelected.isValid():
+            self._set('rightTextColor', colorSelected)
+
+        return colorSelected
+
+    def get_right_text_color(self):
+        return self._get('rightTextColor')
+
+    def set_right_text_color(self, color):
+        self._set('rightTextColor', color)
+
+    # Team settings
     def pick_left_team_color(self, ui):
         colorSelected = QColorDialog.getColor(self.get_left_team_color(), ui,title = 'Pick Left Team Color')
         self.save_custom_colors()
@@ -101,6 +132,7 @@ class Settings:
 
     def get_right_team_color(self):
         return self._get('rightTeamColor')
+
 
     def set_left_team_name(self, name):
         self._set('leftTeamName', name)
