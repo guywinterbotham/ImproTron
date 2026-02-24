@@ -1,8 +1,10 @@
+<!DOCTYPE RCC>
 <RCC>
     <qresource lang="English" prefix="/icons">
         <file alias="unlocked">icons/unlocked.png</file>
         <file alias="locked">icons/lock.png</file>
         <file alias="about">icons/about.txt</file>
         <file alias="yesand">icons/yesand.png</file>
+        <file alias="scorelogo">icons/logo.gif</file>
     </qresource>
 </RCC>
