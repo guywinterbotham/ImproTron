@@ -40,7 +40,7 @@ class GamesFeature(QObject):
         self.ui.gamesLW.currentRowChanged.connect(self.game_changed)
         self.ui.gameToMainShowPB.clicked.connect(self.show_game_main)
         self.ui.gameToAuxShowPB.clicked.connect(self.show_game_aux)
-        self.ui.gameToBothShowPB.clicked.connect(self.show_game_both)
+        self.ui.nextGameAuxPB.clicked.connect(self.show_next_game_aux)
         self.ui.addGamePB.clicked.connect(self.add_game_to_list)
         self.ui.addGameLE.returnPressed.connect(self.add_game_to_list)
         self.ui.setGameToImagePB.clicked.connect(self.set_game_to_image)
@@ -350,6 +350,35 @@ class GamesFeature(QObject):
     def show_game_both(self):
         self.show_game_main()
         self.show_game_aux()
+
+    def next_game(self):
+        # Get the currently selected items
+        selected_items = self.ui.gamesLW.selectedItems()
+
+        # If no item is selected, start from the top
+        if not selected_items:
+            next_index = 0
+        else:
+            # Get the index of the currently selected item
+            current_item = selected_items[0]
+            current_index = self.ui.gamesLW.row(current_item)
+
+            # Calculate the next index (wrap around if at the end)
+            next_index = (current_index + 1) % self.ui.gamesLW.count()
+
+        # Select the next item
+        self.ui.gamesLW.setCurrentRow(next_index)
+        next_item = self.ui.gamesLW.item(next_index)
+
+        # Trigger the click event
+        if next_item is not None:
+            self.ui.gamesLW.itemPressed.emit(next_item)
+
+    @Slot()
+    def show_next_game_aux(self):
+        self.next_game()
+        self.show_game_aux()
+
 
     def draw_games_slide(self, label):
         # Fetch the text
