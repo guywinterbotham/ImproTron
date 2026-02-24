@@ -7,14 +7,14 @@ from PySide6.QtWidgets import (QFileDialog, QFileSystemModel, QMessageBox, QWidg
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
 
 from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QTextStream,
-                                QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread)
-from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession, QMediaDevices, QMediaPlayer, QAudioOutput, QMediaMetaData)
+                                QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread, QJsonDocument)
+from PySide6.QtMultimedia import (QCamera, QCameraDevice, QMediaCaptureSession, QMediaDevices, QMediaPlayer, QAudioOutput)
 from PySide6.QtNetwork import QNetworkAccessManager
 
 from PySide6.QtMultimediaWidgets import QVideoWidget
 
 from settings import Settings
-from Improtronics import ImproTron, SlideWidget, HotButtonHandler, SlideLoaderThread
+from Improtronics import ImproTron, HotButtonHandler, SlideLoaderThread
 
 from games_feature import GamesFeature
 from text_feature import TextFeature
@@ -23,6 +23,7 @@ from thingz_feature import ThingzFeature
 from monitor_preview import MonitorPreview
 # from lighting_feature import LightingFeature # Future DMX integration
 import utilities
+
 import ImproTronIcons
 from osc_server import OSCServer
 
@@ -43,12 +44,13 @@ class ImproTronControlBoard(QWidget):
         self.mediaModel = QFileSystemModel()
         self.mediaModel.setRootPath(self._settings.get_media_directory())
 
-        # MediaPlayer and audio setup for movies, webcams, and sound
-        self.mediaPlayer = QMediaPlayer()
-        self.audioOutput = QAudioOutput()
-        self.mediaPlayer.setAudioOutput(self.audioOutput)
+        # --- THEATER PIPELINE (Videos, Promos, Webcams) ---
+        self.videoPlayer = QMediaPlayer()
+        self.videoAudioOutput = QAudioOutput()
+        self.videoPlayer.setAudioOutput(self.videoAudioOutput)
         logger.info("Media player and audio output initialized.")
-        self.audioOutput.setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
+
+        self.videoAudioOutput.setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
         self.m_devices = QMediaDevices()
         self.m_devices.videoInputsChanged.connect(self.updateCameras)
         self.updateCameras()
@@ -59,7 +61,7 @@ class ImproTronControlBoard(QWidget):
         logger.info("Default camera set up.")
 
         # Connect error signal
-        self.mediaPlayer.errorOccurred.connect(self.mediaplayer_handle_error)
+        self.videoPlayer.errorOccurred.connect(self.videoPlayer_handle_error)
 
         # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
         self.mainPreviewMovie = QMovie()
@@ -109,7 +111,7 @@ class ImproTronControlBoard(QWidget):
         self.games_feature = GamesFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.text_feature = TextFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.thingz_feature = ThingzFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
-        self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel, self.mediaPlayer)
+        self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel)
         self.media_features.reset_media_view(self._settings.get_media_directory())
 
         logger.info("Core feature modules (Games, Text, Thingz, Media) initialized.")
@@ -127,12 +129,11 @@ class ImproTronControlBoard(QWidget):
         self.ui.camerasLW.itemClicked.connect(self.updateCameraDevice)
 
         # Connect the media player to retrieve duration after the file is loaded
-        self.mediaPlayer.durationChanged.connect(self.updateDuration)
-        self.mediaPlayer.positionChanged.connect(self.update_time_remaining)
-        self.mediaPlayer.metaDataChanged.connect(self.update_metadata_display)
+        self.videoPlayer.durationChanged.connect(self.updateDuration)
 
         # Set up volume control
         self.ui.soundVolumeSL.valueChanged.connect(self.set_sound_volume)
+        self.ui.soundVolumeSL.valueChanged.connect(self.media_features.set_sound_volume)
 
         # Recall Team names and colors then connect Score related signals to slots
         self.ui.teamNameLeft.textChanged.connect(self.show_left_team)
@@ -216,19 +217,6 @@ class ImproTronControlBoard(QWidget):
         self.slideLoaderThread.moveToThread(self.thread)
         self.thread.start()
 
-        # Mini Player Controls
-        self.ui.playPlayerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPlay))
-        self.ui.playPlayerPB.clicked.connect(self.videoPlay)
-
-        self.ui.pausePlayerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaPause))
-        self.ui.pausePlayerPB.clicked.connect(self.videoPause)
-
-        self.ui.stopPlayerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaStop))
-        self.ui.stopPlayerPB.clicked.connect(self.videoStop)
-
-        self.ui.loopPlayerPB.setIcon(QApplication.style().standardIcon(QStyle.SP_BrowserReload))
-        self.ui.loopPlayerPB.clicked.connect(self.media_features.loop_media)
-
         # Slide controls connections
         self.ui.slideShowSkipPB.setIcon(QApplication.style().standardIcon(QStyle.SP_MediaSkipForward))
         self.ui.slideShowSkipPB.clicked.connect(self.slideShowSkip)
@@ -300,6 +288,7 @@ class ImproTronControlBoard(QWidget):
         self.oscServer.spinBoxAction.connect(self.onOSCServerSpinBoxAction)
         self.oscServer.mediaAction.connect(self.media_features.onOSCServerMediaAction)
         self.oscServer.soundAction.connect(self.media_features.onOSCServerSoundAction)
+        self.oscServer.playlistAction.connect(self.media_features.onOSCServerPlaylistAction)
         self.oscServer.stingerAction.connect(self.media_features.onOSCServerStingerAction)
         self.oscServer.sfxPlayAction.connect(self.media_features.onOSCServerSFXPlayAction)
         self.oscServer.stopAllSFXSignal.connect(self.media_features.onOSCServerSFXStopAllAction)
@@ -398,16 +387,6 @@ class ImproTronControlBoard(QWidget):
         else:
             return False
 
-    def isVideo(self, file_name):
-        if len(file_name) > 0:
-            if QFileInfo.exists(file_name):
-                mediaInfo = QFileInfo(file_name)
-                return mediaInfo.suffix().lower() in  ['mp4', 'm4v', 'mp4v', 'wmv']
-            else:
-                return False
-        else:
-            return False
-
     # Note: This is both a local call but a slot for images emitted from the media features
     @Slot(str)
     def showMediaOnMain(self, file_name):
@@ -473,20 +452,24 @@ class ImproTronControlBoard(QWidget):
             logging.warning(f"Unsupported media for aux: {file_name}")
 
     def set_left_team_colors(self, color_selected):
+        # Color the things and scoreboard colors
         style = utilities.style_sheet(color_selected)
-
         self.ui.teamNameLeft.setStyleSheet(style)
         self.ui.leftThingTeamRB.setStyleSheet(style)
-        self.mainDisplay.colorizeLeftScore(style)
-        self.auxiliaryDisplay.colorizeLeftScore(style)
+
+        # Pass the COLOR object (not the style string) to the modern scoreboard
+        self.mainDisplay.colorizeLeftScore(color_selected)
+        self.auxiliaryDisplay.colorizeLeftScore(color_selected)
 
     def set_right_team_colors(self, color_selected):
+        # Color the things and scoreboard colors
         style = utilities.style_sheet(color_selected)
-
         self.ui.teamNameRight.setStyleSheet(style)
         self.ui.rightThingTeamRB.setStyleSheet(style)
-        self.mainDisplay.colorizeRightScore(style)
-        self.auxiliaryDisplay.colorizeRightScore(style)
+
+        # Pass the COLOR object (not the style string) to the modern scoreboard
+        self.mainDisplay.colorizeRightScore(color_selected)
+        self.auxiliaryDisplay.colorizeRightScore(color_selected)
 
     @Slot()
     def pick_left_team_color(self):
@@ -519,8 +502,8 @@ class ImproTronControlBoard(QWidget):
 
         # If no file was seelcted then ignore the choice
         if len(file_name[0]) > 0:
-            if self.isVideo(file_name[0]):
-                self.mediaPlayer.setSource(QUrl(file_name[0]))
+            if self.media_features.isVideo(file_name[0]):
+                self.videoPlayer.setSource(QUrl(file_name[0]))
             else:
                 logging.warning(f"Unsupported Video File selected: {file_name[0]}")
 
@@ -616,26 +599,63 @@ class ImproTronControlBoard(QWidget):
             # Scale to match the preview
             self.ui.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.slidePreviewLBL.size())))
 
-    @Slot(SlideWidget)
-    def previewSelectedSlide(self, slide):
-        reader = QImageReader(slide.imagePath())
-        reader.setAutoTransform(True)
-        newImage = reader.read()
-        if newImage.isNull():
-            logger.warning(f"Slide preview (from list): Failed to read image {slide.imagePath()}. QImageReader error: {reader.errorString()}")
-            # self.ui.slidePreviewLBL.clear() # Optionally clear preview
+    #Previews an image slide from a list widget.
+    @Slot(QListWidgetItem)
+    def previewSelectedSlide(self, item):
+
+        # 1. Retrieve the QFileInfo object from UserRole
+        file_info = item.data(Qt.UserRole)
+        if not file_info:
             return
 
-        # Scale to match the preview
-        self.ui.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.slidePreviewLBL.size())))
+        path = file_info.absoluteFilePath()
 
+        # 2. Use QImageReader to handle the image file
+        reader = QImageReader(path)
+        reader.setAutoTransform(True)
+        newImage = reader.read()
+
+        # 3. Validation and Error Handling
+        if newImage.isNull():
+            logger.warning(
+                f"Slide preview (from list): Failed to read image {path}. "
+                f"QImageReader error: {reader.errorString()}"
+            )
+            # self.ui.slidePreviewLBL.clear()
+            return
+
+        # 4. Scale and Display
+        # Using KeepAspectRatio ensures the slide looks correct in the preview pane
+        scaled_pixmap = QPixmap.fromImage(
+            newImage.scaled(
+                self.ui.slidePreviewLBL.size(),
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
+            )
+        )
+
+        self.ui.slidePreviewLBL.setPixmap(scaled_pixmap)
 
     @Slot()
     def addSlidetoList(self):
-        # get the text of the selected item
+        # 1. Get the index from the TreeView selection
         index = self.ui.slideShowFilesTreeView.selectionModel().currentIndex()
+
+        # 2. Only add if the selection is a file, not a directory
         if not self.mediaModel.isDir(index):
-            SlideWidget(self.mediaModel.fileInfo(index), self.ui.slideListLW)
+            # Retrieve QFileInfo directly from the QFileSystemModel
+            file_info = self.mediaModel.fileInfo(index)
+
+            # 3. Create a standard QListWidgetItem
+            item = QListWidgetItem(file_info.fileName(), self.ui.slideListLW)
+
+            # 4. Store the QFileInfo in UserRole
+            item.setData(Qt.UserRole, file_info)
+
+            # 5. Maintain your standard UI styling
+            font = item.font()
+            font.setPointSize(12)
+            item.setFont(font)
 
     @Slot()
     def slideMoveUp(self):
@@ -660,15 +680,45 @@ class ImproTronControlBoard(QWidget):
         self.ui.slidePreviewLBL.clear()
         self.ui.slideListLW.takeItem(self.ui.slideListLW.row(self.ui.slideListLW.currentItem()))
 
+    # Loads a slideshow sequence from a JSON file and populates the list widget.
     def loadSlides(self, file_name):
-        # Read the JSON data from the file
-        if len(file_name) > 0:
-            with open(file_name, 'r') as json_file:
-                slideshow_data = json.load(json_file)
+        if not file_name:
+            return
 
-            for slide in slideshow_data.items():
-                file = QFileInfo(slide[1])
-                SlideWidget(file, self.ui.slideListLW)
+        # 1. Open the file using Qt's QFile
+        file = QFile(file_name)
+        if not file.open(QIODevice.ReadOnly):
+            # Optional: Add logging here if the file fails to open
+            return
+
+        # 2. Parse the JSON data into a native Python dictionary
+        raw_data = file.readAll()
+        file.close()
+
+        doc = QJsonDocument.fromJson(raw_data)
+        slideshow_data = doc.toVariant()  # Converts JSON object to Python dict
+
+        if isinstance(slideshow_data, dict):
+            # Clear existing slides before loading new ones
+            self.ui.slideListLW.clear()
+
+            # 3. Iterate through the dictionary items
+            # Sorting ensures that slides appear in the intended order (e.g., slide0, slide1)
+            for key in sorted(slideshow_data.keys()):
+                path = slideshow_data[key]
+                if path:
+                    file_info = QFileInfo(path)
+
+                    # 4. Create standard QListWidgetItem
+                    item = QListWidgetItem(file_info.fileName(), self.ui.slideListLW)
+
+                    # 5. Store the QFileInfo in UserRole
+                    item.setData(Qt.UserRole, file_info)
+
+                    # 6. Apply standard styling
+                    font = item.font()
+                    font.setPointSize(12)
+                    item.setFont(font)
 
     @Slot()
     def loadSlideShow(self):
@@ -695,7 +745,11 @@ class ImproTronControlBoard(QWidget):
             slide_data = {}
             for slide in range(self.ui.slideListLW.count()):
                 slideName = "slide"+str(slide)
-                slide_data[slideName] = self.ui.slideListLW.item(slide).imagePath()
+                # Extract the QFileInfo from the item's UserRole
+                file_info = self.ui.slideListLW.item(slide).data(Qt.UserRole)
+
+                # Assign the absolute path string to your dictionary
+                slide_data[slideName] = file_info.absoluteFilePath()
 
             # Write the JSON string to a file
             with open(file_name[0], 'w', encoding='utf8') as json_file:
@@ -710,12 +764,32 @@ class ImproTronControlBoard(QWidget):
             self.ui.slideListLW.clear()
 
     # Promos specific behaviour
+    # Scans the promos directory and populates the list widget with all
+    # supported image and animation formats.
     def loadPromosSlides(self):
         _promosDirectory = self._settings.get_promos_directory()
-        if len(_promosDirectory) > 0:
-            self.ui.slideListLW.clear()
-            for file_info in QDir(_promosDirectory).entryInfoList("*.jpg *.png", QDir.Files, QDir.Name):
-                SlideWidget(file_info, self.ui.slideListLW)
+        if not _promosDirectory:
+            return
+
+        self.ui.slideListLW.clear()
+
+        all_supported = self.media_features.get_all_supported_slide_types()
+
+        # Scan the directory
+        promo_files = QDir(_promosDirectory).entryInfoList(
+            list(all_supported),
+            QDir.Files,
+            QDir.Name | QDir.IgnoreCase
+        )
+
+        # Populate the list
+        for file_info in promo_files:
+            item = QListWidgetItem(file_info.fileName(), self.ui.slideListLW)
+            item.setData(Qt.UserRole, file_info)
+
+            font = item.font()
+            font.setPointSize(12)
+            item.setFont(font)
 
     @Slot()
     def startPromosSlideShow(self):
@@ -729,24 +803,37 @@ class ImproTronControlBoard(QWidget):
             self.showSlideBoth()
         else:
             if self.ui.slideListLW.currentItem() != None:
-                self.showMediaOnMain(self.ui.slideListLW.currentItem().imagePath())
-
+                current = self.ui.slideListLW.currentItem()
+                if current:
+                    file_info = current.data(Qt.UserRole)
+                    self.showMediaOnMain(file_info.absoluteFilePath())
     @Slot()
     def showSlideAuxiliary(self):
         if self.ui.slideListLW.currentItem() != None:
-            self.showMediaOnAux(self.ui.slideListLW.currentItem().imagePath())
-
+            current = self.ui.slideListLW.currentItem()
+            if current:
+                file_info = current.data(Qt.UserRole)
+                self.showMediaOnAux(file_info.absoluteFilePath())
     @Slot()
     def showSlideBoth(self):
-        if self.ui.slideListLW.currentItem() != None:
-            self.showMediaOnMain(self.ui.slideListLW.currentItem().imagePath())
-            self.showMediaOnAux(self.ui.slideListLW.currentItem().imagePath())
+        current = self.ui.slideListLW.currentItem()
+        if current is not None:
+            # 1. Retrieve the QFileInfo from the UserRole
+            file_info = current.data(Qt.UserRole)
+
+            if file_info:
+                # 2. Extract the path string once
+                path = file_info.absoluteFilePath()
+
+                # 3. Pass the path to both displays
+                self.showMediaOnMain(path)
+                self.showMediaOnAux(path)
 
     # Slots for handling the Slide Show Player
     @Slot()
     def nextSlide(self):
         # Force the media player to stop just in case there is video play back occuring
-        self.mediaPlayer.stop()
+        self.videoPlayer.stop()
 
         # Have a default timeout. This will get overridden for videos.
         self.slideShowTimer.setInterval(self._settings.get_slideshow_delay()*1000)
@@ -762,13 +849,19 @@ class ImproTronControlBoard(QWidget):
             self.ui.slideListLW.setCurrentRow(self.currentSlide)
 
             # Determine the file type so as to correcty set the timeout to the default or video length
-            file_name = self.ui.slideListLW.currentItem().imagePath()
+            # 1. Get the QFileInfo object from the UserRole
+            file_info = self.ui.slideListLW.currentItem().data(Qt.UserRole)
+
+            # 2. Get the path string from the QFileInfo object
+            if file_info:
+                file_name = file_info.absoluteFilePath()
+
             if self.isAnimatedGIF(file_name) or self.media_features.isImage(file_name):
                 self.showSlideMain()
-            elif self.isVideo(file_name):
-                self.mediaPlayer.setSource(QUrl(file_name))
-                self.mediaPlayer.setVideoOutput(self.mainDisplay.showVideo())
-                self.mediaPlayer.setPosition(0)
+            elif self.media_features.isVideo(file_name):
+                self.videoPlayer.setSource(QUrl(file_name))
+                self.videoPlayer.setVideoOutput(self.mainDisplay.showVideo())
+                self.videoPlayer.setPosition(0)
 
                 # This is an attempt to handle a situation where a slide show has one video
                 # The media player loads the same video with the same length and so never triggers
@@ -776,7 +869,7 @@ class ImproTronControlBoard(QWidget):
                 if self.last_media_duration > 0:
                     self.slideShowTimer.setInterval(self.last_media_duration)
 
-                self.mediaPlayer.play()
+                self.videoPlayer.play()
 
             else:
                 logging.warning(f"Unsupported Media Type: {file_name}")
@@ -821,15 +914,15 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def slideShowPause(self):
         self.slideShowTimer.stop()
-        if self.mediaPlayer.isPlaying():
-            self.mediaPlayer.pause()
+        if self.videoPlayer.isPlaying():
+            self.videoPlayer.pause()
         self.paused = True
 
     @Slot()
     def slideShowStop(self):
         self.slideShowTimer.stop()
-        if self.mediaPlayer.isPlaying():
-            self.mediaPlayer.stop()
+        if self.videoPlayer.isPlaying():
+            self.videoPlayer.stop()
         self.paused = False
         self.promosMode = False # Cancel the promo behavior on a stop
         self.currentSlide = 0
@@ -876,7 +969,10 @@ class ImproTronControlBoard(QWidget):
         self.whams = self.ui.whammysSB.value()
 
         self.ui.slideListLW.setCurrentRow(self.whammyRandomizer.bounded(0, slideCount))
-        self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
+        current_item = self.ui.slideListLW.currentItem()
+        if current_item:
+            file_info = current_item.data(Qt.UserRole)
+            self.slideLoadSignal.emit(file_info.absoluteFilePath())
         self.whammyTimer.start()
 
     @Slot()
@@ -898,12 +994,33 @@ class ImproTronControlBoard(QWidget):
 
         randomSlide = self.whammyRandomizer.bounded(0, self.ui.slideListLW.count())
         self.ui.slideListLW.setCurrentRow(randomSlide)
-        self.slideLoadSignal.emit(self.ui.slideListLW.currentItem().imagePath())
+        current = self.ui.slideListLW.currentItem()
+        if current:
+            file_info = current.data(Qt.UserRole)
+            if file_info:
+                self.slideLoadSignal.emit(file_info.absoluteFilePath())
 
-    @Slot() # Relocate to Slide show as it involves SlideWidgets
+    # Copies the selected item from Media Search Results to the Slide Show list.
+    @Slot()
     def searchtoSlideShow(self):
-        if self.ui.mediaSearchResultsLW.currentItem() != None:
-            SlideWidget(QFileInfo(self.ui.mediaSearchResultsLW.currentItem().imagePath()), self.ui.slideListLW)
+        # 1. Get the currently selected item from the search results
+        current_item = self.ui.mediaSearchResultsLW.currentItem()
+
+        if current_item is not None:
+            # 2. Retrieve the QFileInfo already stored in the search item
+            file_info = current_item.data(Qt.UserRole)
+
+            if file_info:
+                # 3. Create a new item in the slideListLW
+                new_item = QListWidgetItem(file_info.fileName(), self.ui.slideListLW)
+
+                # 4. Store the same QFileInfo in the new item's UserRole
+                new_item.setData(Qt.UserRole, file_info)
+
+                # 5. Apply standard styling
+                font = new_item.font()
+                font.setPointSize(12)
+                new_item.setFont(font)
 
     @Slot()
     def soundMoveUp(self):
@@ -916,36 +1033,36 @@ class ImproTronControlBoard(QWidget):
 
     # Video Player Controler
     def videoPlay(self):
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
-            self.mediaPlayer.play()
+        if self.videoPlayer.playbackState() == QMediaPlayer.PausedState:
+            self.videoPlayer.play()
             return
 
         self.m_captureSession.setVideoOutput(None) #Disable the camera
 
         if self.ui.videoOnMainRB.isChecked():
-            self.mediaPlayer.setVideoOutput(self.mainDisplay.showVideo())
+            self.videoPlayer.setVideoOutput(self.mainDisplay.showVideo())
         elif self.ui.videoOnAuxRB.isChecked():
-            self.mediaPlayer.setVideoOutput(self.auxiliaryDisplay.showVideo())
+            self.videoPlayer.setVideoOutput(self.auxiliaryDisplay.showVideo())
         else:
-            self.mediaPlayer.setVideoOutput(self.mediaViewerVW)
+            self.videoPlayer.setVideoOutput(self.mediaViewerVW)
 
-        self.mediaPlayer.setPosition(0)
-        self.mediaPlayer.play()
+        self.videoPlayer.setPosition(0)
+        self.videoPlayer.play()
 
     @Slot()
     def videoPause(self):
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
-            self.mediaPlayer.play()
+        if self.videoPlayer.playbackState() == QMediaPlayer.PausedState:
+            self.videoPlayer.play()
             return
 
-        if self.mediaPlayer.isPlaying():
-            self.mediaPlayer.pause()
+        if self.videoPlayer.isPlaying():
+            self.videoPlayer.pause()
 
     @Slot()
     def videoStop(self):
-        self.mediaPlayer.stop()
+        self.videoPlayer.stop()
 
-    def mediaplayer_handle_error(self, error, error_string):
+    def videoPlayer_handle_error(self, error, error_string):
         # Log the error
         logger.error(f"Media Player Error: {error} - {error_string}")
 
@@ -958,82 +1075,6 @@ class ImproTronControlBoard(QWidget):
             logger.debug(f"Changing Video Length {duration}")
             self.slideShowTimer.setInterval(self.last_media_duration) # Add a little buffer
 
-    #Calculates time remaining and updates the timeRemainingLBL.
-    #param position_ms: The current playback position in milliseconds.
-    @Slot(int)
-    def update_time_remaining(self, position_ms: int):
-
-        # Get total duration (in milliseconds)
-        duration_ms = self.mediaPlayer.duration()
-
-        if duration_ms <= 0 or not self.mediaPlayer.isPlaying():
-            # Cannot calculate time remaining if duration is unknown
-            self.ui.timeRemainingLBL.setText("--:--")
-            return
-
-        # Calculate remaining time
-        remaining_ms = duration_ms - position_ms
-
-        # Ensure remaining time is not negative
-        if remaining_ms < 0:
-            remaining_ms = 0
-
-        # Convert milliseconds to MM:SS format using Qt functionality
-
-        # Total seconds remaining
-        total_seconds = remaining_ms // 1000
-
-        minutes = total_seconds // 60
-        seconds = total_seconds % 60
-
-        # Use f-string formatting to ensure two digits (00:00)
-        time_str = f"{minutes:02d}:{seconds:02d}"
-
-        self.ui.timeRemainingLBL.setText(time_str)
-
-    # Reads standard metadata (Title, Artist) from QMediaPlayer and updates the UI labels.
-    # Uses file name as a fallback if metadata is missing.
-    # Assuming you are using PySide6 (Qt 6)
-
-    # Reads metadata from the QMediaPlayer and updates the Title and Artist labels."""
-    @Slot()
-    def update_metadata_display(self):
-        # Get the dedicated metadata object from the player first.
-        # The metaData(key) method must be called on this object, not the player itself.
-        metadata_object = self.mediaPlayer.metaData()
-
-        # Get Title
-        title = metadata_object.stringValue(QMediaMetaData.Key.Title)
-
-        if not title:
-            # Fallback: Use the file name without extension
-            url = self.mediaPlayer.source()
-            if not url.isEmpty():
-                file_name = QFileInfo(url.url()).fileName()
-                title = QFileInfo(file_name).baseName()
-            else:
-                title = "Unknown Title"
-
-        self.ui.mediaTitleLBL.setText(title)
-
-        # Get Artist
-        artist = metadata_object.stringValue(QMediaMetaData.Key.ContributingArtist)
-
-        if not artist:
-            # Priority 2: Check for AlbumArtist tag
-            artist = metadata_object.stringValue(QMediaMetaData.AlbumArtist)
-
-        if not artist:
-            # Priority 3: Check for Author tag
-            artist = metadata_object.stringValue(QMediaMetaData.Author)
-
-        if not artist:
-            # Final Fallback
-            artist = "Unknown Artist"
-
-        self.ui.artistNameLBL.setText(artist)
-
-        logging.debug(f"Media Metadata Updated: Title='{title}', Artist='{artist}'")
 
     # Preferences and Hot Buttons configuration settings
     @Slot()
@@ -1131,7 +1172,7 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def startCamera(self):
 
-        self.mediaPlayer.setVideoOutput(None)
+        self.videoPlayer.setVideoOutput(None)
 
         if self.ui.videoOnMainRB.isChecked():
             self.m_captureSession.setVideoOutput(self.mainDisplay.showCamera())
@@ -1191,7 +1232,7 @@ class ImproTronControlBoard(QWidget):
     # Respond to the request to change volume
     @Slot(int)
     def set_sound_volume(self, value):
-        self.audioOutput.setVolume(value/self.ui.soundVolumeSL.maximum())
+        self.videoAudioOutput.setVolume(value/self.ui.soundVolumeSL.maximum())
 
     # OSC Server message handlers
     @Slot()
