@@ -3,7 +3,7 @@
 import csv
 import logging
 from PySide6.QtCore import QObject, Slot, QItemSelection, Qt, QTimer, QFileInfo, QRandomGenerator
-from PySide6.QtGui import QImageReader, QPixmap, QColor, QStandardItem, QStandardItemModel, QPainter, QFontMetrics
+from PySide6.QtGui import QImageReader, QPixmap, QStandardItem, QStandardItemModel, QPainter, QFontMetrics
 from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QListWidgetItem
 
 logger = logging.getLogger(__name__)
@@ -17,10 +17,13 @@ class GamesFeature(QObject):
         self.mainDisplay = mainDisplay
         self.auxiliaryDisplay = auxiliaryDisplay
         self._game_whams = 0
-        self._games_background_file = "" # The name of the last background will need to be stored so start as a zero length name
         self._games_background = None
-        self._game_color_selected = QColor("black")
+        self._game_color_selected = self._settings.get_game_text_color()
+        self.load_background_file(self._settings.get_game_background())
+        self.ui.gameTextSLD.setValue(self._settings.get_game_text_size())
         self._whammy_randomizer = QRandomGenerator()
+
+        self.draw_games_slide(self.ui.gameBackgroundLBL) # Update the preview to get the restored values to apply
 
         # Maintain a model/view of the games
         self._games_tree_view = self.ui.gamesTreeView
@@ -206,7 +209,43 @@ class GamesFeature(QObject):
 
         if color_selected != None:
             self._game_color_selected = color_selected
+            self._settings.set_game_text_color(color_selected)
             self.draw_games_slide(self.ui.gameBackgroundLBL)
+
+    def load_background_file(self, games_background_file):
+
+        if not games_background_file:
+            logger.error("No background file supplied.")
+            return
+
+        self._games_background = None # Reset in case loading fails
+
+        try:
+            if not QFileInfo.exists(games_background_file):
+                logger.error(f"Selected game background file does not exist: {games_background_file}")
+                return
+
+            mediaInfo = QFileInfo(games_background_file)
+            if not bytes(mediaInfo.suffix().lower(),"ascii") in QImageReader.supportedImageFormats():
+                logger.error(f"Selected game background file is not a supported image format: {games_background_file}")
+                return
+
+            reader = QImageReader(games_background_file)
+            reader.setAutoTransform(True)
+            loaded_image = reader.read()
+
+            if loaded_image.isNull():
+                logger.error(f"Failed to read or decode game background image: {games_background_file}. Error: {reader.errorString()}")
+                return
+
+            self._games_background = loaded_image
+            self._settings.set_game_background(games_background_file)
+            self.draw_games_slide(self.ui.gameBackgroundLBL)
+
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while loading background image {games_background_file}: {e}")
+            self._games_background = None
+
 
     @Slot()
     def load_background(self):
@@ -216,105 +255,23 @@ class GamesFeature(QObject):
             logger.info("No background file selected.")
             return
 
-        self._games_background_file = selected_file_name[0]
-        self._games_background = None # Reset in case loading fails
-
-        try:
-            if not QFileInfo.exists(self._games_background_file):
-                logger.error(f"Selected game background file does not exist: {self._games_background_file}")
-                return
-
-            mediaInfo = QFileInfo(self._games_background_file)
-            if not bytes(mediaInfo.suffix().lower(),"ascii") in QImageReader.supportedImageFormats():
-                logger.error(f"Selected game background file is not a supported image format: {self._games_background_file}")
-                return
-
-            reader = QImageReader(self._games_background_file)
-            reader.setAutoTransform(True)
-            loaded_image = reader.read()
-
-            if loaded_image.isNull():
-                logger.error(f"Failed to read or decode game background image: {self._games_background_file}. Error: {reader.errorString()}")
-                return
-            
-            self._games_background = loaded_image
-            self.draw_games_slide(self.ui.gameBackgroundLBL)
-
-        except Exception as e:
-            logger.error(f"An unexpected error occurred while loading background image {self._games_background_file}: {e}")
-            self._games_background = None
+        self.load_background_file(selected_file_name[0])
 
     @Slot()
     def set_game_to_image(self):
-        potential_background_file = self.ui.mediaFileNameLBL.text()
-        self._games_background = None # Reset in case loading fails
-
-        if not potential_background_file:
-            logger.warning("No media file name set in UI to use as game background.")
-            return
-
-        self._games_background_file = potential_background_file
-
-        try:
-            if not QFileInfo.exists(self._games_background_file):
-                logger.error(f"Game background file from media selection does not exist: {self._games_background_file}")
-                return
-
-            mediaInfo = QFileInfo(self._games_background_file)
-            if not bytes(mediaInfo.suffix().lower(),"ascii") in  QImageReader.supportedImageFormats():
-                logger.error(f"Game background file from media selection is not a supported image format: {self._games_background_file}")
-                return
-
-            reader = QImageReader(self._games_background_file)
-            reader.setAutoTransform(True)
-            loaded_image = reader.read()
-
-            if loaded_image.isNull():
-                logger.error(f"Failed to read or decode game background image from media selection: {self._games_background_file}. Error: {reader.errorString()}")
-                return
-            
-            self._games_background = loaded_image
-            self.draw_games_slide(self.ui.gameBackgroundLBL)
-        except Exception as e:
-            logger.error(f"An unexpected error occurred while setting game background from image {self._games_background_file}: {e}")
-            self._games_background = None
+        self.load_background_file(self.ui.mediaFileNameLBL.text())
 
     @Slot()
     def set_game_to_slide(self):
         index = self.ui.slideShowFilesTreeView.selectionModel().currentIndex()
         media_model = self.ui.slideShowFilesTreeView.model()
-        self._games_background = None # Reset in case loading fails
 
         if not index.isValid() or media_model.isDir(index):
             logger.warning("No valid file selected in slideshow to set as game background.")
             return
 
         image_file_info = media_model.fileInfo(index)
-        self._games_background_file = image_file_info.absoluteFilePath()
-
-        try:
-            if not QFileInfo.exists(self._games_background_file):
-                logger.error(f"Game background file from slideshow selection does not exist: {self._games_background_file}")
-                return
-
-            mediaInfo = QFileInfo(self._games_background_file)
-            if not bytes(mediaInfo.suffix().lower(),"ascii") in QImageReader.supportedImageFormats():
-                logger.error(f"Game background file from slideshow selection is not a supported image format: {self._games_background_file}")
-                return
-
-            reader = QImageReader(self._games_background_file)
-            reader.setAutoTransform(True)
-            loaded_image = reader.read()
-
-            if loaded_image.isNull():
-                logger.error(f"Failed to read or decode game background image from slideshow: {self._games_background_file}. Error: {reader.errorString()}")
-                return
-            
-            self._games_background = loaded_image
-            self.draw_games_slide(self.ui.gameBackgroundLBL)
-        except Exception as e:
-            logger.error(f"An unexpected error occurred while setting game background from slideshow image {self._games_background_file}: {e}")
-            self._games_background = None
+        self.load_background_file(image_file_info.absoluteFilePath())
 
     @Slot()
     def show_game_main(self):
@@ -328,6 +285,10 @@ class GamesFeature(QObject):
 
         font = self.ui.gameTextFontCB.currentFont()
         font.setPixelSize(36)
+
+        slider = self.ui.gameTextSLD.value()
+        self._settings.set_game_text_size(slider) # Save when used which implies all adjustmetns have been made
+
         self.mainDisplay.showGame(self._games_background, text, font, self.ui.gameTextSLD.value(), self._game_color_selected)
         self.draw_games_slide(self.ui.imagePreviewMain)
 
@@ -343,7 +304,11 @@ class GamesFeature(QObject):
 
         font = self.ui.gameTextFontCB.currentFont()
         font.setPixelSize(36)
-        self.auxiliaryDisplay.showGame(self._games_background, text, font, self.ui.gameTextSLD.value(), self._game_color_selected)
+
+        slider = self.ui.gameTextSLD.value()
+        self._settings.set_game_text_size(slider) # Save when used which implies all adjustmetns have been made
+
+        self.auxiliaryDisplay.showGame(self._games_background, text, font, slider, self._game_color_selected)
         self.draw_games_slide(self.ui.imagePreviewAuxiliary)
 
     @Slot()
@@ -378,7 +343,6 @@ class GamesFeature(QObject):
     def show_next_game_aux(self):
         self.next_game()
         self.show_game_aux()
-
 
     def draw_games_slide(self, label):
         # Fetch the text

@@ -113,10 +113,10 @@ class TextFeature(QObject):
         if new_color.isValid():
             if coloredButton == self.ui.leftTextColorPB:
                 self._settings.set_left_text_color(new_color)
-                logger.info(f"Left Preset Saved: {new_color.getRgb()[:3]}")
+                logger.debug(f"Left Preset Saved: {new_color.getRgb()[:3]}")
             elif coloredButton == self.ui.rightTextColorPB:
                 self._settings.set_right_text_color(new_color)
-                logger.info(f"Right Preset Saved: {new_color.getRgb()[:3]}")
+                logger.debug(f"Right Preset Saved: {new_color.getRgb()[:3]}")
         else:
             logger.error(f"Final attempt to parse '{color_str}' failed.")
 
