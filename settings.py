@@ -26,6 +26,9 @@ class Settings:
         'auxLocation': QPoint(0, 0),
         'rightTextColor': QColor(Qt.black),
         'leftTextColor': QColor(Qt.black),
+        'gameTextColor': QColor(Qt.white),
+        'gameBackground':"",
+        'gameTextSize': 10
     }
 
     def __init__(self):
@@ -64,7 +67,6 @@ class Settings:
 
     def get_location(self):
         return self.settings.fileName()
-
 
     def get_config_dir(self):
         return self._get('configDir')
@@ -109,6 +111,25 @@ class Settings:
 
     def set_right_text_color(self, color):
         self._set('rightTextColor', color)
+
+    # Game frame text color and image persistence
+    def get_game_text_color(self):
+        return self._get('gameTextColor')
+
+    def set_game_text_color(self, color):
+        self._set('gameTextColor', color)
+
+    def get_game_background(self):
+        return self._get('gameBackground')
+
+    def set_game_background(self, color):
+        self._set('gameBackground', color)
+
+    def get_game_text_size(self):
+        return self._get('gameTextSize')
+
+    def set_game_text_size(self, size):
+        self._set('gameTextSize', size)
 
     # Team settings
     def pick_left_team_color(self, ui):
