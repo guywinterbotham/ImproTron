@@ -46,6 +46,7 @@ ImproTronIcons.py
 *.pro.user*
 CMakeLists.txt.user*
 ui_*.py
+pysidedeploy.spec
 
 # xemacs temporary files
 *.flc
@@ -80,3 +81,7 @@ ui_*.py
 *.dll
 *.exe
 
+# venv
+pyvenv.cfg
+bin/**
+lib/**
