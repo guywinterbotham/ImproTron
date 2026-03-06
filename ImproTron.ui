@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1092</width>
+    <width>1360</width>
     <height>664</height>
    </rect>
   </property>
@@ -111,18 +111,21 @@ background-color: rgb(0, 0, 0);</string>
        <property name="styleSheet">
         <string notr="true"/>
        </property>
-       <layout class="QGridLayout" name="gridLayout">
+       <layout class="QGridLayout" name="displayScoreGL">
         <property name="leftMargin">
-         <number>5</number>
+         <number>0</number>
         </property>
         <property name="topMargin">
-         <number>5</number>
+         <number>0</number>
         </property>
         <property name="rightMargin">
-         <number>5</number>
+         <number>0</number>
         </property>
         <property name="bottomMargin">
-         <number>5</number>
+         <number>0</number>
+        </property>
+        <property name="spacing">
+         <number>0</number>
         </property>
         <item row="0" column="0" rowspan="2" colspan="2">
          <widget class="QFrame" name="scoreFR">
