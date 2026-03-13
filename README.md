@@ -56,7 +56,7 @@ Note: A deployment built using pyside6-deploy is available for download.
 
         # Compile resources and UI files (paths might need adjustment)
         # pyside6-rcc ImproTronIcons.qrc > ImproTronIcons.py 
-        # pyside6-uic ImproTronControlBoard.ui -o ui_ImproTronControlBoard.py
+        # pyside6-uic ImproTronControlPanel.ui -o ui_ImproTronControlBoard.py
         # pyside6-uic ImproTron.ui -o ui_ImproTron.py
         
         # Deploy the application using the spec file
