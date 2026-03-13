@@ -51,10 +51,16 @@ class ImproTron(QMainWindow):
         self.logoLabel.show()
         self.repositionLogo()
 
-        # Force the grid layout to have zero gaps between the 4 labels
-        self.ui.displayScoreGL.setSpacing(0)
-        self.ui.displayScoreGL.setContentsMargins(0, 0, 0, 0)
-        self.setup_consistent_shadows()
+        # Fine tune the appearence of the digits
+        for label in [self.ui.leftScoreLCD, self.ui.rightScoreLCD]:
+            shadow = QGraphicsDropShadowEffect()
+            # High blur radius (15-20) smooths out differences between digit shapes
+            shadow.setBlurRadius(18)
+            shadow.setColor(QColor(0, 0, 0, 230)) # Dense black
+            # A 6px vertical offset anchors the text downward, away from the glass shine
+            shadow.setOffset(0, 6)
+            label.setGraphicsEffect(shadow)
+
 
         # Force a score update to force a font scaling
         self.updateScores(0.0, 0.0)
@@ -65,16 +71,6 @@ class ImproTron(QMainWindow):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.repositionLogo()
-
-    def setup_consistent_shadows(self):
-        for label in [self.ui.leftScoreLCD, self.ui.rightScoreLCD]:
-            shadow = QGraphicsDropShadowEffect()
-            # High blur radius (15-20) smooths out differences between digit shapes
-            shadow.setBlurRadius(18)
-            shadow.setColor(QColor(0, 0, 0, 230)) # Dense black
-            # A 6px vertical offset anchors the text downward, away from the glass shine
-            shadow.setOffset(0, 6)
-            label.setGraphicsEffect(shadow)
 
     def repositionLogo(self):
         if not self.logoLabel.isVisible():
