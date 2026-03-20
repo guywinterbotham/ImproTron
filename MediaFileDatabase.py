@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 from tinydb import TinyDB, Query
 from tinydb.storages import MemoryStorage
-from PySide6.QtCore import QDir, QDirIterator, QMimeDatabase
+from PySide6.QtCore import QDir, QDirIterator, QMimeDatabase, QStandardPaths
 from PySide6.QtGui import QImageReader
 from PySide6.QtMultimedia import QMediaFormat, QSoundEffect
 import re
@@ -100,8 +100,9 @@ class MediaFileDatabase():
     def index_media(self, path):
         logger.info("Indexing Media Files ...")
         if not QDir(path).exists():
-            logger.error(f"Media indexing path not found: {path}")
-            raise FileNotFoundError(f"The path {path} does not exist.")
+            logger.error(f"Media indexing path not found: {path}. Using Default.")
+            return self._index_files(QStandardPaths.writableLocation(QStandardPaths.PicturesLocation), self._media_supported, self.media_table)
+
         return self._index_files(path, self._media_supported, self.media_table)
 
     def search_media(self, tags, all_tags = True):
@@ -116,8 +117,9 @@ class MediaFileDatabase():
     def index_sounds(self, path):
         logger.info("Indexing Sound Files ...")
         if not QDir(path).exists():
-            logger.error(f"Sound indexing path not found: {path}")
-            raise FileNotFoundError(f"The path {path} does not exist.")
+            logger.error(f"Sound indexing path not found: {path}. Using Default.")
+            return self._index_files(QStandardPaths.writableLocation(QStandardPaths.MusicLocation), self._sounds_supported, self.sounds_table)
+
         return self._index_files(path, self._sounds_supported, self.sounds_table)
 
     def search_sounds(self, tags, all_tags = True):

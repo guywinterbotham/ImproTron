@@ -13,6 +13,7 @@
         "thingz_feature.py",
         "settings.py",
         "monitor_preview.py",
-        "osc_server.py"
+        "osc_server.py",
+        "ui_ImproTron.py"
     ]
 }
