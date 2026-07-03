@@ -41,6 +41,7 @@ Thumbs.db
 /.qmake.cache
 /.qmake.stash
 ImproTronIcons.py
+*.dist*
 
 # qtcreator generated files
 *.pro.user*
