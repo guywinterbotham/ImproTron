@@ -63,14 +63,6 @@ class ImproTronControlBoard(QWidget):
         # Connect error signal
         self.videoPlayer.errorOccurred.connect(self.videoPlayer_handle_error)
 
-        # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
-        self.mainPreviewMovie = QMovie()
-        self.mainPreviewMovie.setSpeed(100)
-        self.auxPreviewMovie = QMovie()
-        self.auxPreviewMovie.setSpeed(100)
-
-        logger.info("GIF runnings created")
-
         # Create Screens and relocate. Main done second so it is on top
         self.mainDisplay = ImproTron("Main")
         self.auxiliaryDisplay = ImproTron("Auxiliary")
@@ -287,6 +279,7 @@ class ImproTronControlBoard(QWidget):
         self.oscServer.buttonAction.connect(self.onOSCServerButtonAction)
         self.oscServer.spinBoxAction.connect(self.onOSCServerSpinBoxAction)
         self.oscServer.mediaAction.connect(self.media_features.onOSCServerMediaAction)
+        self.oscServer.movieAction.connect(self.onOSCServerMovieAction)
         self.oscServer.soundAction.connect(self.media_features.onOSCServerSoundAction)
         self.oscServer.playlistAction.connect(self.media_features.onOSCServerPlaylistAction)
         self.oscServer.stingerAction.connect(self.media_features.onOSCServerStingerAction)
@@ -394,27 +387,20 @@ class ImproTronControlBoard(QWidget):
             return
 
         if not QFile(file_name).exists():
-            logger.warn(f"Mising Media File on Main: {file_name}")
+            logger.warn(f"Missing Media File on Main: {file_name}")
             return
 
-        self.mainPreviewMovie.stop()
         if self.isAnimatedGIF(file_name):
-            self.mainPreviewMovie.setFileName(file_name)
-            if not self.mainPreviewMovie.isValid():
-                logger.error(f"Main display: Failed to load GIF {file_name}. Error: {self.mainPreviewMovie.errorString()}")
-                return # Stop further processing for this invalid GIF
-            if self.mainPreviewMovie.isValid():
-                self.mainPreviewMovie.setScaledSize(self.main_preview.size())
-                self.main_preview.setMovie(self.mainPreviewMovie)
-                self.mainPreviewMovie.start()
+            if self.main_preview.set_preview_movie(file_name):
                 self.mainDisplay.showMovie(file_name)
+
         elif self.media_features.isImage(file_name):
             reader = QImageReader(file_name)
             reader.setAutoTransform(True)
             newImage = reader.read()
             if newImage.isNull():
                 logger.error(f"Main display: Failed to read image {file_name}. QImageReader error: {reader.errorString()}")
-                return # Stop further processing
+                return
             self.main_preview.load_image(newImage)
         else:
             logging.warning(f"Unsupported media for main: {file_name}")
@@ -426,20 +412,13 @@ class ImproTronControlBoard(QWidget):
             return
 
         if not QFile(file_name).exists():
-            logger.warn(f"Mising Media File on Aux: {file_name}")
+            logger.warn(f"Missing Media File on Auxiliary: {file_name}")
             return
 
-        self.auxPreviewMovie.stop()
         if self.isAnimatedGIF(file_name):
-            self.auxPreviewMovie.setFileName(file_name)
-            if not self.auxPreviewMovie.isValid():
-                logger.error(f"Aux display: Failed to load GIF {file_name}. Error: {self.auxPreviewMovie.errorString()}")
-                return
-            if self.auxPreviewMovie.isValid():
-                self.auxPreviewMovie.setScaledSize(self.aux_preview.size())
-                self.aux_preview.setMovie(self.auxPreviewMovie)
-                self.auxPreviewMovie.start()
+            if self.aux_preview.set_preview_movie(file_name):
                 self.auxiliaryDisplay.showMovie(file_name)
+
         elif self.media_features.isImage(file_name):
             reader = QImageReader(file_name)
             reader.setAutoTransform(True)
@@ -449,7 +428,7 @@ class ImproTronControlBoard(QWidget):
                 return
             self.aux_preview.load_image(newImage)
         else:
-            logging.warning(f"Unsupported media for aux: {file_name}")
+            logging.warning(f"Unsupported media for auxiliary: {file_name}")
 
     def set_left_team_colors(self, color_selected):
         # Color the things and scoreboard colors
@@ -510,12 +489,12 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def show_scores_main(self):
         self.mainDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
-        utilities.capture_window(self.mainDisplay, self.main_preview)
+        self.main_preview.capture_window()
 
     @Slot()
     def show_scores_auxiliary(self):
         self.auxiliaryDisplay.updateScores(self.ui.teamScoreLeft.value(),self.ui.teamScoreRight.value())
-        utilities.capture_window(self.auxiliaryDisplay, self.aux_preview)
+        self.aux_preview.capture_window()
 
     @Slot()
     def show_scores_both(self):
@@ -1031,7 +1010,7 @@ class ImproTronControlBoard(QWidget):
         self.ui.soundQueueLW.insertItem(soundRow-1,sound)
         self.ui.soundQueueLW.setCurrentRow(soundRow-1)
 
-    # Video Player Controler
+    # Video Player: determines which monitor to show the movie on
     def videoPlay(self):
         if self.videoPlayer.playbackState() == QMediaPlayer.PausedState:
             self.videoPlayer.play()
@@ -1048,6 +1027,61 @@ class ImproTronControlBoard(QWidget):
 
         self.videoPlayer.setPosition(0)
         self.videoPlayer.play()
+
+    # OSC triggered Video Playback: determines which monitor to show the movie on
+    @Slot(str, str, bool)
+    def onOSCServerMovieAction(self, monitor, file_path, loop):
+        """
+        Slot target that safely validates the file path, sets up the UI routing,
+        configures loops, and triggers videoPlay().
+        """
+        # 1. Error Handling: Verify file string isn't empty
+        if not file_path or len(file_path.strip()) == 0:
+            logging.warning("OSC Movie Playback: Received an empty or invalid file path string.")
+            return
+
+        # Clean up accidental delimiter quotes (' or ") from the external OSC controller
+        cleaned_path = file_path.strip().strip("'").strip('"').strip()
+
+        # 2. Error Handling: Physical file validation using QFileInfo (using cleaned_path now)
+        file_info = QFileInfo(cleaned_path)
+
+        if not file_info.exists():
+            logging.warning(f"OSC Movie Playback: File does not exist at path: '{cleaned_path}'")
+            return
+
+        if not file_info.isFile():
+            logging.warning(f"OSC Movie Playback: Target path is not a file: '{cleaned_path}'")
+            return
+
+        # 3. Error Handling: Format Validation using your custom helper
+        absolute_clean_path = file_info.absoluteFilePath()
+        if not self.media_features.isVideo(absolute_clean_path):
+            logging.warning(f"OSC Movie Playback: Unsupported video format for file: '{absolute_clean_path}'")
+            return
+
+        # --- Beyond this point, the file is 100% verified and safe to load ---
+
+        # 4. Synchronize the UI and routing based on the OSC monitor target
+        if monitor == "main":
+            self.ui.videoOnMainRB.setChecked(True)
+        elif monitor == "aux":
+            self.ui.videoOnAuxRB.setChecked(True)
+        elif monitor == "both":
+            self.ui.videoOnMainRB.setChecked(True)
+
+        # 6. Configure Looping (Qt6 QMediaPlayer style)
+        if loop:
+            self.videoPlayer.setLoops(QMediaPlayer.Infinite)
+        else:
+            self.videoPlayer.setLoops(QMediaPlayer.Once)
+
+        # 7. Safely convert string path to QUrl and load it into the media player
+        video_url = QUrl.fromLocalFile(absolute_clean_path)
+        self.videoPlayer.setSource(video_url)
+
+        # 8. Kick off the playback!
+        self.videoPlay()
 
     @Slot()
     def videoPause(self):

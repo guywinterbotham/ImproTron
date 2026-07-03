@@ -1,8 +1,9 @@
 # The display is a container for all the possible features that can be displayed
+import warnings # Add this import to the top of your file if it isn't there
 import logging
 
 from PySide6.QtWidgets import QPushButton, QLineEdit, QStyle, QApplication, QMainWindow, QLabel, QGraphicsDropShadowEffect
-from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent, QVariantAnimation, QEasingCurve
+from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent, QVariantAnimation, QEasingCurve, QFileInfo
 from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect
 
@@ -18,7 +19,7 @@ class ImproTron(QMainWindow):
         super(ImproTron, self).__init__()
 
         self._screen_number = 0
-        self.shutting_down = False # used to flag a controlled shutdown to be able to filter a user accidentally clsong the window
+        self.shutting_down = False # used to flag a controlled shutdown to be able to filter a user accidentally closing the window
         self._display_name = name
 
         self.ui = Ui_ImproTron()
@@ -28,6 +29,11 @@ class ImproTron(QMainWindow):
         self.media = QPixmap()
         self.movie = QMovie() # Keep the memory allocated
         self.movie.setSpeed(100)
+
+        # Track persistent active game metrics for runtime scaling during GIF animations
+        self._active_game_text = ""
+        self._active_game_font = None
+        self._active_game_color = QColor("black")
 
         self.logoLabel = QLabel(self.ui.displayScore) # Parented to the score container
         self.logoLabel.setAlignment(Qt.AlignCenter)
@@ -51,7 +57,7 @@ class ImproTron(QMainWindow):
         self.logoLabel.show()
         self.repositionLogo()
 
-        # Fine tune the appearence of the digits
+        # Fine tune the appearance of the digits
         for label in [self.ui.leftScoreLCD, self.ui.rightScoreLCD]:
             shadow = QGraphicsDropShadowEffect()
             # High blur radius (15-20) smooths out differences between digit shapes
@@ -61,11 +67,10 @@ class ImproTron(QMainWindow):
             shadow.setOffset(0, 6)
             label.setGraphicsEffect(shadow)
 
-
         # Force a score update to force a font scaling
         self.updateScores(0.0, 0.0)
 
-    # Countdown Timer Passthrough controls
+        # Countdown Timer Passthrough controls
         self._timer = CountdownTimer(self._display_name+" Timer")
 
     def resizeEvent(self, event):
@@ -146,15 +151,108 @@ class ImproTron(QMainWindow):
 
     # Clear the text display and show
     def clearText(self):
+        # Mute the underlying C++ RuntimeWarning stream during disconnect
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                self.movie.frameChanged.disconnect(self._draw_animated_game_overlay)
+            except Exception:
+                pass
+
         self.ui.textDisplay.clear()
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
-        # Clear the display to black
+    # Clear the display to black
     def blackout(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                self.movie.frameChanged.disconnect(self._draw_animated_game_overlay)
+            except Exception:
+                pass
+
         self.movie.stop()
         self.ui.textDisplay.setStyleSheet("background:black; color:white")
         self.ui.textDisplay.clear()
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
+
+    # Show a background then overlay text using a font and ratio to the display
+    def showGame(self, background_path, text, font, scale, textColor = QColor("black")):
+        """
+        Dynamically handles showing game text over either a static image
+        or an animated GIF on the main/auxiliary display windows.
+        """
+        # Mute the underlying C++ RuntimeWarning stream during disconnect
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                self.movie.frameChanged.disconnect(self._draw_animated_game_overlay)
+            except Exception:
+                pass
+
+        self.movie.stop()
+
+        if not background_path or not QFileInfo.exists(background_path):
+            logger.warning(f"Invalid game background resource requested: {background_path}")
+            return
+
+        self.blackout()
+
+        # Route dynamically if the path string points to an animated asset
+        # Route dynamically based on any animation format supported by the runtime engine (GIF, WEBP, etc.)
+        suffix = QFileInfo(background_path).suffix().lower()
+        if bytes(suffix, "ascii") in QMovie.supportedFormats():
+            self._active_game_text = text
+            self._active_game_color = textColor
+
+            # Recalculate and scale font specs for the asset
+            baseFontWidth = float(font.pixelSize()) if font.pixelSize() > 0 else 36.0
+            font.setPixelSize(int(baseFontWidth))
+            fontMetrics = QFontMetrics(font)
+            pixelsWide = fontMetrics.horizontalAdvance(text)
+
+            if pixelsWide > 0:
+                newFontPixelSize = int(baseFontWidth * (scale * self.ui.textDisplay.rect().width()) / (100.0 * pixelsWide))
+                font.setPixelSize(max(1, newFontPixelSize))
+
+            self._active_game_font = font
+
+            # Start the background render movie tracker engine
+            self.movie.setFileName(background_path)
+
+            # Aspect ratio protection
+            movie_size = self.movie.currentPixmap().size()
+            if movie_size.isValid() and not movie_size.isEmpty():
+                scaled_size = movie_size.scaled(self.ui.textDisplay.size(), Qt.AspectRatioMode.KeepAspectRatio)
+                self.movie.setScaledSize(scaled_size)
+            else:
+                self.movie.setScaledSize(self.ui.textDisplay.size())
+
+            self.ui.textDisplay.setMovie(self.movie)
+
+            # Connect frame changes to our overlay engine before spinning up the tracker loop
+            self.movie.frameChanged.connect(self._draw_animated_game_overlay)
+            self.movie.start()
+        else:
+            # Fallback handling for default static images
+            pixmap = QPixmap(background_path).scaled(self.ui.textDisplay.size(), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+            painter = QPainter(pixmap)
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setPen(textColor)
+            baseFontWidth = float(font.pixelSize()) if font.pixelSize() > 0 else 36.0
+
+            font.setPixelSize(int(baseFontWidth))
+            fontMetrics = QFontMetrics(font)
+            pixelsWide = fontMetrics.horizontalAdvance(text)
+
+            if pixelsWide > 0:
+                newFontPixelSize = int(baseFontWidth * (scale*self.ui.textDisplay.rect().width())/(100.0*pixelsWide))
+                font.setPixelSize(max(1, newFontPixelSize))
+
+            painter.setFont(font)
+            painter.drawText(pixmap.rect(), Qt.AlignCenter, text)
+            painter.end()
+            self.ui.textDisplay.setPixmap(pixmap)
 
     # Show Text on the display
     def show_text(self, text_msg, style=None, font=None):
@@ -211,7 +309,7 @@ class ImproTron(QMainWindow):
         self.ui.textDisplay.setText(text_msg)
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
-    # Show an static slide on the display
+    # Show a static slide on the display
     def showSlide(self, image, stretch = True):
         self.movie.stop()
         if image:
@@ -221,29 +319,31 @@ class ImproTron(QMainWindow):
             else:
                 self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.ui.textDisplay.size().height())))
 
-    # Show a background then over lay text using a font and ratio to the display
-    def showGame(self, image, text, font, scale, textColor = QColor("black")):
-        self.movie.stop()
-        if image:
-            self.blackout() # Clears the display and sets it to the current tab
-            pixmap = QPixmap.fromImage(image.scaled(self.ui.textDisplay.size()))
-            # Create a QPainter to draw text on the image
-            painter = QPainter(pixmap)
-            painter.setPen(textColor)  # Set text color
-            baseFontWidth = float(font.pixelSize())
+    # Show a background then overlay text using a font and ratio to the display
 
-            # Scale the the text so that it its width is the percentage given by the slider.
-            fontMetrics = QFontMetrics(font)
-            pixelsWide = fontMetrics.horizontalAdvance(text) # Get text length at baseline pixel setting
+    def _draw_animated_game_overlay(self, frame_number):
+        """
+        Intercepts individual animated frames from the underlying active movie engine,
+        stamping text cleanly over the frame surface before layout projection updates.
+        """
+        if not self._active_game_text:
+            return
 
-            # Now we need k such that k*(pw/bw) = slider/100 since slider was set up to represent a percent
-            # Therefore k = (slider*bw)/(pw*100). This is used to adjust the font setting
-            newFontPixelSize = int(baseFontWidth * (scale*self.ui.textDisplay.rect().width())/(100.0*pixelsWide))
-            font.setPixelSize(newFontPixelSize)
-            painter.setFont(font)    # Use the selected game text font
-            painter.drawText(pixmap.rect(), Qt.AlignCenter, text)  # Draw text centered
-            painter.end()
-            self.ui.textDisplay.setPixmap(pixmap)
+        current_frame_pixmap = self.movie.currentPixmap()
+        if current_frame_pixmap.isNull():
+            return
+
+        # Draw text over the current frame clone
+        painter = QPainter(current_frame_pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(self._active_game_color)
+        if self._active_game_font:
+            painter.setFont(self._active_game_font)
+        painter.drawText(current_frame_pixmap.rect(), Qt.AlignCenter, self._active_game_text)
+        painter.end()
+
+        # Override the text display presentation layer target with our composition frame
+        self.ui.textDisplay.setPixmap(current_frame_pixmap)
 
     # Show an image on the display
     def showImage(self, image, stretch = True):
@@ -276,9 +376,20 @@ class ImproTron(QMainWindow):
             else:
                 self.ui.textDisplay.setPixmap(pixmap.scaledToHeight(self.ui.textDisplay.size().height()))
 
-    # Show an movie on the disaply
+    # Show a movie on the display
     def showMovie(self, movieFile):
         if len(movieFile) > 0:
+            # 1. Safely disconnect only if the slot is actually bound to the signal
+            try:
+                # We check the receiver count or signature mapping before attempting to disconnect
+                # Alternatively, you can use Python's warning filter to suppress the specific disconnect warning locally
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", RuntimeWarning)
+                    self.movie.frameChanged.disconnect(self._draw_animated_game_overlay)
+            except (TypeError, RuntimeError):
+                pass
+
             self.movie.stop()
             self.blackout() # Clears the display and sets it to the current tab
             self.movie.setFileName(movieFile)
@@ -314,7 +425,7 @@ class ImproTron(QMainWindow):
         if textHeight <= labelHeight and textWidth <= labelWidth:
             scaleByF = 1/max(heightRatio, widthRatio)
 
-        # Case 2: The text is outside the label on both sides. Find the most aggregious side and scale down by that
+        # Case 2: The text is outside the label on both sides. Find the most egregious side and scale down by that
         # Since the ratios will be by definition > 1, invert them
         if textHeight > labelHeight and textWidth > labelWidth:
             scaleByF = 1/max(heightRatio, widthRatio)
@@ -408,7 +519,7 @@ class ImproTron(QMainWindow):
         self.setWindowFlags(flags)
         self.showMaximized()
 
-    # Restore and move the alloted screen
+    # Restore and move the allotted screen
     def restore(self):
         self.show_text(self._display_name)
         self.setWindowTitle(self._display_name)
@@ -484,7 +595,7 @@ class HotButtonHandler(QObject):
         if fileName != None:
             self.hot_button_image_file.setText(fileName)
 
-# SoundFX Pallette Management. This class handles loading of a saved queue and converting
+# SoundFX Palette Management. This class handles loading of a saved queue and converting
 # and WAV files contained into sound effect buttons
 class SoundFX(QObject):
     def __init__(self, sfx_button, media_file_database):
@@ -576,7 +687,7 @@ class SoundFX(QObject):
         self.sfx_button.setIcon(QApplication.style().standardIcon(QStyle.StandardPixmap.SP_DialogCancelButton))
         self.sfx_button.setEnabled(False)
 
-# Used during slide shows and Whammy to load images aynchronously
+# Used during slide shows and Whammy to load images asynchronously
 class SlideLoaderThread(QObject):
 
     def __init__(self):

@@ -167,14 +167,14 @@ class TextFeature(QObject):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
         self.mainDisplay.show_text(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
-        utilities.capture_window(self.mainDisplay, self.ui.imagePreviewMain)
+        self.ui.imagePreviewMain.capture_window()
 
     @Slot()
     def show_left_text_auxiliary(self):
         font = self.ui.fontComboBoxLeft.currentFont()
         font.setPointSize(self.ui.leftFontSize.value())
         self.auxiliaryDisplay.show_text(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
-        utilities.capture_window(self.auxiliaryDisplay, self.ui.imagePreviewAuxiliary)
+        self.ui.imagePreviewAuxiliary.capture_window()
 
     @Slot()
     def show_left_text_both(self):
@@ -186,14 +186,14 @@ class TextFeature(QObject):
         font = self.ui.fontComboBoxRight.currentFont()
         font.setPointSize(self.ui.rightFontSize.value())
         self.mainDisplay.show_text(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
-        utilities.capture_window(self.mainDisplay, self.ui.imagePreviewMain)
+        self.ui.imagePreviewMain.capture_window()
 
     @Slot()
     def show_right_text_auxiliary(self):
         font = self.ui.fontComboBoxRight.currentFont()
         font.setPointSize(self.ui.rightFontSize.value())
         self.auxiliaryDisplay.show_text(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
-        utilities.capture_window(self.auxiliaryDisplay, self.ui.imagePreviewAuxiliary)
+        self.ui.imagePreviewAuxiliary.capture_window()
 
     @Slot()
     def show_right_text_both(self):

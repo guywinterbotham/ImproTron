@@ -165,10 +165,10 @@ class ThingzFeature(QObject):
 
             if display_type in ("main", "both"):
                 self.main_display.show_text(list_text, font = thing_font)
-                utilities.capture_window(self.main_display, self.ui.imagePreviewMain)
+                self.ui.imagePreviewMain.capture_window()
             if display_type in ("auxiliary", "both"):
                 self.auxiliary_display.show_text(list_text, font = thing_font)
-                utilities.capture_window(self.auxiliary_display, self.ui.imagePreviewAuxiliary)
+                self.ui.imagePreviewAuxiliary.capture_window()
 
     @Slot()
     def reverse_thingz(self):
@@ -238,10 +238,10 @@ class ThingzFeature(QObject):
 
         if display_type in ("main", "both"):
             self.main_display.show_text(thing_data, style, thing_font)
-            utilities.capture_window(self.main_display, self.ui.imagePreviewMain)
+            self.ui.imagePreviewMain.capture_window()
         if display_type in ("auxiliary", "both"):
             self.auxiliary_display.show_text(thing_data, style, thing_font)
-            utilities.capture_window(self.auxiliary_display, self.ui.imagePreviewAuxiliary)
+            self.ui.imagePreviewAuxiliary.capture_window()
 
     @Slot()
     def show_thing_main(self):
