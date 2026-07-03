@@ -13,6 +13,7 @@ OSC_SOUND_STINGER = "/sound/stinger"
 OSC_SOUND_FADE = "/sound/fade"
 OSC_SOUND_PLAYLIST = "/sound/playlist"
 OSC_MEDIA_SHOW = "/media/show"
+OSC_MEDIA_MOVIE = "/media/movie"
 OSC_SPINBOX_CHANGE = "/spinbox/change"
 OSC_BUTTON_PRESS = "/button/press"
 OSC_SFX_PLAY = "/soundfx/play"
@@ -22,6 +23,7 @@ class OSCServer(QObject):
     buttonAction = Signal(str)
     spinBoxAction = Signal(str, float)
     mediaAction = Signal(str, str)
+    movieAction = Signal(str, str, bool)  # (monitor, file_path, loop)
     soundAction = Signal(str)
     playlistAction = Signal(str)
     stingerAction = Signal(str)
@@ -167,6 +169,8 @@ class OSCServer(QObject):
             self.soundAction.emit("")  # empty string = stop all
         elif address == OSC_MEDIA_SHOW:
             self.handle_media_action(args)
+        elif address == OSC_MEDIA_MOVIE:
+            self.handle_movie_action(args)
         elif address == OSC_SPINBOX_CHANGE:
             if len(args) >= 2:
                 self.spinBoxAction.emit(str(args[0]), float(args[1]))
@@ -206,3 +210,36 @@ class OSCServer(QObject):
 
         # Emit the signal with the new order (monitor,file)
         self.mediaAction.emit(monitor, tags)
+
+    # Handles OSC messages for media playback. Expects args[0] to be the monitor name.
+    # The remaining args are the absolute path and whether the movie should loop.
+
+    def handle_movie_action(self, args):
+        """
+        Handles OSC messages for movie playback.
+        Expects exactly:
+            args[0] (str): The target monitor name.
+            args[1] (str): The complete, properly formatted movie file path.
+            args[2] (int/str, optional): Loop flag. 0/'0' means no loop.
+        """
+        # 1. We need at least monitor and file_path (length 2)
+        if not args or len(args) < 2:
+            self.logger.warning("OSCServer: Missing arguments. Expected [monitor, file_path, loop_flag].")
+            return
+
+        # 2. Extract monitor and clean path string
+        monitor = str(args[0]).lower()
+        movie_path = str(args[1]).strip()
+
+        # 3. Handle the loop flag (default to False if not provided in args[2])
+        loop_enabled = False
+        if len(args) > 2:
+            raw_loop = args[2]
+            # Clean check for OSC 'false' equivalents
+            if raw_loop == 0 or raw_loop == "0" or raw_loop is False:
+                loop_enabled = False
+            else:
+                loop_enabled = bool(raw_loop)
+
+        # 4. Emit the typed signal
+        self.movieAction.emit(monitor, movie_path, loop_enabled)

@@ -236,7 +236,7 @@ class MediaFeatures(QObject):
             self.image_tree_view.header().hideSection(i)
         self.image_tree_view.setHeaderHidden(True)
 
-    # Used when a a specifc asset is need such as a logo
+    # Used when a a specific asset is need such as a logo
     def find_media(self, tags):
         found_files = self.media_file_database.search_media(tags, True)
 
@@ -485,7 +485,7 @@ class MediaFeatures(QObject):
         # 3. Handle Preview Logic
         self.search_preview_movie.stop()
 
-        if media_info.suffix().lower() == 'gif':
+        if bytes(media_info.suffix().lower(),"ascii") in QMovie.supportedFormats():
             self.search_preview_movie.setFileName(file_path)
             if self.search_preview_movie.isValid():
                 # Scale the movie to fit the preview label
@@ -609,7 +609,7 @@ class MediaFeatures(QObject):
         else:
             logging.warning(f"OSC Play Sound: sound matching {tags} not found")
 
-    # Responds to an OSC command to play an audio file
+    # Responds to an OSC command to play an audio file starting from a specific point in the audio file.
     @Slot(float, str)
     def onOSCServerSeekAction(self, seek_point, tags):
         # Zero length tag list will stop play
@@ -632,7 +632,7 @@ class MediaFeatures(QObject):
             self.music_player.play()
 
         else:
-            logging.warning(f"OSC Play Sound: sound matching {tags} not found")
+            logging.warning(f"OSC Seek and Play Sound: sound matching {tags} not found")
 
 
     # Responds to an OSC command to play a random audio file from the query set
@@ -659,7 +659,7 @@ class MediaFeatures(QObject):
             self.music_player.play()
 
         else:
-            logging.warning(f"OSC Play Sound: sound matching {tags} not found")
+            logging.warning(f"OSC Play Stinger: sound matching {tags} not found")
 
     # Initiates a fade out of the currently playing sound over the specified time (in seconds).
     @Slot(float)
