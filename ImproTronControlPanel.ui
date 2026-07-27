@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1056</width>
-    <height>757</height>
+    <height>795</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -50,7 +50,7 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_4">
+   <layout class="QVBoxLayout" name="controlPanelVL">
     <item>
      <layout class="QHBoxLayout" name="teamsAndPreviewHL">
       <item>
@@ -305,7 +305,7 @@ background-color: rgb(0, 0, 0);</string>
                </font>
               </property>
               <property name="text">
-               <string>Fit to Width</string>
+               <string>Auto Fit</string>
               </property>
               <property name="checked">
                <bool>true</bool>
@@ -679,7 +679,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                </font>
               </property>
               <property name="text">
-               <string>Fit to Width</string>
+               <string>Auto Fit</string>
               </property>
               <property name="checked">
                <bool>true</bool>
@@ -988,7 +988,7 @@ background-color: rgb(0, 0, 0);</string>
        <bool>true</bool>
       </property>
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -1000,7 +1000,7 @@ background-color: rgb(0, 0, 0);</string>
        </size>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <property name="iconSize">
        <size>
@@ -1031,6 +1031,17 @@ background-color: rgb(0, 0, 0);</string>
             </property>
             <item>
              <widget class="QLabel" name="leftFontLbl">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
               <property name="text">
                <string>Font:</string>
               </property>
@@ -1049,38 +1060,13 @@ background-color: rgb(0, 0, 0);</string>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="leftFontSizeLbl">
-              <property name="text">
-               <string>Size:</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="leftFontSize">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="minimum">
-               <number>20</number>
-              </property>
-              <property name="maximum">
-               <number>300</number>
-              </property>
-              <property name="singleStep">
-               <number>5</number>
-              </property>
-              <property name="value">
-               <number>100</number>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QPushButton" name="leftTextColorPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -1335,6 +1321,17 @@ background-color: rgb(0, 0, 0);</string>
            <layout class="QHBoxLayout" name="rightFontHLayout">
             <item>
              <widget class="QLabel" name="rightFontLbl">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
               <property name="text">
                <string>Font:</string>
               </property>
@@ -1353,38 +1350,13 @@ background-color: rgb(0, 0, 0);</string>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="rightFontSizeLbl">
-              <property name="text">
-               <string>Size:</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="rightFontSize">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="minimum">
-               <number>20</number>
-              </property>
-              <property name="maximum">
-               <number>300</number>
-              </property>
-              <property name="singleStep">
-               <number>5</number>
-              </property>
-              <property name="value">
-               <number>100</number>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QPushButton" name="rightTextColorPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -1522,274 +1494,192 @@ background-color: rgb(0, 0, 0);</string>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="mediaSearchTab">
-       <property name="minimumSize">
-        <size>
-         <width>675</width>
-         <height>0</height>
-        </size>
-       </property>
+      <widget class="QWidget" name="rosterTab">
        <attribute name="title">
-        <string>Image Search</string>
+        <string>Roster</string>
        </attribute>
-       <layout class="QHBoxLayout" name="mediaSearchHL">
+       <layout class="QHBoxLayout" name="rosterTabHL">
         <item>
-         <layout class="QVBoxLayout" name="searchMediaVL">
+         <layout class="QVBoxLayout" name="troupeListVL">
+          <property name="sizeConstraint">
+           <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
           <item>
-           <widget class="QLabel" name="mediaSearchLBL">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>500</width>
-              <height>40</height>
-             </size>
-            </property>
+           <widget class="QLabel" name="label">
             <property name="font">
              <font>
               <pointsize>12</pointsize>
              </font>
             </property>
             <property name="text">
-             <string>Search for tags in the filenames in the Image Library</string>
+             <string>Troupe</string>
             </property>
-            <property name="scaledContents">
-             <bool>false</bool>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="mediaSearchTagsLE">
+           <widget class="QListView" name="rosterTroupeLV">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="font">
              <font>
               <pointsize>12</pointsize>
              </font>
             </property>
-            <property name="placeholderText">
-             <string>Type tags to search for ...</string>
-            </property>
            </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="searchStatsHL">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <property name="sizeConstraint">
-             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QPushButton" name="searchMediaPB">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Search</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="searchMediaHS">
-              <property name="orientation">
-               <enum>Qt::Orientation::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Policy::Minimum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="allMediaTagsCB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>All Tags</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="mediaFilesLBL">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Media Files:</string>
-              </property>
-              <property name="indent">
-               <number>16</number>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::TextInteractionFlag::NoTextInteraction</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="mediaFilesCountLBL">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>80</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <property name="indent">
-               <number>8</number>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::TextInteractionFlag::NoTextInteraction</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="setMediaLibraryPB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Set Library</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QListWidget" name="mediaSearchResultsLW"/>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="mediaPreviewVL">
+         <widget class="Line" name="rosterTroupeLN">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="rosterListVL" stretch="0,0,0">
+          <property name="sizeConstraint">
+           <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout" name="mediaFileNameHL">
+           <widget class="QLabel" name="rosterRosterLBL">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Roster: Use '/' in the name to force line breaks</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="rosterLW">
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="rosterAddHL">
+            <property name="bottomMargin">
+             <number>10</number>
+            </property>
             <item>
-             <widget class="QLabel" name="mediaPreviewLBL">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
+             <widget class="QLineEdit" name="addPlayerLE">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
               </property>
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>24</height>
-               </size>
+              <property name="placeholderText">
+               <string>Add player manually...</string>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>75</width>
-                <height>20</height>
-               </size>
-              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addPlayerPB">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>Image:</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="mediaFileNameLBL">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+               <string>Add</string>
               </property>
              </widget>
             </item>
            </layout>
           </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="rosterOpsVL">
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
           <item>
-           <widget class="QLabel" name="mediaSearchPreviewLBL">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <widget class="QPushButton" name="rosterLeftPB">
+            <property name="text">
+             <string>Left Team</string>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>400</width>
-              <height>300</height>
-             </size>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="rosterRightPB">
+            <property name="text">
+             <string>Right Team</string>
             </property>
-            <property name="frameShape">
-             <enum>QFrame::Shape::Box</enum>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="rosterOfficialPB">
+            <property name="text">
+             <string>Official</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="movePlayerUpPB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="movePlayerDownPB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="removePlayerPB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="clearRosterPB">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
             </property>
             <property name="text">
              <string/>
@@ -1799,67 +1689,224 @@ background-color: rgb(0, 0, 0);</string>
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="imageSearchButtonsVL">
+         <widget class="Line" name="rosterPreviewLN">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="rosterPreviewVL">
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
           <item>
-           <widget class="QPushButton" name="searchToMainShowPB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Show Main</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="rosterFontHL" stretch="0,0">
+            <item>
+             <widget class="QLabel" name="rosterFontLBL">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Font:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFontComboBox" name="rosterFontCB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="searchToAuxShowPB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
+           <widget class="QLabel" name="rosterPreviewLBL">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="text">
-             <string>Show Auxiliary</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="searchtoSlideShowPB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Add to Slideshow</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="setGameToImagePB">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Game Frame</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="imageSearchVS">
-            <property name="orientation">
-             <enum>Qt::Orientation::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
+            <property name="minimumSize">
              <size>
-              <width>20</width>
-              <height>40</height>
+              <width>288</width>
+              <height>162</height>
              </size>
             </property>
-           </spacer>
+            <property name="maximumSize">
+             <size>
+              <width>288</width>
+              <height>162</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(0, 0, 0);</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::TextInteractionFlag::NoTextInteraction</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="rosterTextSLD">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <number>10</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>50</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="rosterCallHL">
+            <item>
+             <widget class="QPushButton" name="rosterCallOnPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Call On</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="rosterOffByPlayerPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Off by Player</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="rosterOffByTeam">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Off By Team</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="monitorSendHL" stretch="0,0">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <property name="sizeConstraint">
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QPushButton" name="rosterOnMainPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show on Main</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="rosterOnAuxPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show on Aux</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="rosterNextHL">
+            <item>
+             <widget class="QPushButton" name="rosterNextOnMainPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Next on Main</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="rosterNextOnAuxPB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Next on Aux</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -2129,10 +2176,19 @@ background-color: rgb(0, 0, 0);</string>
               <property name="text">
                <string/>
               </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
              </widget>
             </item>
             <item>
              <widget class="QSlider" name="gameTextSLD">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>30</height>
+               </size>
+              </property>
               <property name="minimum">
                <number>10</number>
               </property>
@@ -2144,6 +2200,9 @@ background-color: rgb(0, 0, 0);</string>
               </property>
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="invertedAppearance">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -2363,43 +2422,6 @@ background-color: rgb(255, 255, 0);</string>
                <font>
                 <pointsize>12</pointsize>
                </font>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="thingFontSizeLBL">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Size:</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="thingFontSizeSB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="minimum">
-               <number>20</number>
-              </property>
-              <property name="maximum">
-               <number>500</number>
-              </property>
-              <property name="singleStep">
-               <number>20</number>
-              </property>
-              <property name="value">
-               <number>100</number>
               </property>
              </widget>
             </item>
@@ -2774,6 +2796,433 @@ background-color: rgb(255, 255, 0);</string>
               </property>
               <property name="text">
                <string>Show Both</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="mediaSearchTab">
+       <property name="minimumSize">
+        <size>
+         <width>675</width>
+         <height>0</height>
+        </size>
+       </property>
+       <attribute name="title">
+        <string>Image Search</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="mediaSearchHL">
+        <item>
+         <layout class="QVBoxLayout" name="searchMediaVL">
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="mediaSearchLBL">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>500</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Search for tags in the filenames in the Image Library</string>
+            </property>
+            <property name="scaledContents">
+             <bool>false</bool>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="mediaSearchTagsLE">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="placeholderText">
+             <string>Type tags to search for ...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="searchStatsHL">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <property name="sizeConstraint">
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="searchMediaPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>35</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Search</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="allMediaTagsCB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>35</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="layoutDirection">
+               <enum>Qt::LayoutDirection::LeftToRight</enum>
+              </property>
+              <property name="text">
+               <string>All Tags</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="mediaFilesLBL">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>35</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Media Files:</string>
+              </property>
+              <property name="indent">
+               <number>16</number>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::NoTextInteraction</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="mediaFilesCountLBL">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>35</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <property name="indent">
+               <number>8</number>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::NoTextInteraction</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="setMediaLibraryPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>35</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Set Library</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QListWidget" name="mediaSearchResultsLW">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="mediaPreviewVL">
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <spacer name="searchImageVS">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="mediaFileNameHL">
+            <item>
+             <widget class="QLabel" name="mediaPreviewLBL">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>50</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>75</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Image:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="mediaFileNameLBL">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="mediaSearchPreviewLBL">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>500</width>
+              <height>280</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="searchActionsHL" stretch="0,0,0,0">
+            <property name="sizeConstraint">
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="searchToMainShowPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show Main</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="searchToAuxShowPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Show Auxiliary</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="searchtoSlideShowPB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Add to Slideshow</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="setGameToImagePB">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Game Frame</string>
               </property>
              </widget>
             </item>
@@ -4815,16 +5264,6 @@ QPushButton:pressed {
             </property>
             <layout class="QVBoxLayout" name="presetsVL">
              <item>
-              <widget class="QLabel" name="improtronUnlockLBL">
-               <property name="text">
-                <string>Unlock and move screens to their respective monitors.</string>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QPushButton" name="improtronUnlockPB">
                <property name="font">
                 <font>
@@ -4845,15 +5284,14 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="teamColorsLBL">
-               <property name="text">
-                <string>Set the team color. The last names names entered will be saved.</string>
+              <widget class="Line" name="prefTeamsLine">
+               <property name="font">
+                <font>
+                 <pointsize>10</pointsize>
+                </font>
                </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-               <property name="textInteractionFlags">
-                <set>Qt::TextInteractionFlag::NoTextInteraction</set>
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -4873,6 +5311,18 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="graphicLeftPB">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>LeftTeam Graphic</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="colorRightPB">
                <property name="font">
                 <font>
@@ -4885,15 +5335,57 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="initialPresetsLBL">
+              <widget class="QPushButton" name="graphicRightPB">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
                <property name="text">
-                <string>Preset the initial image and slide show. Hit 'Cancel' to clear.</string>
+                <string>Right Team Graphic</string>
                </property>
-               <property name="wordWrap">
-                <bool>true</bool>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="graphicOfficialPB">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
                </property>
-               <property name="textInteractionFlags">
-                <set>Qt::TextInteractionFlag::NoTextInteraction</set>
+               <property name="text">
+                <string>Official Graphic</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="rosterSetTroupePB">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Set Troupe</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="leftTeamFirstCB">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Left Team First</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="startImageLine">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -5573,17 +6065,13 @@ QPushButton:pressed {
   <tabstop>hotPB10</tabstop>
   <tabstop>featureTabs</tabstop>
   <tabstop>fontComboBoxLeft</tabstop>
-  <tabstop>leftFontSize</tabstop>
   <tabstop>leftTextColorPB</tabstop>
   <tabstop>clearLeftTextPB</tabstop>
   <tabstop>clearRightTextPB</tabstop>
   <tabstop>loadTextboxLeftPB</tabstop>
   <tabstop>loadTextboxRightPB</tabstop>
   <tabstop>fontComboBoxRight</tabstop>
-  <tabstop>rightFontSize</tabstop>
   <tabstop>rightTextColorPB</tabstop>
-  <tabstop>searchToMainShowPB</tabstop>
-  <tabstop>searchtoSlideShowPB</tabstop>
   <tabstop>hotPB4</tabstop>
   <tabstop>thingzListLW</tabstop>
   <tabstop>showThingzMainPB</tabstop>
@@ -5653,10 +6141,7 @@ QPushButton:pressed {
   <tabstop>allMediaTagsCB</tabstop>
   <tabstop>setMediaLibraryPB</tabstop>
   <tabstop>mediaSearchResultsLW</tabstop>
-  <tabstop>searchToAuxShowPB</tabstop>
-  <tabstop>setGameToImagePB</tabstop>
   <tabstop>thingFontFCB</tabstop>
-  <tabstop>thingFontSizeSB</tabstop>
   <tabstop>showThingzBothPB</tabstop>
   <tabstop>toggleTeamPB</tabstop>
   <tabstop>thingzMoveUpPB</tabstop>

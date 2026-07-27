@@ -3,169 +3,11 @@
 import csv
 import logging
 from PySide6.QtCore import QObject, Slot, QItemSelection, Qt, QTimer, QFileInfo, QRandomGenerator
-from PySide6.QtGui import QFontMetrics, QFont, QColor, QMovie, QPixmap, QPainter, QStandardItem, QStandardItemModel
-from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QListWidgetItem, QLabel
+from PySide6.QtGui import QStandardItem, QStandardItemModel
+from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QListWidgetItem
+from monitor_preview import SmartOverlayLabel
 
 logger = logging.getLogger(__name__)
-
-# A custom QLabel that seamlessly handles either a running animated background or a static background image, overlaying dynamic text dynamically
-# without layout stacks or CSS. Reuses a single permanent QMovie instance to guarantee absolute memory leak protection.
-class SmartOverlayLabel(QLabel):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.overlay_text = ""
-        self.overlay_font = QFont()
-        self.overlay_color = QColor(Qt.white)
-
-        # Allocate EXACTLY ONE reusable movie engine container in memory
-        self._reusable_movie = QMovie(self)
-        self._raw_file_path = "" # Track path to handle dynamic resizing operations cleanly
-
-        # Permanently bind the canvas repaint engine once at initialization
-        self._reusable_movie.frameChanged.connect(self._trigger_movie_repaint)
-
-    def set_text_overlay(self, text: str, font: QFont, color: QColor):
-        self.overlay_text = text
-        self.overlay_font = font
-        self.overlay_color = color
-        self.update()  # Force an immediate repaint of the text layer
-
-    def set_background_asset(self, file_name):
-        if not file_name or not QFileInfo.exists(file_name):
-            return
-
-        # Optimization: If the asset target hasn't changed, skip parsing overhead
-        if self._raw_file_path == file_name:
-            return
-
-        self._raw_file_path = file_name
-        suffix = QFileInfo(file_name).suffix().lower()
-
-        # Always halt processing loops before modifying file tracks
-        self.clear_asset()
-
-        # Ask QMovie if it natively supports this extension (GIF, WEBP, etc.)
-        if bytes(suffix, "ascii") in QMovie.supportedFormats():
-            # Clear out standard pixmaps so they don't fight with the video buffers
-            self.setPixmap(QPixmap())
-
-            # Point the permanent engine at the new file location
-            self._reusable_movie.setFileName(file_name)
-            self._reusable_movie.setSpeed(100)
-
-            # Re-hook the single-loop safety guard tracking logic before running
-            try:
-                self._reusable_movie.frameChanged.connect(self._handle_single_loop)
-            except Exception:
-                pass
-
-            self.setMovie(self._reusable_movie)
-            self._reusable_movie.start()
-        else:
-            pixmap = QPixmap(file_name)
-            self.setPixmap(pixmap.scaled(self.size(), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation))
-
-    def clear_asset(self):
-        """
-        Safely clears all current media and settings out of the label widget context.
-        Forces immediate garbage collection on underlying C++ pixel buffers,
-        ensuring other application features can use this label completely clean.
-        """
-        self._reusable_movie.stop()  # Turns off frame tickers completely
-        self.setMovie(None)          # Flushes the raw uncompressed C++ movie frame buffer caches
-        self.setPixmap(QPixmap())    # Wipes any active static images
-        self._raw_file_path = ""     # Resets our file path tracking loop
-        self.overlay_text = ""       # Clears out background game name strings
-        self.update()                # Refreshes canvas to a clean, blank slate
-
-    @Slot(int)
-    def _trigger_movie_repaint(self, frame_number):
-        """Forces an explicit surface update cycle when the movie engine generates frames."""
-        self.update()
-
-    def _handle_single_loop(self, frame_number):
-        """
-        Monitors the animation frames and halts playback the instant
-        the first full cycle reaches its final frame index.
-        """
-        total_frames = self._reusable_movie.frameCount()
-
-        # frame_number is 0-indexed, so the final frame is total_frames - 1
-        if total_frames > 0 and frame_number >= total_frames - 1:
-            try:
-                # Disconnect dynamically to prevent recursive execution during termination passes
-                self._reusable_movie.frameChanged.disconnect(self._handle_single_loop)
-            except Exception:
-                pass
-
-            # Freeze the movie engine frame cache exactly where it is to drop idle CPU usage to zero
-            self._reusable_movie.setPaused(True)
-
-    def resizeEvent(self, event):
-        """Ensures both static images and animated clips scale dynamically with the UI panel."""
-        super().resizeEvent(event)
-        if self._raw_file_path:
-            suffix = QFileInfo(self._raw_file_path).suffix().lower()
-
-            if bytes(suffix, "ascii") in QMovie.supportedFormats():
-                # FIX: Running set_background_asset on resize resets the whole movie tracking cycle
-                # causing infinite single-loop resets. Instead, just recalculate aspect boundaries on the active frames.
-                if self.movie():
-                    self.setMovie(self.movie())
-            else:
-                # Static images can scale down linearly via their base assets
-                pixmap = QPixmap(self._raw_file_path)
-                self.setPixmap(pixmap.scaled(self.size(), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation))
-
-    def setMovie(self, movie):
-        """
-        Intercepts incoming animation sequences to turn off the center-third
-        magnification distortion before the native painter engine runs.
-        """
-        if movie:
-            # 1. Turn off QLabel's native force-to-edges stretching flag
-            self.setScaledContents(False)
-
-            # 2. Query the real native pixel dimensions of the source animation asset
-            movie_size = movie.currentPixmap().size()
-            if movie_size.isValid() and not movie_size.isEmpty():
-                # Scale the animation bounds to fit your UI layout tab geometry
-                # while strictly preserving its natural proportions
-                scaled_size = movie_size.scaled(
-                    self.size(),
-                    Qt.AspectRatioMode.KeepAspectRatio
-                )
-                movie.setScaledSize(scaled_size)
-            else:
-                # Fallback layout calculation if the movie is still loading its first frame
-                movie.setScaledSize(self.size())
-
-        # 3. Pass the configured asset cleanly down to the base C++ engine track
-        super().setMovie(movie)
-
-    def paintEvent(self, event):
-        # 1. Let the native QLabel engine handle rendering the underlying frames first.
-        super().paintEvent(event)
-
-        # 2. Layer the sharp text overlay precisely on top of the native canvas pass
-        if hasattr(self, 'overlay_text') and self.overlay_text:
-            painter = QPainter(self)
-
-            # Prevent the painter from clipping out of bounds or using low-quality transforms
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
-
-            if hasattr(self, 'overlay_font') and self.overlay_font:
-                painter.setFont(self.overlay_font)
-            if hasattr(self, 'overlay_color') and self.overlay_color:
-                painter.setPen(self.overlay_color)
-
-            # Draw the text overlay crisply centered directly over the composited frame surface
-            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, self.overlay_text)
-
-            # Flush paint commands immediately
-            painter.end()
 
 class GamesFeature(QObject):
     def __init__(self, ui, settings, mainDisplay, auxiliaryDisplay):
@@ -229,9 +71,9 @@ class GamesFeature(QObject):
         self.ui.setGamesListPB.clicked.connect(self.set_games_list)
         self.ui.loadBackgroundPB.clicked.connect(self.load_background)
         self.ui.gameTextColorPB.clicked.connect(self.pick_game_text_color)
-        self.ui.gameTextSLD.valueChanged.connect(self.game_font_slider_changed)
-        self.ui.gameTextFontCB.currentIndexChanged.connect(self.game_font_changed)
-        self.ui.gamesLW.currentRowChanged.connect(self.game_changed)
+        self.ui.gameTextSLD.valueChanged.connect(self.game_preview_changed)
+        self.ui.gameTextFontCB.currentIndexChanged.connect(self.game_preview_changed)
+        self.ui.gamesLW.currentRowChanged.connect(self.game_preview_changed)
         self.ui.gameToMainShowPB.clicked.connect(self.show_game_main)
         self.ui.gameToAuxShowPB.clicked.connect(self.show_game_aux)
         self.ui.nextGameAuxPB.clicked.connect(self.show_next_game_aux)
@@ -357,15 +199,7 @@ class GamesFeature(QObject):
             self.ui.gamesLW.takeItem(self.ui.gamesLW.row(item))
 
     @Slot(int)
-    def game_font_slider_changed(self, value):
-        self.draw_games_slide(self.ui.gameBackgroundLBL)
-
-    @Slot(int)
-    def game_font_changed(self, index):
-        self.draw_games_slide(self.ui.gameBackgroundLBL)
-
-    @Slot(int)
-    def game_changed(self, row):
+    def game_preview_changed(self, value):
         self.draw_games_slide(self.ui.gameBackgroundLBL)
 
     @Slot()
@@ -389,9 +223,8 @@ class GamesFeature(QObject):
         self._games_background_path = games_background_file
         self._settings.set_game_background(games_background_file)
 
-        # Notify the UI layout engine components to reset their active source tracks
-        if isinstance(self.ui.gameBackgroundLBL, SmartOverlayLabel):
-            self.ui.gameBackgroundLBL.set_background_asset(games_background_file)
+        # Set the preview to the new background
+        self.ui.gameBackgroundLBL.set_background(games_background_file)
 
         self.draw_games_slide(self.ui.gameBackgroundLBL)
 
@@ -430,7 +263,7 @@ class GamesFeature(QObject):
         self._settings.set_game_text_size(slider)
 
         # Display the game frame on the main monitor
-        self.mainDisplay.showGame(self._games_background_path, text, font, slider, self._game_color_selected)
+        self.mainDisplay.show_game(self._games_background_path, text, font, slider, self._game_color_selected)
 
         self.draw_games_slide(self.ui.imagePreviewMain)
 
@@ -444,7 +277,7 @@ class GamesFeature(QObject):
         self._settings.set_game_text_size(slider)
 
         # Display the game frame on the aux monitor
-        self.auxiliaryDisplay.showGame(self._games_background_path, text, font, slider, self._game_color_selected)
+        self.auxiliaryDisplay.show_game(self._games_background_path, text, font, slider, self._game_color_selected)
 
         self.draw_games_slide(self.ui.imagePreviewAuxiliary)
 
@@ -474,22 +307,23 @@ class GamesFeature(QObject):
 
     def draw_games_slide(self, label):
         game_row = self.ui.gamesLW.currentRow()
-        text = self.ui.gamesLW.currentItem().text() if game_row >= 0 else "No game selected"
+        text = (
+            self.ui.gamesLW.currentItem().text()
+            if game_row >= 0
+            else "No game selected"
+        )
 
         font = self.ui.gameTextFontCB.currentFont()
-        font.setPixelSize(36)
-        font_metrics = QFontMetrics(font)
-        pixels_wide = font_metrics.horizontalAdvance(text)
+        scale = float(self.ui.gameTextSLD.value())
 
-        if pixels_wide > 0:
-            newFontPixelSize = int(36.0 * (self.ui.gameTextSLD.value() * label.width()) / (100.0 * pixels_wide))
-            font.setPixelSize(max(1, newFontPixelSize))
-
-        # Update the background asset directly, then apply the text overlay
         if isinstance(label, SmartOverlayLabel):
-            # Let the method itself handle asset assignment cleanly
-            label.set_background_asset(self._games_background_path)
-            label.set_text_overlay(text, font, self._game_color_selected)
+            label.set_game_overlay(
+                background_path=self._games_background_path,
+                game_title=text,
+                font=font,
+                scale=scale,
+                color=self._game_color_selected,
+            )
 
     @Slot()
     def start_game_whamming(self):

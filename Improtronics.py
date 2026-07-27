@@ -1,14 +1,14 @@
 # The display is a container for all the possible features that can be displayed
-import warnings # Add this import to the top of your file if it isn't there
 import logging
 
 from PySide6.QtWidgets import QPushButton, QLineEdit, QStyle, QApplication, QMainWindow, QLabel, QGraphicsDropShadowEffect
 from PySide6.QtCore import Slot, Signal, Qt, QUrl, QObject, QEvent, QVariantAnimation, QEasingCurve, QFileInfo
-from PySide6.QtGui import QPixmap, QMovie, QGuiApplication, QImageReader, QIcon, QFontMetrics, QColor, QPainter
+from PySide6.QtGui import QMovie, QGuiApplication, QImageReader, QIcon, QColor, QFont, QPalette
 from PySide6.QtMultimedia import QSoundEffect
 
 import utilities
 from Timer import CountdownTimer
+from monitor_preview import SmartOverlayLabel
 from ui_ImproTron import Ui_ImproTron
 
 logger = logging.getLogger(__name__)
@@ -26,18 +26,44 @@ class ImproTron(QMainWindow):
         self.ui.setupUi(self)
         logger.info(f"Loading display {name}")
 
-        self.media = QPixmap()
-        self.movie = QMovie() # Keep the memory allocated
-        self.movie.setSpeed(100)
+        # Replace textDisplay in layout dynamically
+        old_label = self.ui.textDisplay
+        parent_layout = old_label.parentWidget().layout()
 
-        # Track persistent active game metrics for runtime scaling during GIF animations
-        self._active_game_text = ""
-        self._active_game_font = None
-        self._active_game_color = QColor("black")
+        self.ui.textDisplay = SmartOverlayLabel(old_label.parentWidget())
+        self.ui.textDisplay.setObjectName("textDisplay")
 
+        if parent_layout:
+            parent_layout.replaceWidget(old_label, self.ui.textDisplay)
+            old_label.deleteLater()
+
+        # Prevent White Flashes During Tab Swaps
+
+        # -----------------------------------------------------------------
+        # Prevent White Flashes During Tab Swaps
+        # -----------------------------------------------------------------
+
+        # Apply a solid black stylesheet ONLY to QStackedWidget, NOT child widgets
+        self.ui.stackedWidget.setStyleSheet("#stackedWidget { background-color: black; }")
+
+        # Set the base palette background for stackedWidget
+        black_palette = self.ui.stackedWidget.palette()
+        black_palette.setColor(QPalette.ColorRole.Window, QColor(Qt.GlobalColor.black))
+        black_palette.setColor(QPalette.ColorRole.Base, QColor(Qt.GlobalColor.black))
+
+        self.ui.stackedWidget.setPalette(black_palette)
+        self.ui.stackedWidget.setAutoFillBackground(True)
+
+        # Set up the custom logo for the scoring display
         self.logoLabel = QLabel(self.ui.displayScore) # Parented to the score container
         self.logoLabel.setAlignment(Qt.AlignCenter)
         self.logoLabel.setAttribute(Qt.WA_TransparentForMouseEvents) # Don't block clicks
+
+        # FIX: Ensure logoLabel has a transparent background for the GIF
+        self.logoLabel.setStyleSheet("background-color: transparent;")
+        self.logoLabel.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.logoLabel.setAutoFillBackground(False)
+
         self.logoLabel.setScaledContents(True)
         self.logoLabel.hide() # Hide by default until a logo is loaded
 
@@ -46,6 +72,7 @@ class ImproTron(QMainWindow):
         self.logoLabel.setFixedSize(side, side)
 
         self.logoMovie = QMovie(":/icons/scorelogo")
+
         # Important: Check if movie is valid before starting
         if self.logoMovie.isValid():
             self.logoMovie.setScaledSize(self.logoLabel.size())
@@ -149,253 +176,88 @@ class ImproTron(QMainWindow):
         self.ui.rightTeamLabel.setStyleSheet(name_s)
         self.ui.rightScoreLCD.setStyleSheet(score_s)
 
-    # Clear the text display and show
-    def clearText(self):
-        # Mute the underlying C++ RuntimeWarning stream during disconnect
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            try:
-                self.movie.frameChanged.disconnect(self._draw_animated_game_overlay)
-            except Exception:
-                pass
-
-        self.ui.textDisplay.clear()
-        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
-
     # Clear the display to black
     def blackout(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            try:
-                self.movie.frameChanged.disconnect(self._draw_animated_game_overlay)
-            except Exception:
-                pass
-
-        self.movie.stop()
-        self.ui.textDisplay.setStyleSheet("background:black; color:white")
-        self.ui.textDisplay.clear()
+        # Let SmartOverlayLabel handle its internal cleanup/reset
+        self.ui.textDisplay.blackout()
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show a background then overlay text using a font and ratio to the display
-    def showGame(self, background_path, text, font, scale, textColor = QColor("black")):
-        """
-        Dynamically handles showing game text over either a static image
-        or an animated GIF on the main/auxiliary display windows.
-        """
-        # Mute the underlying C++ RuntimeWarning stream during disconnect
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            try:
-                self.movie.frameChanged.disconnect(self._draw_animated_game_overlay)
-            except Exception:
-                pass
-
-        self.movie.stop()
-
+    def show_player(
+        self,
+        background_path: str,
+        player_name: str,
+        team_name: str,
+        font: QFont,
+        scale: float,
+        textColor: QColor = QColor(Qt.GlobalColor.white),
+    ):
+        self.blackout()
         if not background_path or not QFileInfo.exists(background_path):
-            logger.warning(f"Invalid game background resource requested: {background_path}")
+            logger.warning(f"Invalid player background path: {background_path}")
             return
 
+        self.ui.textDisplay.set_player_overlay(
+            background_path=background_path,
+            player_name=player_name,
+            team_name=team_name,
+            font=font,
+            scale=scale,
+            color=textColor,
+        )
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
+
+    # Dynamically handles showing game text over either a static image
+    # or an animated GIF on the main/auxiliary display windows.
+    def show_game(
+        self,
+        background_path: str,
+        game_title: str,
+        font: QFont,
+        scale: float,
+        textColor: QColor = QColor(Qt.GlobalColor.white),
+    ):
         self.blackout()
+        if not background_path or not QFileInfo.exists(background_path):
+            logger.warning(f"Invalid game background path: {background_path}")
+            return
 
-        # Route dynamically if the path string points to an animated asset
-        # Route dynamically based on any animation format supported by the runtime engine (GIF, WEBP, etc.)
-        suffix = QFileInfo(background_path).suffix().lower()
-        if bytes(suffix, "ascii") in QMovie.supportedFormats():
-            self._active_game_text = text
-            self._active_game_color = textColor
-
-            # Recalculate and scale font specs for the asset
-            baseFontWidth = float(font.pixelSize()) if font.pixelSize() > 0 else 36.0
-            font.setPixelSize(int(baseFontWidth))
-            fontMetrics = QFontMetrics(font)
-            pixelsWide = fontMetrics.horizontalAdvance(text)
-
-            if pixelsWide > 0:
-                newFontPixelSize = int(baseFontWidth * (scale * self.ui.textDisplay.rect().width()) / (100.0 * pixelsWide))
-                font.setPixelSize(max(1, newFontPixelSize))
-
-            self._active_game_font = font
-
-            # Start the background render movie tracker engine
-            self.movie.setFileName(background_path)
-
-            # Aspect ratio protection
-            movie_size = self.movie.currentPixmap().size()
-            if movie_size.isValid() and not movie_size.isEmpty():
-                scaled_size = movie_size.scaled(self.ui.textDisplay.size(), Qt.AspectRatioMode.KeepAspectRatio)
-                self.movie.setScaledSize(scaled_size)
-            else:
-                self.movie.setScaledSize(self.ui.textDisplay.size())
-
-            self.ui.textDisplay.setMovie(self.movie)
-
-            # Connect frame changes to our overlay engine before spinning up the tracker loop
-            self.movie.frameChanged.connect(self._draw_animated_game_overlay)
-            self.movie.start()
-        else:
-            # Fallback handling for default static images
-            pixmap = QPixmap(background_path).scaled(self.ui.textDisplay.size(), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
-            painter = QPainter(pixmap)
-            painter.setRenderHint(QPainter.Antialiasing)
-            painter.setPen(textColor)
-            baseFontWidth = float(font.pixelSize()) if font.pixelSize() > 0 else 36.0
-
-            font.setPixelSize(int(baseFontWidth))
-            fontMetrics = QFontMetrics(font)
-            pixelsWide = fontMetrics.horizontalAdvance(text)
-
-            if pixelsWide > 0:
-                newFontPixelSize = int(baseFontWidth * (scale*self.ui.textDisplay.rect().width())/(100.0*pixelsWide))
-                font.setPixelSize(max(1, newFontPixelSize))
-
-            painter.setFont(font)
-            painter.drawText(pixmap.rect(), Qt.AlignCenter, text)
-            painter.end()
-            self.ui.textDisplay.setPixmap(pixmap)
+        self.ui.textDisplay.set_game_overlay(
+            background_path=background_path,
+            game_title=game_title,
+            font=font,
+            scale=scale,
+            color=textColor,
+        )
+        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show Text on the display
-    def show_text(self, text_msg, style=None, font=None):
-        self.movie.stop()
-        if font != None:
-            self.ui.textDisplay.setFont(font)
-
-        if style != None:
-            self.ui.textDisplay.setStyleSheet(style)
-
-        # Figure out if the height of the text is going to be too big and autoscale if needed
-        fontMetrics = self.ui.textDisplay.fontMetrics()
-        textHeight = fontMetrics.size(Qt.TextExpandTabs,text_msg).height()
-        textWidth = fontMetrics.size(Qt.TextExpandTabs,text_msg).width()
-
-        textBoxHeight = self.ui.textDisplay.rect().height()
-        textBoxWidth = self.ui.textDisplay.rect().width()
-
-        heightRatio = textHeight/textBoxHeight
-        widthRatio  = textWidth/textBoxWidth
-
-        # Determine whether the text scaling is most needed for the height or width
-        scaleHeight = False
-        scaleWidth = False
-
-        if textHeight >= textBoxHeight: # Text is higher than the display box
-            scaleHeight = True
-        if textWidth >= textBoxWidth: # Text is wider than the display box
-            scaleWidth = True
-
-        # The text fits in neither direction. Scale based on the worst case.
-        if scaleHeight and scaleWidth:
-
-            if heightRatio > widthRatio:
-                scaleHeight = True
-                scaleWidth = False
-            else:
-                scaleHeight = False
-                scaleWidth = True
-
-        # Some scaling has to occur so pull the font out and scale
-        if scaleHeight or scaleWidth:
-            textBoxFont = self.ui.textDisplay.font()
-            if scaleHeight:
-                newSize = max(1, int(textBoxFont.pointSize()/heightRatio))
-                textBoxFont.setPointSize(newSize)
-            if scaleWidth:
-                newSize = max(1, int(textBoxFont.pointSize()/widthRatio))
-                textBoxFont.setPointSize(newSize)
-
-            self.ui.textDisplay.setFont(textBoxFont) # and put it back
-
-        self.ui.textDisplay.clear()
-        self.ui.textDisplay.setText(text_msg)
-        self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
-
-    # Show a static slide on the display
-    def showSlide(self, image, stretch = True):
-        self.movie.stop()
-        if image:
-            self.blackout() # Clears the display and sets it to the current tab
-            if stretch:
-                self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaled(self.ui.textDisplay.size())))
-            else:
-                self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.ui.textDisplay.size().height())))
-
-    # Show a background then overlay text using a font and ratio to the display
-
-    def _draw_animated_game_overlay(self, frame_number):
-        """
-        Intercepts individual animated frames from the underlying active movie engine,
-        stamping text cleanly over the frame surface before layout projection updates.
-        """
-        if not self._active_game_text:
-            return
-
-        current_frame_pixmap = self.movie.currentPixmap()
-        if current_frame_pixmap.isNull():
-            return
-
-        # Draw text over the current frame clone
-        painter = QPainter(current_frame_pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(self._active_game_color)
-        if self._active_game_font:
-            painter.setFont(self._active_game_font)
-        painter.drawText(current_frame_pixmap.rect(), Qt.AlignCenter, self._active_game_text)
-        painter.end()
-
-        # Override the text display presentation layer target with our composition frame
-        self.ui.textDisplay.setPixmap(current_frame_pixmap)
+    def show_text(self, text_msg, font=None, color = QColor(Qt.GlobalColor.black)):
+        self.blackout()
+        self.ui.textDisplay.set_plain_text(text = text_msg, font = font, background_color = color)
 
     # Show an image on the display
-    def showImage(self, image, stretch = True):
-        self.movie.stop()
-        if image:
-            self.blackout() # Clears the display and sets it to the current tab
-            if stretch:
-                self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaled(self.ui.textDisplay.size())))
-            else:
-                self.ui.textDisplay.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.ui.textDisplay.size().height())))
+    def show_image(self, image, stretch = True):
+        self.blackout() # Clears the display
+        self.ui.textDisplay.set_background_image(image, stretch) # Clears the display
 
     # Show an image on the from the clipboard
-    def pasteImage(self, stretch = True):
-        self.movie.stop()
+    def paste_image(self, stretch = True):
+        self.blackout() # Clears the display and sets it to the current tab
         pixmap = QGuiApplication.clipboard().pixmap()
         if pixmap != None:
-            self.blackout() # Clears the display and sets it to the current tab
-            if stretch:
-                self.ui.textDisplay.setPixmap(pixmap.scaled(self.ui.textDisplay.size()))
-            else:
-                self.ui.textDisplay.setPixmap(pixmap.scaledToHeight(self.ui.textDisplay.size().height()))
+            self.ui.textDisplay.set_background_pixmap(pixmap, stretch)
 
     # Show an pixel map on the from a drop event on the preview
-    def dropImage(self, pixmap, stretch = True):
-        self.movie.stop()
+    def show_pixmap(self, pixmap, stretch = True):
+        self.blackout() # Clears the display
         if pixmap != None:
-            self.blackout() # Clears the display and sets it to the current tab
-            if stretch:
-                self.ui.textDisplay.setPixmap(pixmap.scaled(self.ui.textDisplay.size()))
-            else:
-                self.ui.textDisplay.setPixmap(pixmap.scaledToHeight(self.ui.textDisplay.size().height()))
+            self.ui.textDisplay.set_background_pixmap(pixmap, stretch)
 
-    # Show a movie on the display
-    def showMovie(self, movieFile):
-        if len(movieFile) > 0:
-            # 1. Safely disconnect only if the slot is actually bound to the signal
-            try:
-                # We check the receiver count or signature mapping before attempting to disconnect
-                # Alternatively, you can use Python's warning filter to suppress the specific disconnect warning locally
-                import warnings
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore", RuntimeWarning)
-                    self.movie.frameChanged.disconnect(self._draw_animated_game_overlay)
-            except (TypeError, RuntimeError):
-                pass
-
-            self.movie.stop()
-            self.blackout() # Clears the display and sets it to the current tab
-            self.movie.setFileName(movieFile)
-            self.movie.setScaledSize(self.ui.textDisplay.size())
-            self.ui.textDisplay.setMovie(self.movie)
-            self.movie.start()
+    # Show a static or anitmted image on the display
+    def show_file(self, file_name, stretch = True):
+        self.blackout() # Clears the display
+        self.ui.textDisplay.set_background(file_name, stretch)
 
     # Find the optimal width for the team name
     def find_optimal_team_font_size(self, nameLabel):
@@ -447,7 +309,6 @@ class ImproTron(QMainWindow):
         textBoxFont.setPointSize(newSize)
         nameLabel.setFont(textBoxFont) # and put it back
 
-
     # Set the name of the Left Team
     def showLeftTeam(self, teamName):
 
@@ -455,7 +316,6 @@ class ImproTron(QMainWindow):
 
         # Determine the font size needed to fit the text in the label width
         self.find_optimal_team_font_size(self.ui.leftTeamLabel)
-
 
     # Set the name of the Right Team
     def showRightTeam(self, teamName):
@@ -495,13 +355,13 @@ class ImproTron(QMainWindow):
 
     # Flip to the video player and return the widget to connect the video play to
     def showVideo(self):
-        self.movie.stop() # Stop a GIF if it is playing
+        self.blackout() # Reset and stop any playing assests
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayVideo)
         return self.ui.videoPlayer
 
     # Flip to the video player and return the widget to connect the video play to
     def showCamera(self):
-        self.movie.stop() # Stop a GIF if it is playing
+        self.blackout() # Reset and stop any playing assests
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayCamera)
         return self.ui.cameraPlayer
 
@@ -521,6 +381,7 @@ class ImproTron(QMainWindow):
 
     # Restore and move the allotted screen
     def restore(self):
+        print ("calling restore on", self._display_name)
         self.show_text(self._display_name)
         self.setWindowTitle(self._display_name)
 

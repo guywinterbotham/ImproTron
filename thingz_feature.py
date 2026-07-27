@@ -1,6 +1,7 @@
 # thingz_feature
 # This Python file uses the following encoding: utf-8
 from PySide6.QtCore import QObject, Slot, Qt, QSize
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication, QStyle, QListWidgetItem, QMessageBox, QStyledItemDelegate, QLineEdit
 import utilities
 
@@ -151,6 +152,7 @@ class ThingzFeature(QObject):
     # End Connections
 
     # Things Tab Management
+    # Show the list of thingz
     def show_thingz_list(self, display_type):
         list_text = "Empty"
         if self.ui.thingzListLW.count() > 0:
@@ -160,14 +162,11 @@ class ThingzFeature(QObject):
                 if thingRow < self.ui.thingzListLW.count()-1:
                     list_text += "\n"
 
-            thing_font = self.ui.thingFontFCB.currentFont()
-            thing_font.setPointSize(self.ui.thingFontSizeSB.value())
-
             if display_type in ("main", "both"):
-                self.main_display.show_text(list_text, font = thing_font)
+                self.main_display.show_text(list_text, font = self.ui.thingFontFCB.currentFont(), color = QColor(Qt.GlobalColor.black))
                 self.ui.imagePreviewMain.capture_window()
             if display_type in ("auxiliary", "both"):
-                self.auxiliary_display.show_text(list_text, font = thing_font)
+                self.auxiliary_display.show_text(list_text, font = self.ui.thingFontFCB.currentFont(), color = QColor(Qt.GlobalColor.black))
                 self.ui.imagePreviewAuxiliary.capture_window()
 
     @Slot()
@@ -231,16 +230,13 @@ class ThingzFeature(QObject):
         current_thing = self.ui.thingzListLW.currentItem()
         if not current_thing:
             return
-        thing_font = self.ui.thingFontFCB.currentFont()
-        thing_font.setPointSize(self.ui.thingFontSizeSB.value())
         thing_data = current_thing.thing_data()
-        style = utilities.style_sheet(current_thing.team_color())
 
         if display_type in ("main", "both"):
-            self.main_display.show_text(thing_data, style, thing_font)
+            self.main_display.show_text(thing_data, self.ui.thingFontFCB.currentFont(), current_thing.team_color())
             self.ui.imagePreviewMain.capture_window()
         if display_type in ("auxiliary", "both"):
-            self.auxiliary_display.show_text(thing_data, style, thing_font)
+            self.auxiliary_display.show_text(thing_data, self.ui.thingFontFCB.currentFont(), current_thing.team_color())
             self.ui.imagePreviewAuxiliary.capture_window()
 
     @Slot()

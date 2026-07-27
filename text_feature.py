@@ -1,7 +1,7 @@
 # text_feature.py
 import logging
 import re
-from PySide6.QtCore import QObject, Slot, QRegularExpression, QFile, QFileInfo, QIODevice
+from PySide6.QtCore import QObject, Slot, QRegularExpression, QFile, QFileInfo, QIODevice, Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QPushButton, QMessageBox
 import utilities
@@ -18,13 +18,17 @@ class TextFeature(QObject):
         self.mainDisplay = mainDisplay
         self.auxiliaryDisplay = auxiliaryDisplay
 
+        self.right_text_color = self._settings.get_right_text_color()
+        self.ui.rightTextColorPB.setStyleSheet(utilities.style_sheet(self.right_text_color))
+
+        self.left_text_color = self._settings.get_left_text_color()
+        self.ui.leftTextColorPB.setStyleSheet(utilities.style_sheet(self.left_text_color))
+
         self.ui.clearLeftTextPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowLeft))
         self.ui.clearRightTextPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
         self.ui.loadTextboxLeftPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowLeft))
         self.ui.loadTextboxRightPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
 
-        self.set_text_box_color(self.ui.leftTextColorPB, utilities.style_sheet(self._settings.get_left_text_color()))
-        self.set_text_box_color(self.ui.rightTextColorPB, utilities.style_sheet(self._settings.get_right_text_color()))
 
         self.connect_slots()
 
@@ -53,19 +57,14 @@ class TextFeature(QObject):
         # Connect preset color boxes so they change the color selection button.
         for i in range(1, 9):
             getattr(self.ui, f"leftColorPreset{i}").clicked.connect(
-                lambda _, btn=getattr(self.ui, f"leftColorPreset{i}"): self.use_color_preset(btn, self.ui.leftTextColorPB)
+                lambda _, btn=getattr(self.ui, f"leftColorPreset{i}"): self.use_left_color_preset(btn)
             )
             getattr(self.ui, f"rightColorPreset{i}").clicked.connect(
-                lambda _, btn=getattr(self.ui, f"rightColorPreset{i}"): self.use_color_preset(btn, self.ui.rightTextColorPB)
+                lambda _, btn=getattr(self.ui, f"rightColorPreset{i}"): self.use_right_color_preset(btn)
             )
 
 
 # End Connections
-
-    def use_color_preset(self, button, target):
-            style = button.styleSheet()
-            self.set_text_box_color(target, style)
-
     def get_text_file(self):
         file_name, _ = QFileDialog.getOpenFileName(self.ui, "Open Text File", self._settings.get_document_directory(), "Text File (*.txt)")
         if not file_name:
@@ -85,12 +84,10 @@ class TextFeature(QObject):
             text += file.readLine().data().decode("utf-8")
         return text
 
-    # Text box color management
-    def set_text_box_color(self, coloredButton, colorStyle):
-        # 1. Apply the visual style
-        coloredButton.setStyleSheet(colorStyle)
+    # Text box color extraction from preset buttons
+    def parse_stle(self, colorStyle):
 
-        # 2. Extract the background value
+        # 1. Extract the background value
         bg_match = re.search(r'background(?:-color)?\s*:\s*([^;]+)', colorStyle)
         if not bg_match:
             logger.error(f"No background property found in: {colorStyle}")
@@ -99,7 +96,7 @@ class TextFeature(QObject):
         color_str = bg_match.group(1).strip()
         new_color = QColor()
 
-        # 3. Parse based on format
+        # 2. Parse based on format
         if 'rgb' in color_str:
             # Extract digits: finds all numbers in 'rgb(255, 85, 0)' -> ['255', '85', '0']
             nums = re.findall(r'\d+', color_str)
@@ -110,15 +107,11 @@ class TextFeature(QObject):
             new_color = QColor(color_str)
 
         # 4. Safety check and save
-        if new_color.isValid():
-            if coloredButton == self.ui.leftTextColorPB:
-                self._settings.set_left_text_color(new_color)
-                logger.debug(f"Left Preset Saved: {new_color.getRgb()[:3]}")
-            elif coloredButton == self.ui.rightTextColorPB:
-                self._settings.set_right_text_color(new_color)
-                logger.debug(f"Right Preset Saved: {new_color.getRgb()[:3]}")
-        else:
+        if not new_color.isValid():
             logger.error(f"Final attempt to parse '{color_str}' failed.")
+            return QColor(Qt.GlobalColor.black)
+        else:
+            return new_color
 
     # Populate the preset color buttons with the presets defined in the color dialog
     def set_preset_colors(self):
@@ -142,38 +135,53 @@ class TextFeature(QObject):
 
             colorIndex += 1
 
+    # Functions called by preset color buttons
+    @Slot(QPushButton)
+    def use_left_color_preset(self, button):
+            style = button.styleSheet()
+            self.ui.leftTextColorPB.setStyleSheet(style)
+            self.left_text_color = self.parse_stle(style)
+
+    @Slot(QPushButton)
+    def use_right_color_preset(self, button):
+            style = button.styleSheet()
+            self.ui.rightTextColorPB.setStyleSheet(style)
+            self.right_text_color = self.parse_stle(style)
+
     @Slot()
     def pick_left_text_color(self):
-        color_selected = self._settings.pick_left_text_color(self.ui)
+        color = self._settings.pick_left_text_color(self.ui)
 
         self.set_preset_colors() # Update the presets in case one was changed while picking a color
 
-        if color_selected != None:
-            style = utilities.style_sheet(color_selected)
-            self.set_text_box_color(self.ui.leftTextColorPB, style)
+        if self.right_text_color.isValid():
+            self.left_text_color = color
+            self.ui.leftTextColorPB.setStyleSheet(utilities.style_sheet(self.left_text_color))
+        else:
+            logger.error("Invalid color on left text color selection")
 
     @Slot()
     def pick_right_text_color(self):
-        color_selected = self._settings.pick_right_text_color(self.ui)
+        color = self._settings.pick_right_text_color(self.ui)
 
         self.set_preset_colors() # Update the presets in case one was changed while picking a color
 
-        if color_selected.isValid():
-            style = utilities.style_sheet(color_selected)
-            self.set_text_box_color(self.ui.rightTextColorPB, style)
+        if self.right_text_color.isValid():
+            self.right_text_color = color
+            self.ui.rightTextColorPB.setStyleSheet(utilities.style_sheet(self.right_text_color))
+        else:
+            logger.error("Invalid color on right text color selection")
 
     @Slot()
     def show_left_text_main(self):
         font = self.ui.fontComboBoxLeft.currentFont()
-        font.setPointSize(self.ui.leftFontSize.value())
-        self.mainDisplay.show_text(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
+        self.mainDisplay.show_text(self.ui.leftTextBox.toPlainText(), font, self.left_text_color)
         self.ui.imagePreviewMain.capture_window()
 
     @Slot()
     def show_left_text_auxiliary(self):
         font = self.ui.fontComboBoxLeft.currentFont()
-        font.setPointSize(self.ui.leftFontSize.value())
-        self.auxiliaryDisplay.show_text(self.ui.leftTextBox.toPlainText(), self.ui.leftTextColorPB.styleSheet(), font)
+        self.auxiliaryDisplay.show_text(self.ui.leftTextBox.toPlainText(), font, self.left_text_color)
         self.ui.imagePreviewAuxiliary.capture_window()
 
     @Slot()
@@ -184,15 +192,13 @@ class TextFeature(QObject):
     @Slot()
     def show_right_text_main(self):
         font = self.ui.fontComboBoxRight.currentFont()
-        font.setPointSize(self.ui.rightFontSize.value())
-        self.mainDisplay.show_text(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
+        self.mainDisplay.show_text(self.ui.rightTextBox.toPlainText(), font, self.right_text_color)
         self.ui.imagePreviewMain.capture_window()
 
     @Slot()
     def show_right_text_auxiliary(self):
         font = self.ui.fontComboBoxRight.currentFont()
-        font.setPointSize(self.ui.rightFontSize.value())
-        self.auxiliaryDisplay.show_text(self.ui.rightTextBox.toPlainText(), self.ui.rightTextColorPB.styleSheet(), font)
+        self.auxiliaryDisplay.show_text(self.ui.rightTextBox.toPlainText(), font, self.right_text_color)
         self.ui.imagePreviewAuxiliary.capture_window()
 
     @Slot()

@@ -7,8 +7,8 @@ logger = logging.getLogger(__name__)
 
 class Settings:
     DEFAULTS = {
-        'leftTeamColor': QColor(Qt.blue),
-        'rightTeamColor': QColor(Qt.red),
+        'leftTeamColor': QColor(Qt.GlobalColor.blue),
+        'rightTeamColor': QColor(Qt.GlobalColor.red),
         'leftTeamName': "Left Team",
         'rightTeamName': "Right Team",
         'promosDirectory': "",
@@ -24,11 +24,17 @@ class Settings:
         'gamesFile': "",
         'mainLocation': QPoint(0, 0),
         'auxLocation': QPoint(0, 0),
-        'rightTextColor': QColor(Qt.black),
-        'leftTextColor': QColor(Qt.black),
-        'gameTextColor': QColor(Qt.white),
+        'rightTextColor': QColor(Qt.GlobalColor.black),
+        'leftTextColor': QColor(Qt.GlobalColor.black),
+        'gameTextColor': QColor(Qt.GlobalColor.white),
         'gameBackground':"",
-        'gameTextSize': 10
+        'gameTextSize': 10,
+        'troupeFile': "",
+        'rightGraphic': "",
+        'leftGraphic': "",
+        'officialGraphic': "",
+        'rosterTextSize': 10,
+        'leftTeamFirst' : False
     }
 
     def __init__(self):
@@ -44,6 +50,9 @@ class Settings:
 
     def _get(self, key):
         return self.settings.value(key, self.DEFAULTS.get(key))
+
+    def _getbool(self, key):
+        return self.settings.value(key, self.DEFAULTS.get(key), type=bool)
 
     def _set(self, key, value):
         self.settings.setValue(key, value)
@@ -131,6 +140,13 @@ class Settings:
     def set_game_text_size(self, size):
         self._set('gameTextSize', size)
 
+    def set_games_file(self, path):
+        self._set('gamesFile', path)
+
+    def get_games_file(self):
+        path = self._get('gamesFile')
+        return path if QFileInfo(path).exists() else self.DEFAULTS['gamesFile']
+
     # Team settings
     def pick_left_team_color(self, ui):
         colorSelected = QColorDialog.getColor(self.get_left_team_color(), ui,title = 'Pick Left Team Color')
@@ -154,7 +170,6 @@ class Settings:
     def get_right_team_color(self):
         return self._get('rightTeamColor')
 
-
     def set_left_team_name(self, name):
         self._set('leftTeamName', name)
 
@@ -166,6 +181,52 @@ class Settings:
 
     def get_right_team_name(self):
         return self._get('rightTeamName')
+
+    # This may be changeable in the future
+    def get_official_team_name(self):
+        return "Official"
+
+    def set_right_graphic(self, path):
+        self._set('rightGraphic', path)
+
+    def get_right_graphic(self):
+        path = self._get('rightGraphic')
+        return path if QFileInfo(path).exists() else self.DEFAULTS['rightGraphic']
+
+    def set_left_graphic(self, path):
+        self._set('leftGraphic', path)
+
+    def get_left_graphic(self):
+        path = self._get('leftGraphic')
+        return path if QFileInfo(path).exists() else self.DEFAULTS['leftGraphic']
+
+    def set_official_graphic(self, path):
+        self._set('officialGraphic', path)
+
+    def get_official_graphic(self):
+        path = self._get('officialGraphic')
+        return path if QFileInfo(path).exists() else self.DEFAULTS['officialGraphic']
+
+    def get_roster_text_size(self):
+        return self._get('rosterTextSize')
+
+    def set_roster_text_size(self, size):
+        self._set('rosterTextSize', size)
+
+    def get_left_team_first(self):
+        return self._getbool('leftTeamFirst')
+
+    def set_left_team_first(self, isLeftFirst):
+        self._set('leftTeamFirst', isLeftFirst)
+
+    def set_troupe_file(self, path):
+        self._set('troupeFile', path)
+
+    def get_troupe_file(self):
+        path = self._get('troupeFile')
+        return path if QFileInfo(path).exists() else self.DEFAULTS['troupeFile']
+
+    # Assorted Settings
 
     def set_promos_directory(self, path):
         self._set('promosDirectory', path)
@@ -233,10 +294,3 @@ class Settings:
     def get_last_hot_button_file(self):
         path = self._get('lastHotButton')
         return path if QFileInfo(path).exists() else self.DEFAULTS['lastHotButton']
-
-    def set_games_file(self, path):
-        self._set('gamesFile', path)
-
-    def get_games_file(self):
-        path = self._get('gamesFile')
-        return path if QFileInfo(path).exists() else self.DEFAULTS['gamesFile']

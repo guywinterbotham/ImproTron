@@ -2,9 +2,13 @@ import json
 import logging
 
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QImageReader, QPixmap, QMovie
+from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor
 from PySide6.QtWidgets import (QFileDialog, QFileSystemModel, QMessageBox, QWidget,
-                                QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy)
+                                QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy,
+                                QDialog,
+                                QDialogButtonBox,
+                                QTextEdit,
+                                QVBoxLayout)
 
 from PySide6.QtCore import (Slot, Signal, Qt, QTimer, QItemSelection, QFileInfo, QDir, QTextStream,
                                 QFile, QIODevice, QEvent, QUrl, QRandomGenerator, QSize, QThread, QJsonDocument)
@@ -20,8 +24,8 @@ from games_feature import GamesFeature
 from text_feature import TextFeature
 from media_features import MediaFeatures
 from thingz_feature import ThingzFeature
+from roster_feature import RosterFeature
 from monitor_preview import MonitorPreview
-# from lighting_feature import LightingFeature # Future DMX integration
 import utilities
 
 import ImproTronIcons
@@ -86,7 +90,7 @@ class ImproTronControlBoard(QWidget):
         self.ui.loadImageMainPB.clicked.connect(self.getImageFileMain)
         self.ui.pasteImageMainPB.clicked.connect(self.main_preview.paste_image)
         self.ui.blackoutMainPB.clicked.connect(self.main_preview.blackout)
-        self.ui.stretchMainCB.checkStateChanged.connect(self.main_preview.previewStretch)
+        self.ui.stretchMainCB.checkStateChanged.connect(self.main_preview.fit_to_width)
 
         # Replace the auxilliary image preview with a DragDropLabel
         self.aux_preview = MonitorPreview(self.ui.imagePreviewAuxiliary, self.ui.imagePreviewAuxiliaryHL, self.auxiliaryDisplay, self.ui.stretchMainCB.isChecked(), self.shared_network_manager, parent=self.ui.imagePreviewAuxiliary.parent())
@@ -94,7 +98,7 @@ class ImproTronControlBoard(QWidget):
         self.ui.loadImageAuxiliaryPB.clicked.connect(self.getImageFileAuxiliary)
         self.ui.pasteImageAuxiliaryPB.clicked.connect(self.aux_preview.paste_image)
         self.ui.blackoutAuxPB.clicked.connect(self.aux_preview.blackout)
-        self.ui.stretchAuxCB.checkStateChanged.connect(self.aux_preview.previewStretch)
+        self.ui.stretchAuxCB.checkStateChanged.connect(self.aux_preview.fit_to_width)
         logger.info("Main and Auxiliary preview handlers initialized.")
 
         self.ui.blackoutBothPB.clicked.connect(self.blackout_both)
@@ -105,6 +109,7 @@ class ImproTronControlBoard(QWidget):
         self.thingz_feature = ThingzFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel)
         self.media_features.reset_media_view(self._settings.get_media_directory())
+        self.roster_feature = RosterFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
 
         logger.info("Core feature modules (Games, Text, Thingz, Media) initialized.")
 
@@ -130,8 +135,6 @@ class ImproTronControlBoard(QWidget):
         # Recall Team names and colors then connect Score related signals to slots
         self.ui.teamNameLeft.textChanged.connect(self.show_left_team)
         self.ui.teamNameRight.textChanged.connect(self.show_right_team)
-        self.ui.colorRightPB.clicked.connect(self.pick_right_team_color)
-        self.ui.colorLeftPB.clicked.connect(self.pick_left_team_color)
         self.ui.showScoresMainPB.clicked.connect(self.show_scores_main)
         self.ui.showScoresBothPB.clicked.connect(self.show_scores_both)
         self.ui.showScoresAuxiliaryPB.clicked.connect(self.show_scores_auxiliary)
@@ -289,10 +292,16 @@ class ImproTronControlBoard(QWidget):
         self.oscServer.seekAction.connect(self.media_features.onOSCServerSeekAction)
 
         # Preferences
-        self.ui.aboutPB.clicked.connect(self.about)
         self.ui.improtronUnlockPB.clicked.connect(self.improtronUnlock)
+        self.ui.colorRightPB.clicked.connect(self.pick_right_team_color)
+        self.ui.graphicRightPB.clicked.connect(self.pick_right_team_graphic)
+        self.ui.colorLeftPB.clicked.connect(self.pick_left_team_color)
+        self.ui.graphicLeftPB.clicked.connect(self.pick_left_team_graphic)
+        self.ui.graphicOfficialPB.clicked.connect(self.pick_official_graphic)
+
         self.ui.startupImagePB.clicked.connect(self.startupImage)
         self.ui.promosDirPB.clicked.connect(self.selectPromosDirectory)
+        self.ui.aboutPB.clicked.connect(self.about)
 
         # Display the default images if they exist
         self.showMediaOnMain(self._settings.get_startup_image())
@@ -382,59 +391,29 @@ class ImproTronControlBoard(QWidget):
 
     # Note: This is both a local call but a slot for images emitted from the media features
     @Slot(str)
-    def showMediaOnMain(self, file_name):
-        if len(file_name) <= 0:
+    def showMediaOnMain(self, file_name: str) -> None:
+        if not file_name or not QFileInfo.exists(file_name):
+            logger.warning(f"Missing Media File on Main: {file_name}")
             return
 
-        if not QFile(file_name).exists():
-            logger.warn(f"Missing Media File on Main: {file_name}")
-            return
-
-        if self.isAnimatedGIF(file_name):
-            if self.main_preview.set_preview_movie(file_name):
-                self.mainDisplay.showMovie(file_name)
-
-        elif self.media_features.isImage(file_name):
-            reader = QImageReader(file_name)
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-            if newImage.isNull():
-                logger.error(f"Main display: Failed to read image {file_name}. QImageReader error: {reader.errorString()}")
-                return
-            self.main_preview.load_image(newImage)
-        else:
-            logging.warning(f"Unsupported media for main: {file_name}")
+        self.mainDisplay.show_file(file_name, self.ui.stretchMainCB.isChecked())
+        self.main_preview.set_background(file_name, self.ui.stretchMainCB.isChecked())
 
     # Note: This is both a local call but a slot for images emitted from the media features
     @Slot(str)
     def showMediaOnAux(self, file_name):
-        if len(file_name) <= 0:
+        if not file_name or not QFileInfo.exists(file_name):
             return
 
-        if not QFile(file_name).exists():
-            logger.warn(f"Missing Media File on Auxiliary: {file_name}")
-            return
-
-        if self.isAnimatedGIF(file_name):
-            if self.aux_preview.set_preview_movie(file_name):
-                self.auxiliaryDisplay.showMovie(file_name)
-
-        elif self.media_features.isImage(file_name):
-            reader = QImageReader(file_name)
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-            if newImage.isNull():
-                logger.error(f"Aux display: Failed to read image {file_name}. QImageReader error: {reader.errorString()}")
-                return
-            self.aux_preview.load_image(newImage)
-        else:
-            logging.warning(f"Unsupported media for auxiliary: {file_name}")
+        self.auxiliaryDisplay.show_file(file_name, self.ui.stretchAuxCB.isChecked())
+        self.aux_preview.set_background(file_name, self.ui.stretchAuxCB.isChecked())
 
     def set_left_team_colors(self, color_selected):
         # Color the things and scoreboard colors
         style = utilities.style_sheet(color_selected)
         self.ui.teamNameLeft.setStyleSheet(style)
         self.ui.leftThingTeamRB.setStyleSheet(style)
+        self.ui.rosterLeftPB.setStyleSheet(style)
 
         # Pass the COLOR object (not the style string) to the modern scoreboard
         self.mainDisplay.colorizeLeftScore(color_selected)
@@ -445,6 +424,7 @@ class ImproTronControlBoard(QWidget):
         style = utilities.style_sheet(color_selected)
         self.ui.teamNameRight.setStyleSheet(style)
         self.ui.rightThingTeamRB.setStyleSheet(style)
+        self.ui.rosterRightPB.setStyleSheet(style)
 
         # Pass the COLOR object (not the style string) to the modern scoreboard
         self.mainDisplay.colorizeRightScore(color_selected)
@@ -529,6 +509,7 @@ class ImproTronControlBoard(QWidget):
         self.mainDisplay.showLeftTeam(teamName)
         self.auxiliaryDisplay.showLeftTeam(teamName)
         self.ui.leftThingTeamRB.setText(teamName)
+        self.ui.rosterLeftPB.setText(teamName)
         self._settings.set_left_team_name(teamName)
 
     @Slot(str)
@@ -536,6 +517,7 @@ class ImproTronControlBoard(QWidget):
         self.mainDisplay.showRightTeam(teamName)
         self.auxiliaryDisplay.showRightTeam(teamName)
         self.ui.rightThingTeamRB.setText(teamName)
+        self.ui.rosterRightPB.setText(teamName)
         self._settings.set_right_team_name(teamName)
 
     # Unlock the Improtron Displays so they can be moved. Lock them to maximize
@@ -596,11 +578,11 @@ class ImproTronControlBoard(QWidget):
 
         # 3. Validation and Error Handling
         if newImage.isNull():
-            logger.warning(
+            logger.debug(
                 f"Slide preview (from list): Failed to read image {path}. "
                 f"QImageReader error: {reader.errorString()}"
             )
-            # self.ui.slidePreviewLBL.clear()
+            self.ui.slidePreviewLBL.clear()
             return
 
         # 4. Scale and Display
@@ -963,8 +945,7 @@ class ImproTronControlBoard(QWidget):
             else:
                 self.main_preview.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.main_preview.size().height())))
 
-            self.mainDisplay.showSlide(image, self.ui.stretchMainCB.isChecked())
-
+            self.mainDisplay.show_image(image, self.ui.stretchMainCB.isChecked())
 
         self.whams -= 1
         if self.whams <= 0:
@@ -1151,6 +1132,27 @@ class ImproTronControlBoard(QWidget):
                 json_file.close()
 
     @Slot()
+    def pick_right_team_graphic(self):
+        selected_file = self.roster_feature.get_player_background()
+
+        # Save the file string (or empty string/null proxy if canceled)
+        self._settings.set_right_graphic(selected_file)
+
+    @Slot()
+    def pick_left_team_graphic(self):
+        selected_file = self.roster_feature.get_player_background()
+
+        # Save the file string (or empty string/null proxy if canceled)
+        self._settings.set_left_graphic(selected_file)
+
+    @Slot()
+    def pick_official_graphic(self):
+        selected_file = self.roster_feature.get_player_background()
+
+        # Save the file string (or empty string/null proxy if canceled)
+        self._settings.set_official_graphic(selected_file)
+
+    @Slot()
     def selectPromosDirectory(self):
         setDir = QFileDialog.getExistingDirectory(self.ui,
                 "Select the Promos Directory",
@@ -1168,26 +1170,41 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def about(self):
         file = QFile(":/icons/about")
-        if not file.exists():
+        if not file.exists() or not file.open(QIODevice.ReadOnly | QIODevice.Text):
             return
 
-        if not file.open(QIODevice.ReadOnly | QIODevice.Text):
-            return
-
-        stream = QTextStream(file)
-        text = stream.readAll()
+        text = QTextStream(file).readAll()
         file.close()
+        text += "\n\n=== SYSTEM SETTINGS CONFIG DUMP ===\n" + self._settings.get_settings_text()
 
-        text += self._settings.get_settings_text()
+        # Build custom dialog on the fly to guarantee scannability
+        dialog = QDialog(self.ui)
+        dialog.setWindowTitle("About ImproTron")
+        dialog.setMinimumSize(500, 450)
 
-        # Show message box with appended info
-        msg = QMessageBox(self.ui)
-        msg.setWindowTitle("About ImproTron")
-        msg.setText(text)
-        msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.RestoreDefaults)
+        # Use a strict vertical layout stack
+        layout = QVBoxLayout(dialog)
 
-        result = msg.exec()
-        if result == QMessageBox.StandardButton.RestoreDefaults:
+        # Use a read-only QTextEdit to get native scrollbars and text preservation
+        text_edit = QTextEdit(dialog)
+        text_edit.setPlainText(text)
+        text_edit.setReadOnly(True)
+        layout.addWidget(text_edit)
+
+        # Standard action buttons layout
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.RestoreDefaults,
+            dialog
+        )
+        button_box.accepted.connect(dialog.accept)
+        button_box.button(QDialogButtonBox.StandardButton.RestoreDefaults).clicked.connect(
+            lambda: dialog.done(QDialogButtonBox.StandardButton.RestoreDefaults)
+        )
+        layout.addWidget(button_box)
+
+        # Handle modal return states smoothly
+        result = dialog.exec()
+        if result == QDialogButtonBox.StandardButton.RestoreDefaults:
             self._settings.restore_defaults()
 
     # Camera Slots
@@ -1293,3 +1310,4 @@ class ImproTronControlBoard(QWidget):
                 spinBox.setValue(spinBox.value() + changeValue) # change can be positive or negative
         else:
             logging.warning(f"QDoubleSpinBox: {buttonID} not found")
+
