@@ -381,7 +381,6 @@ class ImproTron(QMainWindow):
 
     # Restore and move the allotted screen
     def restore(self):
-        print ("calling restore on", self._display_name)
         self.show_text(self._display_name)
         self.setWindowTitle(self._display_name)
 

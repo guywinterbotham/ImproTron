@@ -29,9 +29,7 @@ class SmartOverlayLabel(QLabel):
 
         self.is_player_mode = False             # Used to branch rendering to use both the team and player name
         self.background_file = ""               # location of the background media
-        self.movie = QMovie(self)               # Reused movie object
-
-        self.movie.frameChanged.connect(self._trigger_movie_repaint)
+        self.movie = None                       # Instantiated dynamically to allow full garbage collection
 
         # Force background palette to solid black at initialization
         palette = self.palette()
@@ -193,53 +191,60 @@ class SmartOverlayLabel(QLabel):
 
     # Internal function that load an image or movie from a file without altering the text
     def _set_background_asset(self, file_name: str):
-        self.movie.stop()
-
         if not file_name or not QFileInfo.exists(file_name):
             self._clear_asset()
-            logger.warning(f"Smart Overlay: Missing Asset {self.background_file}.")
+            logger.warning(f"Smart Overlay: Missing Asset {file_name}.")
             return
-        if self.background_file == file_name:
-            return # Nothing has changed
 
+        if self.background_file == file_name:
+            return
+
+        # Fully purge old assets before loading new ones
+        self._clear_asset()
         self.background_file = file_name
         suffix = QFileInfo(file_name).suffix().lower()
 
         if bytes(suffix, "ascii") in QMovie.supportedFormats():
-            self.movie.setFileName(file_name)
+            # Instantiate a fresh QMovie to guarantee clean buffer allocations
+            self.movie = QMovie(file_name, parent=self)
             if self.movie.isValid():
+                self.movie.frameChanged.connect(self._trigger_movie_repaint)
                 self.movie.setScaledSize(self._calculate_movie_size())
-
                 self.movie.setSpeed(100)
                 self.movie.start()
         else:
-            # Use QImageReader for static images
             reader = QImageReader(self.background_file)
             reader.setAutoTransform(True)
-            newImage = reader.read()
+            new_image = reader.read()
 
-            if newImage.isNull():
-                logger.warning(f"Smart Overlay: Failed to read image {self.background_file}. QImageReader error: {reader.errorString()}")
+            if new_image.isNull():
+                logger.warning(f"Smart Overlay: Failed to read image {self.background_file}.")
                 self._clear_asset()
                 return
 
-            # Scaling and Display
-            if self.stretch:
-                # Stretch to fill the label
-                scaled_pixmap = QPixmap.fromImage(newImage.scaled(self.size(),
-                                                                  Qt.IgnoreAspectRatio,
-                                                                  Qt.SmoothTransformation))
-            else:
-                # Scale maintaining aspect ratio
-                scaled_pixmap = QPixmap.fromImage(newImage.scaled(self.size(),
-                                                                  Qt.KeepAspectRatio,
-                                                                  Qt.SmoothTransformation))
+            target_size = self.size()
+            aspect_mode = Qt.IgnoreAspectRatio if self.stretch else Qt.KeepAspectRatio
 
+            scaled_pixmap = QPixmap.fromImage(
+                new_image.scaled(target_size, aspect_mode, Qt.SmoothTransformation)
+            )
             self.setPixmap(scaled_pixmap)
 
+    # Clears the display and releases all video/image memory buffers explicitly.
     def _clear_asset(self):
-        self.movie.stop()
-        self.setPixmap(QPixmap())
+        if self.movie is not None:
+            self.movie.stop()
+            self.movie.frameChanged.disconnect(self._trigger_movie_repaint)
+            try:
+                self.movie.frameChanged.disconnect(self._handle_single_loop)
+            except (RuntimeError, TypeError):
+                pass
+            self.movie.deleteLater()
+            self.movie = None
+
+        # Explicitly clear internal C++ pixmap allocations
+        self.clear()
+
         self.background_file = ""
         self.team_text = ""
         self.overlay_text = ""
@@ -376,7 +381,7 @@ class SmartOverlayLabel(QLabel):
                 painter.end()
                 return
 
-            # 1. Fill Solid Background Color (Safely handles QColor, str, or enum)
+            # 1. Background Fill
             bg_color = (
                 self.background_color
                 if isinstance(self.background_color, QColor)
@@ -385,23 +390,23 @@ class SmartOverlayLabel(QLabel):
             if bg_color.isValid():
                 painter.fillRect(rect, bg_color)
 
-            # 2. Manual Background Asset Rendering (GIF or Static Pixmap)
+            # 2. Render Media
             if self.movie and self.movie.state() == QMovie.MovieState.Running:
+                # Draw directly from currentFrameNumber to avoid heap churn
                 current_pix = self.movie.currentPixmap()
                 if not current_pix.isNull():
                     target_rect = self._get_target_rect(current_pix.size())
                     painter.drawPixmap(target_rect, current_pix)
 
-            elif not self.pixmap().isNull():
-                        target_rect = self._get_target_rect(self.pixmap().size())
-                        painter.drawPixmap(target_rect, self.pixmap())
+            elif self.pixmap() and not self.pixmap().isNull():
+                target_rect = self._get_target_rect(self.pixmap().size())
+                painter.drawPixmap(target_rect, self.pixmap())
 
-            # 3. Overlay Text Rendering
+            # 3. Overlay Text
             h_margin = int(self.rect().width() * 0.03)
             widget_rect = self.rect().adjusted(h_margin, 0, -h_margin, 0)
 
             if self.is_player_mode:
-                # --- TEAM TEXT BRANCH ---
                 if self.team_text:
                     team_rect = widget_rect.adjusted(
                         0,
@@ -410,25 +415,13 @@ class SmartOverlayLabel(QLabel):
                         -int(widget_rect.height() * 0.65),
                     )
                     fitted_team_font = self._fit_font_to_rect(
-                        self.team_text,
-                        self.overlay_font,
-                        team_rect,
-                        scale_pct=60.0
+                        self.team_text, self.overlay_font, team_rect, scale_pct=60.0
                     )
-                    fitted_team_font.setLetterSpacing(
-                        QFont.SpacingType.PercentageSpacing, 110
-                    )
+                    fitted_team_font.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 110)
                     painter.setFont(fitted_team_font)
                     painter.setPen(self.overlay_color)
+                    painter.drawText(team_rect, Qt.AlignmentFlag.AlignCenter, self.team_text)
 
-                    # Single-line header: no TextWordWrap to avoid unexpected auto-wraps
-                    painter.drawText(
-                        team_rect,
-                        Qt.AlignmentFlag.AlignCenter,
-                        self.team_text
-                    )
-
-                # --- PLAYER TEXT BRANCH ---
                 if self.overlay_text:
                     player_rect = widget_rect.adjusted(
                         0,
@@ -436,36 +429,18 @@ class SmartOverlayLabel(QLabel):
                         0,
                         -int(widget_rect.height() * 0.05),
                     )
-                    display_lines = [
-                        line.strip()
-                        for line in self.overlay_text.split("/")
-                        if line.strip()
-                    ]
+                    display_lines = [line.strip() for line in self.overlay_text.split("/") if line.strip()]
                     clean_multiline_text = "\n".join(display_lines)
 
                     fitted_player_font = self._fit_font_to_rect(
-                        clean_multiline_text,
-                        self.overlay_font,
-                        player_rect,
-                        scale_pct=self.scale
+                        clean_multiline_text, self.overlay_font, player_rect, scale_pct=self.scale
                     )
                     painter.setFont(fitted_player_font)
                     painter.setPen(self.overlay_color)
-
-                    # Render multi-line player text
-                    painter.drawText(
-                        player_rect,
-                        Qt.AlignmentFlag.AlignCenter,
-                        clean_multiline_text
-                    )
+                    painter.drawText(player_rect, Qt.AlignmentFlag.AlignCenter, clean_multiline_text)
             else:
-                # --- GAME OVERLAY / SINGLE TITLE BRANCH ---
                 if self.overlay_text:
-                    active_font = (
-                        self.overlay_font
-                        if self.overlay_font.family()
-                        else self.font()
-                    )
+                    active_font = self.overlay_font if self.overlay_font.family() else self.font()
                     active_color = (
                         self.overlay_color
                         if self.overlay_color.isValid()
@@ -473,20 +448,11 @@ class SmartOverlayLabel(QLabel):
                     )
 
                     fitted_font = self._fit_font_to_rect(
-                        self.overlay_text,
-                        active_font,
-                        widget_rect,
-                        scale_pct=self.scale
+                        self.overlay_text, active_font, widget_rect, scale_pct=self.scale
                     )
-
                     painter.setFont(fitted_font)
                     painter.setPen(active_color)
-
-                    painter.drawText(
-                        widget_rect,
-                        Qt.AlignmentFlag.AlignCenter,
-                        self.overlay_text
-                    )
+                    painter.drawText(widget_rect, Qt.AlignmentFlag.AlignCenter, self.overlay_text)
 
             painter.end()
 
@@ -561,33 +527,26 @@ class MonitorPreview(SmartOverlayLabel):
             self.show_image(image, self._fit_to_width)
             self.monitor.show_image(image, self._fit_to_width)
 
+    # Asynchronously fetches graphics from an external web URL stream.
     def load_image_from_url(self, dropped_url: str):
-        """
-        Asynchronously fetches graphics from an external web URL stream.
-        Guarantees zero UI stuttering or event delays on the main loop thread.
-        """
         url = QUrl(dropped_url)
         request = QNetworkRequest(url)
 
-        # Fire request asynchronously and continue running the application immediately
         reply = self.network_manager.get(request)
-        reply.finished.connect(lambda: self._on_network_reply_finished(reply, url))
+        # Avoid lambda capturing self to break reference cycles
+        reply.finished.connect(Slot()(lambda r=reply, u=url: self._on_network_reply_finished(r, u)))
 
+    # Processes downloaded image payloads safely off the active interface track."""
     def _on_network_reply_finished(self, reply, url):
-        """Processes downloaded image payloads safely off the active interface track."""
         try:
             if reply.error() == QNetworkReply.NetworkError.NoError:
                 image_data = reply.readAll()
                 pixmap = QPixmap()
-
                 if pixmap.loadFromData(image_data):
                     self.set_background_pixmap(pixmap, self._fit_to_width)
-
                     self.monitor.show_pixmap(pixmap, self._fit_to_width)
-                else:
-                    logger.warning(f"Failed to parse downloaded image bytes from URL: {url.toDisplayString()}")
             else:
-                logger.warning(f"Error downloading network image asset: {reply.errorString()}")
+                logger.warning(f"Error downloading image: {reply.errorString()}")
         finally:
             reply.deleteLater()
 

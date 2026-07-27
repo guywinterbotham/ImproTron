@@ -788,6 +788,7 @@ class ImproTronControlBoard(QWidget):
     def nextSlide(self):
         # Force the media player to stop just in case there is video play back occuring
         self.videoPlayer.stop()
+        self.videoPlayer.setSource(QUrl())  # Crucial: Unloads buffers & releases file locks
 
         # Have a default timeout. This will get overridden for videos.
         self.slideShowTimer.setInterval(self._settings.get_slideshow_delay()*1000)
@@ -875,8 +876,11 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def slideShowStop(self):
         self.slideShowTimer.stop()
+
         if self.videoPlayer.isPlaying():
             self.videoPlayer.stop()
+            self.videoPlayer.setSource(QUrl())  # Crucial: Unloads buffers & releases file locks
+
         self.paused = False
         self.promosMode = False # Cancel the promo behavior on a stop
         self.currentSlide = 0
@@ -1069,6 +1073,7 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def videoStop(self):
         self.videoPlayer.stop()
+        self.videoPlayer.setSource(QUrl())  # Crucial: Unloads buffers & releases file locks
 
     def videoPlayer_handle_error(self, error, error_string):
         # Log the error
