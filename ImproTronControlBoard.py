@@ -297,7 +297,9 @@ class ImproTronControlBoard(QWidget):
         self.ui.graphicRightPB.clicked.connect(self.pick_right_team_graphic)
         self.ui.colorLeftPB.clicked.connect(self.pick_left_team_color)
         self.ui.graphicLeftPB.clicked.connect(self.pick_left_team_graphic)
+        self.ui.graphicDJPB.clicked.connect(self.pick_dj_graphic)
         self.ui.graphicOfficialPB.clicked.connect(self.pick_official_graphic)
+        self.ui.graphicOfficialPB.setText(self._settings.get_official_team_name()+" Graphic")
 
         self.ui.startupImagePB.clicked.connect(self.startupImage)
         self.ui.promosDirPB.clicked.connect(self.selectPromosDirectory)
@@ -308,15 +310,6 @@ class ImproTronControlBoard(QWidget):
         self.showMediaOnAux(self._settings.get_startup_image())
         # Force the default feature tab on start up to the Text Display
         self.ui.featureTabs.setCurrentWidget(self.ui.textDisplayTab)
-
-        # Then override with the promos if the promo directory has been set up
-        _promosDirectory = self._settings.get_promos_directory()
-        if len(_promosDirectory) >0:
-            self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
-            self.startPromosSlideShow()
-
-            # Force the default feature tab on start up to the Slide Show to make it quicker to stop for the show.
-            self.ui.featureTabs.setCurrentWidget(self.ui.slideShowTab)
 
         # Hot Buttons Wiring
         self.hot_buttons = [] #empty array
@@ -1144,6 +1137,13 @@ class ImproTronControlBoard(QWidget):
 
         # Save the file string (or empty string/null proxy if canceled)
         self._settings.set_left_graphic(selected_file)
+
+    @Slot()
+    def pick_dj_graphic(self):
+        selected_file = self.roster_feature.get_player_background()
+
+        # Save the file string (or empty string/null proxy if canceled)
+        self._settings.set_dj_graphic(selected_file)
 
     @Slot()
     def pick_official_graphic(self):

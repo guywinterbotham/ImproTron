@@ -14,7 +14,8 @@ class TeamRole(IntEnum):
     UNASSIGNED = 0
     LEFT_TEAM = 1
     RIGHT_TEAM = 2
-    OFFICIAL = 3
+    DJ = 3
+    OFFICIAL = 4
 
     # Custom data role identifier for your model
 PlayerRoleData = Qt.ItemDataRole.UserRole + 100
@@ -35,6 +36,8 @@ class PlayerDelegate(QStyledItemDelegate):
             return self._settings.get_left_team_color()
         elif role_value == TeamRole.RIGHT_TEAM:
             return self._settings.get_right_team_color()
+        elif role_value == TeamRole.DJ:
+            return QColor(Qt.GlobalColor.darkMagenta)  # Ref Stripes / Dark Grey
         elif role_value == TeamRole.OFFICIAL:
             return QColor(Qt.GlobalColor.black)  # Ref Stripes / Dark Grey
         return QColor(Qt.GlobalColor.white)      # Unassigned Default Roster Grey
@@ -159,7 +162,9 @@ class RosterFeature(QObject):
         # Switch Role Pushbuttons
         self.ui.rosterLeftPB.clicked.connect(self.assign_selected_to_left_team)
         self.ui.rosterRightPB.clicked.connect(self.assign_selected_to_right_team)
+        self.ui.rosterDJPB.clicked.connect(self.assign_selected_to_dj)
         self.ui.rosterOfficialPB.clicked.connect(self.assign_selected_to_official)
+        self.ui.rosterOfficialPB.setText(self._settings.get_official_team_name())
 
         self.ui.movePlayerUpPB.clicked.connect(self.move_player_up)
         self.ui.movePlayerUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
@@ -218,6 +223,7 @@ class RosterFeature(QObject):
         mapping = {
             TeamRole.LEFT_TEAM: self._settings.get_left_graphic,
             TeamRole.RIGHT_TEAM: self._settings.get_right_graphic,
+            TeamRole.DJ: self._settings.get_dj_graphic,
             TeamRole.OFFICIAL: self._settings.get_official_graphic
         }
 
@@ -230,6 +236,7 @@ class RosterFeature(QObject):
         mapping = {
             TeamRole.LEFT_TEAM: self._settings.get_left_team_name,
             TeamRole.RIGHT_TEAM: self._settings.get_right_team_name,
+            TeamRole.DJ: self._settings.get_dj_team_name,
             TeamRole.OFFICIAL: self._settings.get_official_team_name
         }
 
@@ -293,9 +300,10 @@ class RosterFeature(QObject):
 
         # Derive team display string (adjust team names to match match-day settings)
         team_names = {
-            TeamRole.LEFT_TEAM: self._settings.get_left_team_name(),    # e.g., "Richmond Rapids"
-            TeamRole.RIGHT_TEAM: self._settings.get_right_team_name(),  # e.g., "Virginia Hams"
-            TeamRole.OFFICIAL: "Official",
+            TeamRole.LEFT_TEAM: self._settings.get_left_team_name(),
+            TeamRole.RIGHT_TEAM: self._settings.get_right_team_name(),
+            TeamRole.DJ: self._settings.get_dj_team_name(),
+            TeamRole.OFFICIAL: self._settings.get_official_team_name(),
             TeamRole.UNASSIGNED: ""
         }
         team_name = team_names.get(current_role, "")
@@ -344,7 +352,8 @@ class RosterFeature(QObject):
         team_names = {
             TeamRole.LEFT_TEAM: self._settings.get_left_team_name(),
             TeamRole.RIGHT_TEAM: self._settings.get_right_team_name(),
-            TeamRole.OFFICIAL: "Official",
+            TeamRole.DJ: self._settings.get_dj_team_name(),
+            TeamRole.OFFICIAL: self._settings.get_official_team_name(),
             TeamRole.UNASSIGNED: ""
         }
         team_name = team_names.get(current_role, "")
@@ -541,8 +550,24 @@ class RosterFeature(QObject):
 
     # Assigns selected roster items to the Officials Team.
     @Slot()
+    def assign_selected_to_dj(self):
+        bg_color = QColor(Qt.GlobalColor.darkMagenta)
+        fg_color = utilities.team_font(bg_color)
+
+        # Process only selected items in rosterLW
+        for item in self.ui.rosterLW.selectedItems():
+            # Update custom data role for the PlayerDelegate pass
+            item.setData(PlayerRoleData, int(TeamRole.DJ))
+
+            # Explicit item overrides to guarantee native fallback states update
+            item.setBackground(bg_color)
+            item.setForeground(fg_color)
+
+        self.ui.rosterLW.clearSelection()
+
+    # Assigns selected roster items to the Officials Team.
+    @Slot()
     def assign_selected_to_official(self):
-        # Get color metrics from app settings config
         bg_color = QColor(Qt.GlobalColor.black)
         fg_color = utilities.team_font(bg_color)
 
@@ -594,8 +619,9 @@ class RosterFeature(QObject):
         role_priority = {
             first_role: 0,
             second_role: 1,
-            TeamRole.OFFICIAL: 2,
-            TeamRole.UNASSIGNED: 3
+            TeamRole.DJ : 2,
+            TeamRole.OFFICIAL: 3,
+            TeamRole.UNASSIGNED: 4
         }
 
         # Stable sort preserves current team order
@@ -623,8 +649,9 @@ class RosterFeature(QObject):
         role_priority = {
             losing_role: 0,
             winning_role: 1,
-            TeamRole.OFFICIAL: 2,
-            TeamRole.UNASSIGNED: 3
+            TeamRole.DJ : 2,
+            TeamRole.OFFICIAL: 3,
+            TeamRole.UNASSIGNED: 4
         }
 
         items = self._extract_roster_items()
@@ -652,6 +679,7 @@ class RosterFeature(QObject):
         # Group items while maintaining order
         losing_team = [i for i in items if TeamRole(i.data(PlayerRoleData)) == losing_role]
         winning_team = [i for i in items if TeamRole(i.data(PlayerRoleData)) == winning_role]
+        djs = [i for i in items if TeamRole(i.data(PlayerRoleData)) == TeamRole.DJ]
         officials = [i for i in items if TeamRole(i.data(PlayerRoleData)) == TeamRole.OFFICIAL]
         others = [i for i in items if TeamRole(i.data(PlayerRoleData)) == TeamRole.UNASSIGNED]
 
@@ -664,7 +692,7 @@ class RosterFeature(QObject):
                 interleaved.append(winning_team.pop(0))
 
         # Append remaining officials & unassigned
-        final_order = interleaved + officials + others
+        final_order = interleaved + djs + officials + others
         self._repopulate_roster(final_order)
 
     # Updates persistent setting when 'Call Left Team on first' is toggled.

@@ -33,6 +33,7 @@ class Settings:
         'rightGraphic': "",
         'leftGraphic': "",
         'officialGraphic': "",
+        'djGraphic': "",
         'rosterTextSize': 10,
         'leftTeamFirst' : False
     }
@@ -184,7 +185,11 @@ class Settings:
 
     # This may be changeable in the future
     def get_official_team_name(self):
-        return "Official"
+        return "Referee"
+
+    # This may be changeable in the future
+    def get_dj_team_name(self):
+        return "Designated Jokester"
 
     def set_right_graphic(self, path):
         self._set('rightGraphic', path)
@@ -199,6 +204,13 @@ class Settings:
     def get_left_graphic(self):
         path = self._get('leftGraphic')
         return path if QFileInfo(path).exists() else self.DEFAULTS['leftGraphic']
+
+    def set_dj_graphic(self, path):
+        self._set('djGraphic', path)
+
+    def get_dj_graphic(self):
+        path = self._get('djGraphic')
+        return path if QFileInfo(path).exists() else self.DEFAULTS['djGraphic']
 
     def set_official_graphic(self, path):
         self._set('officialGraphic', path)
