@@ -160,7 +160,7 @@ class SmartOverlayLabel(QLabel):
         self.overlay_text = game_title.strip() if game_title else ""
         self.overlay_font = QFont(font)
         self.scale = float(scale)
-        self.overlay_color = color
+        self.overlay_color = QColor(color)
 
         self._set_background_asset(background_path)
         self.update()
@@ -184,7 +184,7 @@ class SmartOverlayLabel(QLabel):
         self.team_text = team_name.strip() if team_name else ""
         self.overlay_font = QFont(font)
         self.scale = float(scale)
-        self.overlay_color = color
+        self.overlay_color = QColor(color)
 
         self._set_background_asset(background_path)
         self.update()
@@ -199,8 +199,6 @@ class SmartOverlayLabel(QLabel):
         if self.background_file == file_name:
             return
 
-        # Fully purge old assets before loading new ones
-        self._clear_asset()
         self.background_file = file_name
         suffix = QFileInfo(file_name).suffix().lower()
 
@@ -234,9 +232,8 @@ class SmartOverlayLabel(QLabel):
     def _clear_asset(self):
         if self.movie is not None:
             self.movie.stop()
-            self.movie.frameChanged.disconnect(self._trigger_movie_repaint)
             try:
-                self.movie.frameChanged.disconnect(self._handle_single_loop)
+                self.movie.frameChanged.disconnect()
             except (RuntimeError, TypeError):
                 pass
             self.movie.deleteLater()

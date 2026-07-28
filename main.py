@@ -7,11 +7,11 @@ from PySide6.QtCore import QStandardPaths, QLoggingCategory
 from PySide6.QtWidgets import QApplication
 from ImproTronControlBoard import ImproTronControlBoard
 
-# Commands to use in the build process
-# .qtcreator\Python_3_12_10venv\Scripts\activate
-# .qtcreator\Python_3_12_10venv\Scripts\pyside6-deploy -c ImproTron.spec
-# .qtcreator\Python_3_12_10venv\Scripts\pyside6-rcc -g python ImproTronIcons.qrc -o ImproTronIcons.py
-# .qtcreator\Python_3_12_10venv\Scripts\pyside6-uic ImproTron.ui -o ui_ImproTron.py
+# Commands to use in the build process. Used a Use a Developer Command Prompt for VS 202x
+#.qtcreator\venv3.12\Scripts\activate.bat
+#.qtcreator\venv3.12\Scripts\pyside6-uic ImproTron.ui -o ui_ImproTron.py
+#.qtcreator\venv3.12\Scripts\pyside6-rcc -g python ImproTronIcons.qrc -o ImproTronIcons.py
+#.qtcreator\venv3.12\Scripts\pyside6-deploy -c ImproTron.spec
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):

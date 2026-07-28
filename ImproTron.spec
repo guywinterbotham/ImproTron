@@ -26,7 +26,7 @@ icon = .\yesand.ico
 [python]
 
 # python path
-python_path = C:\Users\guywi\OneDrive\Documents\git\ImproTron\.qtcreator\Python_3_12_10venv\Scripts\python.exe
+python_path = C:\dev\git\ImproTron\.qtcreator\venv3.12\Scripts\python.exe
 
 # python packages to install
 #packages = Nuitka==2.7.3
