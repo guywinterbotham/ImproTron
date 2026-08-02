@@ -78,7 +78,7 @@ mode = standalone
 # .\improtron.dist\pyside6\translations\qtwebengine_locales\en-us.pak
 # if you don't have language paks, the lack causes the webengine to silently crash the app in the monitor setups
 #extra_args = --quiet --noinclude-qt-translations
-extra_args = --noinclude-qt-translations --include-data-files=./ImproTronControlPanel.ui=ImproTronControlPanel.ui --include-data-files=./Games_Database.csv=Games_Database.csv --include-data-files=./ImproTronUserGuide.pdf=ImproTronUserGuide.pdf
+extra_args = --noinclude-qt-translations --include-data-files=./ImproTronControlPanel.ui=ImproTronControlPanel.ui --include-data-files=./Games_Database.csv=Games_Database.csv --include-data-files=./ImproTronUserGuide.pdf=ImproTronUserGuide.pdf --include-data-files=./Troupe.csv=Troupe.csv
 
 [buildozer]
 
