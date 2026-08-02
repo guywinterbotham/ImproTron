@@ -2,11 +2,13 @@
 import logging
 from PySide6.QtCore import (Qt, QObject, Slot, Signal, QFileInfo, QDirIterator, QUrl, QRandomGenerator, QVariantAnimation,
                                 QEasingCurve, QFile, QJsonDocument, QSaveFile, QIODevice, QDir)
-from PySide6.QtGui import QImageReader, QPixmap, QMovie
-from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QStyle, QPushButton, QListWidgetItem
+from PySide6.QtGui import QImageReader, QColor
+from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QStyle, QPushButton, QListWidgetItem, QColorDialog
 from PySide6.QtMultimedia import QMediaPlayer, QSoundEffect, QAudioOutput, QMediaMetaData, QMediaFormat
 from Improtronics import SoundFX
 from MediaFileDatabase import MediaFileDatabase
+from monitor_preview import SmartOverlayLabel
+import utilities
 
 logger = logging.getLogger(__name__)
 
@@ -16,13 +18,15 @@ class MediaFeatures(QObject):
     auxMediaShow  = Signal(str)    # Custom signal that decouples the media display from controlboard
     stopAllSFX    = Signal()       # Custom signal that signals all sound to stop
 
-    def __init__(self, ui, settings, media_model):
+    def __init__(self, ui, settings, media_model, mainDisplay, auxiliaryDisplay):
         super(MediaFeatures, self).__init__()
 
         self.ui = ui
         self.active_sound_effects = []
         self._settings = settings
         self.media_model = media_model
+        self.mainDisplay = mainDisplay
+        self.auxiliaryDisplay = auxiliaryDisplay
 
         # Get supported video file types
         self._video_extensions = set()
@@ -45,9 +49,37 @@ class MediaFeatures(QObject):
         self.fade_anim.valueChanged.connect(self._handle_fade_step)
         self.fade_anim.finished.connect(self._finalize_music_stop)
 
-        # QMovies for displaying GIF previews. Avoids memory leaks by keeping them around
-        self.search_preview_movie = QMovie()
-        self.search_preview_movie.setSpeed(100)
+        # Promote the screen preview labels so they can handle GIFs with smart overlays
+        # --- 1. GAME TAB PREVIEW (mediaSearchPreviewLBL) REPLACEMENT ---
+        if hasattr(self.ui, 'mediaSearchPreviewLBL') and not isinstance(self.ui.mediaSearchPreviewLBL, SmartOverlayLabel):
+            old_label = self.ui.mediaSearchPreviewLBL
+            if hasattr(self.ui, 'mediaPreviewVL') and self.ui.mediaPreviewVL is not None:
+                layout = self.ui.mediaPreviewVL
+                index = layout.indexOf(old_label)
+
+                if index != -1:
+                    stretch = layout.stretch(index)
+                    alignment = layout.alignment()
+                    old_stylesheet = old_label.styleSheet()  # Capture Style Sheet
+
+                    new_label = SmartOverlayLabel(old_label.parentWidget())
+                    new_label.setObjectName(old_label.objectName())
+                    new_label.setMinimumSize(old_label.minimumSize())
+                    new_label.setMaximumSize(old_label.maximumSize())
+                    new_label.setSizePolicy(old_label.sizePolicy())
+                    new_label.setStyleSheet(old_stylesheet)  # Apply Style Sheet
+
+                    layout.removeWidget(old_label)
+                    layout.insertWidget(index, new_label, stretch=stretch, alignment=alignment)
+
+                    self.ui.mediaSearchPreviewLBL = new_label
+                    old_label.deleteLater()
+            else:
+                logger.error("Could not find the 'mediaPreviewVL' layout container at runtime.")
+
+        # Overlay text color default
+        self._overlay_color = QColor(Qt.GlobalColor.white)
+        self.ui.mediaSearchtOverlayColorPB.setStyleSheet(utilities.style_sheet(self._overlay_color))
 
         # Playback current track playback state
         self.current_track_index = -1
@@ -108,6 +140,13 @@ class MediaFeatures(QObject):
         self.ui.mediaSearchResultsLW.itemDoubleClicked.connect(self.show_media_preview_main)
         self.ui.searchToMainShowPB.clicked.connect(self.search_to_main_show)
         self.ui.searchToAuxShowPB.clicked.connect(self.search_to_aux_show)
+
+        # Image Overlay Actions
+        self.ui.mediaSearchOverlayLE.textChanged.connect(self.show_overlay_text)
+        self.ui.mediaSearchtOverlayColorPB.clicked.connect(self.pick_overlay_text_color)
+        self.ui.mediaSearchtOverlayColorSLD.valueChanged.connect(self.scale_overlay_text)
+        self.ui.mediaSearchtOverlayClearPB.clicked.connect(self.clear_image)
+        self.ui.mediaSearchtOverlayFB.currentFontChanged.connect(self.style_overlay_text)
 
         # Sound Search Connections
         self.ui.searchSoundsPB.clicked.connect(self.search_sounds)
@@ -483,41 +522,12 @@ class MediaFeatures(QObject):
         self.ui.mediaFileNameLBL.setText(file_path)
 
         # 3. Handle Preview Logic
-        self.search_preview_movie.stop()
-
-        if bytes(media_info.suffix().lower(),"ascii") in QMovie.supportedFormats():
-            self.search_preview_movie.setFileName(file_path)
-            if self.search_preview_movie.isValid():
-                # Scale the movie to fit the preview label
-                self.search_preview_movie.setScaledSize(self.ui.mediaSearchPreviewLBL.size())
-                self.ui.mediaSearchPreviewLBL.setMovie(self.search_preview_movie)
-                self.search_preview_movie.start()
-        else:
-            # Use QImageReader for static images
-            reader = QImageReader(file_path)
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-
-            if newImage.isNull():
-                logger.warning(f"Media search preview: Failed to read image {file_path}. QImageReader error: {reader.errorString()}")
-                self.ui.mediaSearchPreviewLBL.clear()
-                self.ui.mediaFileNameLBL.clear()
-                return
-
-            # 4. Scaling and Display
-            if self.ui.stretchMainCB.isChecked():
-                # Stretch to fill the label
-                scaled_pixmap = QPixmap.fromImage(newImage.scaled(self.ui.mediaSearchPreviewLBL.size(),
-                                                                  Qt.IgnoreAspectRatio,
-                                                                  Qt.SmoothTransformation))
-                self.ui.mediaSearchPreviewLBL.setPixmap(scaled_pixmap)
-            else:
-                # Scale maintaining aspect ratio
-                scaled_pixmap = QPixmap.fromImage(newImage.scaled(self.ui.mediaSearchPreviewLBL.size(),
-                                                                  Qt.KeepAspectRatio,
-                                                                  Qt.SmoothTransformation))
-                self.ui.mediaSearchPreviewLBL.setPixmap(scaled_pixmap)
-
+        self.ui.mediaSearchPreviewLBL.set_text_overlay(
+            background_path = file_path,
+            overlay_text = self.ui.mediaSearchOverlayLE.text(),
+            font = self.ui.mediaSearchtOverlayFB.currentFont() ,
+            scale = self.ui.mediaSearchtOverlayColorSLD.value(),
+            color = self._overlay_color)
 
     #Triggered when a list item is selected/clicked to preview media.
     @Slot(QListWidgetItem)
@@ -532,24 +542,36 @@ class MediaFeatures(QObject):
 
     @Slot()
     def search_to_main_show(self):
-        if self.ui.mediaSearchResultsLW.currentItem() != None:
-            slide = self.ui.mediaSearchResultsLW.currentItem()
-            # Get the QFileInfo object from the UserRole
-            file_info = slide.data(Qt.UserRole)
+        self.ui.imagePreviewMain.set_text_overlay(
+            background_path = self.ui.mediaFileNameLBL.text(),
+            overlay_text = self.ui.mediaSearchOverlayLE.text(),
+            font = self.ui.mediaSearchtOverlayFB.currentFont() ,
+            scale = self.ui.mediaSearchtOverlayColorSLD.value(),
+            color = self._overlay_color)
 
-            if file_info:
-                # Emit the absolute path string
-                self.mainMediaShow.emit(file_info.absoluteFilePath())
+        self.mainDisplay.show_overlay_text(
+            background_path = self.ui.mediaFileNameLBL.text(),
+            overlay_text = self.ui.mediaSearchOverlayLE.text(),
+            font = self.ui.mediaSearchtOverlayFB.currentFont() ,
+            scale = self.ui.mediaSearchtOverlayColorSLD.value(),
+            textColor = self._overlay_color)
+
     @Slot()
     def search_to_aux_show(self):
-        if self.ui.mediaSearchResultsLW.currentItem() != None:
-            slide = self.ui.mediaSearchResultsLW.currentItem()
-            # Get the QFileInfo object from the UserRole
-            file_info = slide.data(Qt.UserRole)
+        self.ui.imagePreviewAuxiliary.set_text_overlay(
+            background_path = self.ui.mediaFileNameLBL.text(),
+            overlay_text = self.ui.mediaSearchOverlayLE.text(),
+            font = self.ui.mediaSearchtOverlayFB.currentFont() ,
+            scale = self.ui.mediaSearchtOverlayColorSLD.value(),
+            color = self._overlay_color)
 
-            if file_info:
-                # Emit the absolute path string
-                self.auxMediaShow.emit(file_info.absoluteFilePath())
+        self.auxiliaryDisplay.show_overlay_text(
+            background_path = self.ui.mediaFileNameLBL.text(),
+            overlay_text = self.ui.mediaSearchOverlayLE.text(),
+            font = self.ui.mediaSearchtOverlayFB.currentFont() ,
+            scale = self.ui.mediaSearchtOverlayColorSLD.value(),
+            textColor = self._overlay_color)
+
     # Sound Search Slots
     @Slot()
     def search_sounds(self):
@@ -1071,6 +1093,54 @@ class MediaFeatures(QObject):
         self.ui.artistNameLBL.setText(artist)
 
         logging.debug(f"Media Metadata Updated: Title='{title}', Artist='{artist}'")
+
+    # Image text Overlay functions
+    @Slot()
+    def pick_overlay_text_color(self):
+        color_selected = QColorDialog.getColor(parent=self.ui, title='Pick the overlay text color')
+        self._settings.save_custom_colors()
+        if color_selected is not None:
+            self._overlay_color = color_selected
+            self.ui.mediaSearchtOverlayColorPB.setStyleSheet(utilities.style_sheet(self._overlay_color))
+            self.ui.mediaSearchPreviewLBL.set_text_overlay(
+                background_path = self.ui.mediaFileNameLBL.text(),
+                overlay_text = self.ui.mediaSearchOverlayLE.text(),
+                font = self.ui.mediaSearchtOverlayFB.currentFont(),
+                scale = self.ui.mediaSearchtOverlayColorSLD.value(),
+                color = self._overlay_color)
+
+    @Slot(str)
+    def show_overlay_text(self, overlay_text):
+        self.ui.mediaSearchPreviewLBL.set_text_overlay(
+            background_path = self.ui.mediaFileNameLBL.text(),
+            overlay_text = overlay_text,
+            font = self.ui.mediaSearchtOverlayFB.currentFont(),
+            scale = self.ui.mediaSearchtOverlayColorSLD.value(),
+            color = self._overlay_color)
+
+    @Slot(str)
+    def scale_overlay_text(self, value):
+        self.ui.mediaSearchPreviewLBL.set_text_overlay(
+            background_path = self.ui.mediaFileNameLBL.text(),
+            overlay_text = self.ui.mediaSearchOverlayLE.text(),
+            font = self.ui.mediaSearchtOverlayFB.currentFont(),
+            scale = value,
+            color = self._overlay_color)
+
+    @Slot(str)
+    def style_overlay_text(self, font):
+        self.ui.mediaSearchPreviewLBL.set_text_overlay(
+            background_path = self.ui.mediaFileNameLBL.text(),
+            overlay_text = self.ui.mediaSearchOverlayLE.text(),
+            font = font,
+            scale = self.ui.mediaSearchtOverlayColorSLD.value(),
+            color = self._overlay_color)
+
+    @Slot(str)
+    def clear_image(self, value):
+        self.ui.mediaSearchOverlayLE.clear()
+        self.ui.mediaFileNameLBL.clear()
+        self.ui.mediaSearchPreviewLBL.blackout()
 
 # In-place Fisher-Yates shuffle using QRandomGenerator. Works on any Python list or mutable sequence.
 class QtListShuffler:

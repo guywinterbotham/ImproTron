@@ -1,5 +1,7 @@
 import sys
 import os
+os.environ['QT_LOGGING_RULES'] = 'qt.multimedia.ffmpeg=false'
+
 import logging
 import argparse
 import traceback
@@ -42,10 +44,6 @@ def setup_logging():
     )
 
 def main():
-    # Suppress FFmpeg output from Qt Multimedia
-    os.environ['QT_LOGGING_RULES'] = 'qt.multimedia*=false'
-    os.environ['FFREPORT'] = 'level=quiet'
-
     logging.info("ImproTron starting")
     logging.info("Environment Details: OS=%s, Python=%s", sys.platform, sys.version)
 

@@ -2,7 +2,7 @@ import json
 import logging
 
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QImageReader, QPixmap, QMovie, QColor
+from PySide6.QtGui import QImageReader, QPixmap, QMovie
 from PySide6.QtWidgets import (QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy,
                                 QDialog,
@@ -107,7 +107,7 @@ class ImproTronControlBoard(QWidget):
         self.games_feature = GamesFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.text_feature = TextFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
         self.thingz_feature = ThingzFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
-        self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel)
+        self.media_features = MediaFeatures(self.ui, self._settings, self.mediaModel, self.mainDisplay, self.auxiliaryDisplay)
         self.media_features.reset_media_view(self._settings.get_media_directory())
         self.roster_feature = RosterFeature(self.ui, self._settings, self.mainDisplay, self.auxiliaryDisplay)
 
@@ -1231,9 +1231,9 @@ class ImproTronControlBoard(QWidget):
         self.videoPlayer.setVideoOutput(None)
 
         if self.ui.videoOnMainRB.isChecked():
-            self.m_captureSession.setVideoOutput(self.mainDisplay.showCamera())
+            self.m_captureSession.setVideoOutput(self.mainDisplay.showVideo())
         elif self.ui.videoOnAuxRB.isChecked():
-            self.m_captureSession.setVideoOutput(self.auxiliaryDisplay.showCamera())
+            self.m_captureSession.setVideoOutput(self.auxiliaryDisplay.showVideo())
         else:
             self.m_captureSession.setVideoOutput(self.mediaViewerVW)
 

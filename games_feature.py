@@ -263,7 +263,7 @@ class GamesFeature(QObject):
         self._settings.set_game_text_size(slider)
 
         # Display the game frame on the main monitor
-        self.mainDisplay.show_game(self._games_background_path, text, font, slider, self._game_color_selected)
+        self.mainDisplay.show_overlay_text(self._games_background_path, text, font, slider, self._game_color_selected)
 
         self.draw_games_slide(self.ui.imagePreviewMain)
 
@@ -277,7 +277,7 @@ class GamesFeature(QObject):
         self._settings.set_game_text_size(slider)
 
         # Display the game frame on the aux monitor
-        self.auxiliaryDisplay.show_game(self._games_background_path, text, font, slider, self._game_color_selected)
+        self.auxiliaryDisplay.show_overlay_text(self._games_background_path, text, font, slider, self._game_color_selected)
 
         self.draw_games_slide(self.ui.imagePreviewAuxiliary)
 
@@ -317,9 +317,9 @@ class GamesFeature(QObject):
         scale = float(self.ui.gameTextSLD.value())
 
         if isinstance(label, SmartOverlayLabel):
-            label.set_game_overlay(
+            label.set_text_overlay(
                 background_path=self._games_background_path,
-                game_title=text,
+                overlay_text=text,
                 font=font,
                 scale=scale,
                 color=self._game_color_selected,

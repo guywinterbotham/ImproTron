@@ -4,7 +4,7 @@ import csv
 import logging
 from enum import IntEnum
 
-from PySide6.QtCore import QObject, Slot, QItemSelection, Qt, QSize, QRect, QModelIndex
+from PySide6.QtCore import QObject, Slot, QItemSelection, Qt, QSize, QRect, QModelIndex, QSortFilterProxyModel
 from PySide6.QtGui import QStandardItem, QStandardItemModel, QColor, QMovie, QPainter, QPen
 from PySide6.QtWidgets import QApplication, QStyle, QListWidgetItem, QFileDialog, QStyledItemDelegate, QLineEdit, QStyleOptionViewItem
 import utilities
@@ -193,7 +193,20 @@ class RosterFeature(QObject):
         # Maintain a model/view of the troupe
         self._troupe_list_view = self.ui.rosterTroupeLV
         self._troupe_model = QStandardItemModel(self._troupe_list_view)
-        self._troupe_list_view.setModel(self._troupe_model)
+
+        # --- NEW PROXY SETUP ---
+        self._troupe_proxy = QSortFilterProxyModel(self)
+        self._troupe_proxy.setSourceModel(self._troupe_model)
+        # Enable case-insensitive alphabetical sorting
+        self._troupe_proxy.setSortCaseSensitivity(
+            Qt.CaseSensitivity.CaseInsensitive
+        )
+        self._troupe_proxy.setDynamicSortFilter(True)
+        self._troupe_proxy.sort(0, Qt.SortOrder.AscendingOrder)
+
+        # Set the PROXY model on the UI's QListView
+        self._troupe_list_view.setModel(self._troupe_proxy)
+
         self.read_troupe()
 
         # Selection changes will trigger a slot
@@ -430,13 +443,15 @@ class RosterFeature(QObject):
     def player_selected(self, selected, deselected):
         indexes = selected.indexes()
         if len(indexes):
-            item = indexes[0]
-            description = item.data(Qt.UserRole)
-            list_item = QListWidgetItem(description)
-            list_item.setFlags(list_item.flags() | Qt.ItemIsEditable)
-            list_item.setData(PlayerRoleData, int(TeamRole.UNASSIGNED))
-            self.ui.rosterLW.addItem(list_item)
+            proxy_index = indexes[0]
+            # Fetch the stage_name (stored in Qt.UserRole) directly from the proxy index
+            description = proxy_index.data(Qt.ItemDataRole.UserRole)
 
+            if description:
+                list_item = QListWidgetItem(description)
+                list_item.setFlags(list_item.flags() | Qt.ItemIsEditable)
+                list_item.setData(PlayerRoleData, int(TeamRole.UNASSIGNED))
+                self.ui.rosterLW.addItem(list_item)
 
     @Slot()
     def move_player_down(self):

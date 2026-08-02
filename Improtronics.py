@@ -30,7 +30,7 @@ class ImproTron(QMainWindow):
         old_label = self.ui.textDisplay
         parent_layout = old_label.parentWidget().layout()
 
-        self.ui.textDisplay = SmartOverlayLabel(old_label.parentWidget())
+        self.ui.textDisplay = SmartOverlayLabel(old_label.parentWidget(), False)
         self.ui.textDisplay.setObjectName("textDisplay")
 
         if parent_layout:
@@ -38,10 +38,6 @@ class ImproTron(QMainWindow):
             old_label.deleteLater()
 
         # Prevent White Flashes During Tab Swaps
-
-        # -----------------------------------------------------------------
-        # Prevent White Flashes During Tab Swaps
-        # -----------------------------------------------------------------
 
         # Apply a solid black stylesheet ONLY to QStackedWidget, NOT child widgets
         self.ui.stackedWidget.setStyleSheet("#stackedWidget { background-color: black; }")
@@ -209,10 +205,10 @@ class ImproTron(QMainWindow):
 
     # Dynamically handles showing game text over either a static image
     # or an animated GIF on the main/auxiliary display windows.
-    def show_game(
+    def show_overlay_text(
         self,
         background_path: str,
-        game_title: str,
+        overlay_text: str,
         font: QFont,
         scale: float,
         textColor: QColor = QColor(Qt.GlobalColor.white),
@@ -222,9 +218,9 @@ class ImproTron(QMainWindow):
             logger.warning(f"Invalid game background path: {background_path}")
             return
 
-        self.ui.textDisplay.set_game_overlay(
+        self.ui.textDisplay.set_text_overlay(
             background_path=background_path,
-            game_title=game_title,
+            overlay_text=overlay_text,
             font=font,
             scale=scale,
             color=textColor,
@@ -358,12 +354,6 @@ class ImproTron(QMainWindow):
         self.blackout() # Reset and stop any playing assests
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayVideo)
         return self.ui.videoPlayer
-
-    # Flip to the video player and return the widget to connect the video play to
-    def showCamera(self):
-        self.blackout() # Reset and stop any playing assests
-        self.ui.stackedWidget.setCurrentWidget(self.ui.displayCamera)
-        return self.ui.cameraPlayer
 
     # Return the location to persist
     def get_location(self):

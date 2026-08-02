@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # It is responsingle for managing it's internal support for movie playing and scaling, especially cleaning up when required to display a new
 # feature's visuals
 class SmartOverlayLabel(QLabel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, single_loop:bool = True):
         super().__init__(parent)
 
         # Each of these variable should there value passed in or asserted at the start of each method
@@ -30,6 +30,7 @@ class SmartOverlayLabel(QLabel):
         self.is_player_mode = False             # Used to branch rendering to use both the team and player name
         self.background_file = ""               # location of the background media
         self.movie = None                       # Instantiated dynamically to allow full garbage collection
+        self._single_loop = single_loop         # Enables an additional event handler to stop the movie after one run
 
         # Force background palette to solid black at initialization
         palette = self.palette()
@@ -144,10 +145,10 @@ class SmartOverlayLabel(QLabel):
         self.update()
 
     # The game feature needs the background stretched by default
-    def set_game_overlay(
+    def set_text_overlay(
         self,
         background_path: str,
-        game_title: str,
+        overlay_text: str,
         font: QFont,
         scale: float,
         color: QColor = QColor(Qt.GlobalColor.white),
@@ -157,7 +158,7 @@ class SmartOverlayLabel(QLabel):
         # Standard single-line game title display mode.
         self.stretch = True
         self.is_player_mode = False
-        self.overlay_text = game_title.strip() if game_title else ""
+        self.overlay_text = overlay_text.strip() if overlay_text else ""
         self.overlay_font = QFont(font)
         self.scale = float(scale)
         self.overlay_color = QColor(color)
@@ -191,8 +192,9 @@ class SmartOverlayLabel(QLabel):
 
     # Internal function that load an image or movie from a file without altering the text
     def _set_background_asset(self, file_name: str):
+
         if not file_name or not QFileInfo.exists(file_name):
-            self._clear_asset()
+            self._clear_asset() # Clear any event handling and dispose of the movie
             logger.warning(f"Smart Overlay: Missing Asset {file_name}.")
             return
 
@@ -202,11 +204,23 @@ class SmartOverlayLabel(QLabel):
         self.background_file = file_name
         suffix = QFileInfo(file_name).suffix().lower()
 
+        # Disconnect any old loop handlers on active movies
+        if self.movie is not None:
+            self.movie.stop()
+            try:
+                self.movie.frameChanged.disconnect()
+            except (RuntimeError, TypeError):
+                pass
+            self.movie.deleteLater()
+            self.movie = None
+
         if bytes(suffix, "ascii") in QMovie.supportedFormats():
             # Instantiate a fresh QMovie to guarantee clean buffer allocations
             self.movie = QMovie(file_name, parent=self)
             if self.movie.isValid():
                 self.movie.frameChanged.connect(self._trigger_movie_repaint)
+                if self._single_loop:
+                    self.movie.frameChanged.connect(self._handle_single_loop)
                 self.movie.setScaledSize(self._calculate_movie_size())
                 self.movie.setSpeed(100)
                 self.movie.start()
@@ -388,8 +402,8 @@ class SmartOverlayLabel(QLabel):
                 painter.fillRect(rect, bg_color)
 
             # 2. Render Media
-            if self.movie and self.movie.state() == QMovie.MovieState.Running:
-                # Draw directly from currentFrameNumber to avoid heap churn
+            if self.movie and self.movie.state() != QMovie.MovieState.NotRunning:
+                # Draw directly from currentPixmap to avoid heap churn
                 current_pix = self.movie.currentPixmap()
                 if not current_pix.isNull():
                     target_rect = self._get_target_rect(current_pix.size())
