@@ -33,7 +33,7 @@
     <item row="0" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="displayText">
        <layout class="QVBoxLayout" name="displayTextGL">
@@ -351,28 +351,6 @@ background-color: rgb(0, 0, 0);</string>
         </property>
         <item row="0" column="0">
          <widget class="QVideoWidget" name="videoPlayer" native="true"/>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="displayCamera">
-       <layout class="QGridLayout" name="displayCameraGL">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QVideoWidget" name="cameraPlayer" native="true"/>
         </item>
        </layout>
       </widget>
