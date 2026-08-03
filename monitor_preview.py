@@ -262,6 +262,7 @@ class SmartOverlayLabel(QLabel):
         self.is_player_mode = False
         self.background_color = QColor(Qt.GlobalColor.black)
         self.overlay_color = QColor(Qt.GlobalColor.black)
+        self.scale = 100.0
 
     # Fits font size so text fits cleanly inside target_rect across BOTH
     # width and height constraints with horizontal safety margins.
