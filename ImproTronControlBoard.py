@@ -961,7 +961,7 @@ class ImproTronControlBoard(QWidget):
     @Slot()
     def searchtoSlideShow(self):
         # 1. Get the currently selected item from the search results
-        current_item = self.ui.mediaSearchResultsLW.currentItem()
+        current_item = self.ui.mediaSearchResultsLV.currentItem()
 
         if current_item is not None:
             # 2. Retrieve the QFileInfo already stored in the search item

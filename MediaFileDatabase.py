@@ -1,132 +1,194 @@
 # This Python file uses the following encoding: utf-8
-from tinydb import TinyDB, Query
-from tinydb.storages import MemoryStorage
-from PySide6.QtCore import QDir, QDirIterator, QMimeDatabase, QStandardPaths
-from PySide6.QtGui import QImageReader
+from PySide6.QtCore import QDir, QDirIterator, QMimeDatabase, QStandardPaths, QSortFilterProxyModel, Qt, QModelIndex
+from PySide6.QtGui import QImageReader, QStandardItem, QStandardItemModel
 from PySide6.QtMultimedia import QMediaFormat, QSoundEffect
-import re
 import logging
+import re
+
 logger = logging.getLogger(__name__)
 
-class MediaFileDatabase():
+class TagFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._query = ""
+        self._match_all = False
+
+    def set_filter(self, query: str, match_all: bool):
+        self._query = query.strip().lower()
+        self._match_all = match_all
+        self.invalidateFilter()  # Key PySide6 method to trigger row re-evaluation
+
+    def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
+        if not self._query:
+            return True
+
+        # Extract tags or text stored in your model (e.g., via UserRole or DisplayRole)
+        index = self.sourceModel().index(source_row, 0, source_parent)
+        file_tags = index.data(Qt.ItemDataRole.UserRole + 1) or index.data(Qt.ItemDataRole.DisplayRole)
+
+        if isinstance(file_tags, list):
+            tags_str = " ".join(file_tags).lower()
+        else:
+            tags_str = str(file_tags).lower()
+
+        search_terms = self._query.split()
+        if self._match_all:
+            return all(term in tags_str for term in search_terms)
+        return any(term in tags_str for term in search_terms)
+
+class MediaFileRegistry:
     def __init__(self):
-        self.db = TinyDB(storage=MemoryStorage)
-        self.media_table = self.db.table('media')
-        self.sounds_table = self.db.table('sounds')
+        # Data storage models
+        self.media_model = QStandardItemModel()
+        self.sounds_model = QStandardItemModel()
 
-        # Dynamically get supported image formats
-        self._media_supported = set()
-        self._media_supported = {"*." + fmt.data().decode('utf-8') for fmt in QImageReader.supportedImageFormats()}
-
-        # Dynamically get supported audio formats
-        self._sounds_supported = set()
+        # Format detection
+        self._media_supported = {"*." + fmt.data().decode("utf-8") for fmt in QImageReader.supportedImageFormats()}
         self._sounds_supported = self._get_supported_audio_formats()
-
-        # Dynamically get supported sound effects formats
-        self._soundfx_supported = set()
         self._soundfx_supported = self._get_supported_soundfx_formats()
 
-    def _get_supported_audio_formats(self):
-        """Query Qt Multimedia for supported audio file extensions"""
+    def _get_supported_audio_formats(self) -> set[str]:
         media_format = QMediaFormat()
         mime_db = QMimeDatabase()
         extensions = set()
-
-        # Get all supported file formats for decoding (playback)
-        supported_formats = media_format.supportedFileFormats(QMediaFormat.ConversionMode.Decode)
-
-        for file_format in supported_formats:
+        for file_format in media_format.supportedFileFormats(QMediaFormat.ConversionMode.Decode):
             media_format.setFileFormat(file_format)
-            mime_type = media_format.mimeType()
-            mime_type_obj = mime_db.mimeTypeForName(mime_type.name())
-
-            # Get file extensions for this MIME type
+            mime_type_obj = mime_db.mimeTypeForName(media_format.mimeType().name())
             for suffix in mime_type_obj.suffixes():
                 extensions.add(f"*.{suffix}")
-
         logger.info(f"Supported audio formats: {sorted(extensions)}")
         return extensions
 
-    def _get_supported_soundfx_formats(self):
-        """Query Qt Multimedia for supported QSoundEffect MIME types and extensions"""
+    def _get_supported_soundfx_formats(self) -> set[str]:
         mime_db = QMimeDatabase()
         extensions = set()
-
-        # QSoundEffect provides a static method to get supported MIME types
-        supported_mimes = QSoundEffect.supportedMimeTypes()
-
-        for mime_name in supported_mimes:
+        for mime_name in QSoundEffect.supportedMimeTypes():
             mime_type_obj = mime_db.mimeTypeForName(mime_name)
-
-            # Extract file extensions (suffixes) for each supported MIME type
             for suffix in mime_type_obj.suffixes():
                 extensions.add(f"*.{suffix}")
-
         logger.info(f"Supported QSoundEffect formats: {sorted(extensions)}")
         return extensions
 
-    def media_supported(self):
-        return self._media_supported
+    # --- Format Utility Methods (Preserved API) ---
+    def media_supported(self): return self._media_supported
+    def sounds_supported(self): return self._sounds_supported
+    def sfx_supported(self): return self._soundfx_supported
+    def get_media_supported_for_dialog(self): return " ".join(sorted(self._media_supported))
+    def get_sounds_supported_for_dialog(self): return " ".join(sorted(self._sounds_supported))
+    def get_sfx_supported_for_dialog(self): return " ".join(sorted(self._soundfx_supported))
 
-    def sounds_supported(self):
-        return self._sounds_supported
+    # --- Indexing ---
+    def _index_files(self, path: str, supported_formats: set[str], model: QStandardItemModel) -> int:
+        # Force QDir to drop cached file system entries
+        d = QDir(path)
+        d.refresh()
 
-    def sfx_supported(self):
-        return self._soundfx_supported
+        model.beginResetModel()
+        model.removeRows(0, model.rowCount())
 
-    def get_media_supported_for_dialog(self):
-        return " ".join(sorted(self._media_supported))
-
-    def get_sounds_supported_for_dialog(self):
-        return " ".join(sorted(self._sounds_supported))
-
-    def get_sfx_supported_for_dialog(self):
-        return " ".join(sorted(self._soundfx_supported))
-
-    # Helper utility for indexing
-    def _index_files(self, path, supported_formats, table):
         file_count = 0
-        dir_iter = QDirIterator(path, supported_formats, QDir.Files, QDirIterator.Subdirectories)
-        table.truncate()
+        # Include Subdirectories; refresh directory entry status
+        dir_iter = QDirIterator(
+            path,
+            list(supported_formats),
+            QDir.Filter.Files,
+            QDirIterator.IteratorFlag.Subdirectories
+        )
+
         while dir_iter.hasNext():
-            file_info = dir_iter.nextFileInfo()
+            dir_iter.next()
+            file_info = dir_iter.fileInfo()
+
+            # Ensure file exists and is completely written/readable by OS
+            if not file_info.exists() or file_info.size() == 0:
+                continue
+
             file_count += 1
             base_file_name = file_info.completeBaseName()
             tag_list = re.split(r'[_+\-.\s]+', base_file_name.lower())
             tag_list.append(file_info.suffix().lower())
-            table.insert({'name': file_info.canonicalFilePath(), 'tags': tag_list})
+
+            item = QStandardItem(file_info.fileName())
+            item.setData(file_info.canonicalFilePath(), Qt.ItemDataRole.UserRole)
+            item.setData(set(tag_list), Qt.ItemDataRole.UserRole + 1)
+            model.appendRow(item)
+
+        model.endResetModel()
         return file_count
 
-    def index_media(self, path):
-        logger.info("Indexing Media Files ...")
+    def index_media(self, path: str) -> int:
+        logger.info(f"Indexing Media Files in {path}")
         if not QDir(path).exists():
             logger.error(f"Media indexing path not found: {path}. Using Default.")
-            return self._index_files(QStandardPaths.writableLocation(QStandardPaths.PicturesLocation), self._media_supported, self.media_table)
+            path = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.PicturesLocation)
+        # Pass self.media_model (QStandardItemModel), NOT self.media_table
+        return self._index_files(path, self._media_supported, self.media_model)
 
-        return self._index_files(path, self._media_supported, self.media_table)
-
-    def search_media(self, tags, all_tags = True):
-        query = Query()
-        tag_list = re.split(r'[_+\-.\s]+', tags)
-        if all_tags:
-            result = self.media_table.search(query.tags.all(tag_list))
-        else:
-            result = self.media_table.search(query.tags.any(tag_list))
-        return [entry['name'] for entry in result]
-
-    def index_sounds(self, path):
-        logger.info("Indexing Sound Files ...")
+    def index_sounds(self, path: str) -> int:
+        logger.info(f"Indexing Sound Files in {path}")
         if not QDir(path).exists():
             logger.error(f"Sound indexing path not found: {path}. Using Default.")
-            return self._index_files(QStandardPaths.writableLocation(QStandardPaths.MusicLocation), self._sounds_supported, self.sounds_table)
+            path = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.MusicLocation)
+        # Pass self.sounds_model (QStandardItemModel), NOT self.sounds_table
+        return self._index_files(path, self._sounds_supported, self.sounds_model)
 
-        return self._index_files(path, self._sounds_supported, self.sounds_table)
+    def search_media(self, tags: str = "", all_tags: bool = True) -> list[str]:
+        """Query source model tags directly without touching UI proxies."""
+        if not tags.strip():
+            # Return all canonical paths if search is empty
+            return [
+                self.media_model.item(row).data(Qt.ItemDataRole.UserRole)
+                for row in range(self.media_model.rowCount())
+            ]
 
-    def search_sounds(self, tags, all_tags = True):
-        query = Query()
-        tag_list = re.split(r'[_+\-.\s]+', tags)
-        if all_tags:
-            result = self.sounds_table.search(query.tags.all(tag_list))
-        else:
-            result = self.sounds_table.search(query.tags.any(tag_list))
-        return [entry['name'] for entry in result]
+        search_tokens = set(re.split(r'[_+\-.\s]+', tags.lower()))
+        results = []
+
+        for row in range(self.media_model.rowCount()):
+            item = self.media_model.item(row)
+            item_tags = item.data(Qt.ItemDataRole.UserRole + 1)
+            if not item_tags:
+                continue
+
+            matches = (
+                all_tags and search_tokens.issubset(item_tags)
+            ) or (
+                not all_tags and bool(search_tokens & item_tags)
+            )
+            if matches:
+                results.append(item.data(Qt.ItemDataRole.UserRole))
+
+        return results
+
+    def search_sounds(self, tags: str = "", all_tags: bool = True) -> list[str]:
+        """Query sound file paths directly from the model data layer."""
+        query_str = tags.strip().lower()
+        if not query_str:
+            # Return all indexed audio paths if search is empty
+            return [
+                self.sounds_model.item(row).data(Qt.ItemDataRole.UserRole)
+                for row in range(self.sounds_model.rowCount())
+                if self.sounds_model.item(row)
+            ]
+
+        tokens = set(filter(None, re.split(r'[_+\-.\s]+', query_str)))
+        results = []
+
+        for row in range(self.sounds_model.rowCount()):
+            item = self.sounds_model.item(row)
+            if not item:
+                continue
+
+            item_tags = item.data(Qt.ItemDataRole.UserRole + 1) or set()
+
+            if all_tags:
+                is_match = tokens.issubset(item_tags)
+            else:
+                is_match = bool(tokens & item_tags)
+
+            if is_match:
+                path = item.data(Qt.ItemDataRole.UserRole)
+                if path:
+                    results.append(path)
+
+        return results

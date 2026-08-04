@@ -1000,7 +1000,7 @@ background-color: rgb(0, 0, 0);</string>
        </size>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>6</number>
       </property>
       <property name="iconSize">
        <size>
@@ -2909,6 +2909,9 @@ background-color: rgb(255, 255, 0);</string>
             <property name="placeholderText">
              <string>Type tags to search for ...</string>
             </property>
+            <property name="clearButtonEnabled">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -2928,30 +2931,6 @@ background-color: rgb(255, 255, 0);</string>
             <property name="rightMargin">
              <number>0</number>
             </property>
-            <item>
-             <widget class="QPushButton" name="searchMediaPB">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>35</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Search</string>
-              </property>
-             </widget>
-            </item>
             <item>
              <widget class="QCheckBox" name="allMediaTagsCB">
               <property name="sizePolicy">
@@ -3072,7 +3051,7 @@ background-color: rgb(255, 255, 0);</string>
            </layout>
           </item>
           <item>
-           <widget class="QListWidget" name="mediaSearchResultsLW">
+           <widget class="QListView" name="mediaSearchResultsLV">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -3090,6 +3069,17 @@ background-color: rgb(255, 255, 0);</string>
               <width>16777215</width>
               <height>16777215</height>
              </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+            </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -3861,6 +3851,9 @@ background-color: rgb(255, 255, 0);</string>
             <property name="placeholderText">
              <string>Type tags to search for ...</string>
             </property>
+            <property name="clearButtonEnabled">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -3880,24 +3873,6 @@ background-color: rgb(255, 255, 0);</string>
             <property name="rightMargin">
              <number>0</number>
             </property>
-            <item>
-             <widget class="QPushButton" name="searchSoundsPB">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Search</string>
-              </property>
-             </widget>
-            </item>
             <item>
              <spacer name="soundSpacerHS">
               <property name="orientation">
@@ -4001,7 +3976,7 @@ background-color: rgb(255, 255, 0);</string>
            </layout>
           </item>
           <item>
-           <widget class="QListWidget" name="soundSearchResultsLW">
+           <widget class="QListView" name="soundSearchResultsLV">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
               <horstretch>0</horstretch>
@@ -4018,6 +3993,12 @@ background-color: rgb(255, 255, 0);</string>
              <font>
               <pointsize>12</pointsize>
              </font>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+            </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -6297,10 +6278,9 @@ QPushButton:pressed {
   <tabstop>showRightTextAuxiliaryPB</tabstop>
   <tabstop>showRightTextBothPB</tabstop>
   <tabstop>mediaSearchTagsLE</tabstop>
-  <tabstop>searchMediaPB</tabstop>
   <tabstop>allMediaTagsCB</tabstop>
   <tabstop>setMediaLibraryPB</tabstop>
-  <tabstop>mediaSearchResultsLW</tabstop>
+  <tabstop>mediaSearchResultsLV</tabstop>
   <tabstop>thingFontFCB</tabstop>
   <tabstop>showThingzBothPB</tabstop>
   <tabstop>toggleTeamPB</tabstop>
@@ -6325,10 +6305,9 @@ QPushButton:pressed {
   <tabstop>showSlideBothPB</tabstop>
   <tabstop>startPromosPB</tabstop>
   <tabstop>soundSearchTagsLE</tabstop>
-  <tabstop>searchSoundsPB</tabstop>
   <tabstop>allsoundTagsCB</tabstop>
   <tabstop>setSoundLibraryPB</tabstop>
-  <tabstop>soundSearchResultsLW</tabstop>
+  <tabstop>soundSearchResultsLV</tabstop>
   <tabstop>soundPlayPB</tabstop>
   <tabstop>soundPausePB</tabstop>
   <tabstop>soundStopPB</tabstop>

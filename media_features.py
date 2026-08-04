@@ -1,12 +1,12 @@
 # media_features.py
 import logging
 from PySide6.QtCore import (Qt, QObject, Slot, Signal, QFileInfo, QDirIterator, QUrl, QRandomGenerator, QVariantAnimation,
-                                QEasingCurve, QFile, QJsonDocument, QSaveFile, QIODevice, QDir)
+                                QEasingCurve, QFile, QJsonDocument, QSaveFile, QIODevice, QDir, QModelIndex, QFileSystemWatcher)
 from PySide6.QtGui import QImageReader, QColor
 from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QStyle, QPushButton, QListWidgetItem, QColorDialog
 from PySide6.QtMultimedia import QMediaPlayer, QSoundEffect, QAudioOutput, QMediaMetaData, QMediaFormat
 from Improtronics import SoundFX
-from MediaFileDatabase import MediaFileDatabase
+from MediaFileDatabase import TagFilterProxyModel, MediaFileRegistry
 from monitor_preview import SmartOverlayLabel
 import utilities
 
@@ -27,6 +27,35 @@ class MediaFeatures(QObject):
         self.media_model = media_model
         self.mainDisplay = mainDisplay
         self.auxiliaryDisplay = auxiliaryDisplay
+
+        # Set up the model
+
+        # Native Qt Registries for sound and media
+        self.media_file_database = MediaFileRegistry()
+
+        # Wire Proxy Models for UI Views (Swapping QListWidget support to QListView)
+        self.media_proxy = TagFilterProxyModel(self)
+        self.media_proxy.setSourceModel(self.media_file_database.media_model)
+        self.ui.mediaSearchResultsLV.setModel(self.media_proxy)
+
+        self.sound_proxy = TagFilterProxyModel(self)
+        self.sound_proxy.setSourceModel(self.media_file_database.sounds_model)
+        self.ui.soundSearchResultsLV.setModel(self.sound_proxy)
+
+        # Initial Image Indexing
+        media_count = self.media_file_database.index_media(self._settings.get_media_directory())
+        self.ui.mediaFilesCountLBL.setText(str(media_count))
+
+        # Initial Sound Indexing
+        sound_count = self.media_file_database.index_sounds(self._settings.get_sound_directory())
+        self.ui.soundFilesCountLBL.setText(str(sound_count))
+
+        # Setup recursive filesystem watcher
+        self._dir_watcher = QFileSystemWatcher(self)
+        self._dir_watcher.directoryChanged.connect(self._on_directory_updated)
+
+        # Initial binding of all active paths and subpaths
+        self.refresh_directory_watches()
 
         # Get supported video file types
         self._video_extensions = set()
@@ -86,17 +115,6 @@ class MediaFeatures(QObject):
         self.playback_queue = []
         self.is_queue_mode = False  # The gatekeeper flag, signals if a queue or single track is playing.
 
-        # In memory database configuration
-        self.media_file_database = MediaFileDatabase()
-
-        # Initial Image Indexing
-        media_count = self.media_file_database.index_media(self._settings.get_media_directory())
-        self.ui.mediaFilesCountLBL.setText(str(media_count))
-
-        # Initial Sound Indexing
-        sound_count = self.media_file_database.index_sounds(self._settings.get_sound_directory())
-        self.ui.soundFilesCountLBL.setText(str(sound_count))
-
         # Sound Pallette Setup
         self.sfx_buttons = [] # empty array
         _volume = self.ui.soundFXVolumeHS.value()/self.ui.soundFXVolumeHS.maximum() # Use the ui default as a guide
@@ -132,12 +150,22 @@ class MediaFeatures(QObject):
     # Set up audio visual connections
     def connect_slots(self):
         # Image Search Connections
-        self.ui.searchMediaPB.clicked.connect(self.search_media)
-        self.ui.mediaSearchTagsLE.returnPressed.connect(self.search_media)
-        self.ui.mediaSearchResultsLW.itemClicked.connect(self.preview_selected_media)
+        self.ui.mediaSearchResultsLV.selectionModel().currentChanged.connect(
+            lambda current, previous: self.preview_selected_media(current)
+        )
         self.ui.setMediaLibraryPB.clicked.connect(self.set_media_library)
 
-        self.ui.mediaSearchResultsLW.itemDoubleClicked.connect(self.show_media_preview_main)
+        # Media live search
+        self.ui.mediaSearchTagsLE.textChanged.connect(self.search_media)
+        self.ui.allMediaTagsCB.toggled.connect(self.search_media)
+
+        # 3. Enter key fires media instantly (or drops focus down to list)
+        self.ui.mediaSearchTagsLE.returnPressed.connect(self.fire_top_result_or_focus)
+
+        # Sound live search
+        self.ui.soundSearchTagsLE.textChanged.connect(self.search_sounds)
+        self.ui.allsoundTagsCB.toggled.connect(self.search_sounds)
+
         self.ui.searchToMainShowPB.clicked.connect(self.search_to_main_show)
         self.ui.searchToAuxShowPB.clicked.connect(self.search_to_aux_show)
 
@@ -149,10 +177,10 @@ class MediaFeatures(QObject):
         self.ui.mediaSearchtOverlayFB.currentFontChanged.connect(self.style_overlay_text)
 
         # Sound Search Connections
-        self.ui.searchSoundsPB.clicked.connect(self.search_sounds)
         self.ui.soundSearchTagsLE.returnPressed.connect(self.search_sounds)
         self.ui.setSoundLibraryPB.clicked.connect(self.set_sound_library)
 
+        self.ui.soundSearchResultsLV.doubleClicked.connect(self.sound_play)
         self.ui.soundPlayPB.clicked.connect(self.sound_play)
         self.ui.soundPausePB.clicked.connect(self.music_pause)
         self.ui.soundStopPB.clicked.connect(self.music_stop)
@@ -198,6 +226,59 @@ class MediaFeatures(QObject):
         # Sound Palletes
         self.palletteSelect.currentIndexChanged.connect(self.load_sound_effects)
 # #### connections
+
+    # Directory Monitoring Helper & Event Methods
+
+    def _get_all_subdirs(self, root_path: str) -> list[str]:
+        """Recursively fetches root path and all nested subdirectories."""
+        if not root_path or not QDir(root_path).exists():
+            return []
+
+        dirs = [root_path]
+        dir_iter = QDirIterator(
+            root_path,
+            QDir.Filter.Dirs | QDir.Filter.NoDotAndDotDot,
+            QDirIterator.IteratorFlag.Subdirectories,
+        )
+        while dir_iter.hasNext():
+            dirs.append(dir_iter.next())
+        return dirs
+
+    def refresh_directory_watches(self):
+        """Registers root directories and all child folders with QFileSystemWatcher."""
+        current_paths = self._dir_watcher.directories()
+        if current_paths:
+            self._dir_watcher.removePaths(current_paths)
+
+        all_paths = []
+        all_paths.extend(
+            self._get_all_subdirs(self._settings.get_media_directory())
+        )
+        all_paths.extend(
+            self._get_all_subdirs(self._settings.get_sound_directory())
+        )
+
+        if all_paths:
+            self._dir_watcher.addPaths(all_paths)
+
+    @Slot(str)
+    def _on_directory_updated(self, updated_path: str):
+        media_root = self._settings.get_media_directory()
+        sound_root = self._settings.get_sound_directory()
+
+        if media_root and updated_path.startswith(media_root):
+            count = self.media_file_database.index_media(media_root)
+            self.ui.mediaFilesCountLBL.setText(str(count))
+            # Re-apply current search box text over the updated model
+            self.search_media()
+
+        if sound_root and updated_path.startswith(sound_root):
+            count = self.media_file_database.index_sounds(sound_root)
+            self.ui.soundFilesCountLBL.setText(str(count))
+            # Re-apply current search box text over the updated model
+            self.search_sounds()
+
+        self.refresh_directory_watches()
 
     # Media Utilties
     def select_image_file(self):
@@ -335,34 +416,13 @@ class MediaFeatures(QObject):
     # Media Management Slots
     @Slot()
     def search_media(self):
-        # 1. Clear current results and preview labels
-        self.ui.mediaSearchResultsLW.clear()
-        self.ui.mediaSearchPreviewLBL.clear()
-        self.ui.mediaFileNameLBL.clear()
+        """Refreshes proxy filter bound to the QListView UI."""
+        query = self.ui.mediaSearchTagsLE.text()
+        match_all = self.ui.allMediaTagsCB.isChecked()
 
-        # 2. Query the database
-        foundMedia = self.media_file_database.search_media(
-            self.ui.mediaSearchTagsLE.text(),
-            self.ui.allMediaTagsCB.isChecked()
-        )
-
-        if len(foundMedia) > 0:
-            for media_path in foundMedia:
-                file_info = QFileInfo(media_path)
-
-                # 3. Create a standard QListWidgetItem
-                # Displays the filename (e.g., "intro_video.mp4")
-                item = QListWidgetItem(file_info.fileName(), self.ui.mediaSearchResultsLW)
-
-                # 4. Store the QFileInfo in UserRole for the previewer to use
-                item.setData(Qt.UserRole, file_info)
-
-                # 5. Apply the standard UI font styling
-                font = item.font()
-                font.setPointSize(12)
-                item.setFont(font)
-        else:
-            QMessageBox.information(self.ui, 'No Search Results', 'No media with those tags found.')
+        # Re-evaluate proxy filter over the updated source model
+        self.media_proxy.invalidate()
+        self.media_proxy.set_filter(query, match_all)
 
     # Music Player Controls
     def music_play(self):
@@ -510,15 +570,16 @@ class MediaFeatures(QObject):
             # The Media Library is also part of the media model so reset it
             self.reset_media_view(setDir)
 
-    @Slot(QListWidgetItem)
-    def preview_selected_media(self, item):
+            self.refresh_directory_watches() # Re-bind watcher tree
+
+    @Slot(QModelIndex)
+    def preview_selected_media(self, index: QModelIndex):
         # 1. Extract the QFileInfo from UserRole
-        media_info = item.data(Qt.UserRole)
-        if not media_info:
+        file_path = index.data(Qt.ItemDataRole.UserRole)
+        if not file_path:
             return
 
-        # 2. Get the absolute path for convenience
-        file_path = media_info.absoluteFilePath()
+        # 2. Display the path. This is also used to drive pushing the asset when anything has changed like the text overlay
         self.ui.mediaFileNameLBL.setText(file_path)
 
         # 3. Handle Preview Logic
@@ -575,25 +636,12 @@ class MediaFeatures(QObject):
     # Sound Search Slots
     @Slot()
     def search_sounds(self):
-        self.ui.soundSearchResultsLW.clear()
-        foundSounds = self.media_file_database.search_sounds(self.ui.soundSearchTagsLE.text(), self.ui.allsoundTagsCB.isChecked())
-        if len(foundSounds) > 0:
-            for sound in foundSounds:
-                        file_info = QFileInfo(sound)
+        query = self.ui.soundSearchTagsLE.text()
+        match_all = self.ui.allsoundTagsCB.isChecked()
 
-                        # 1. Create a standard QListWidgetItem
-                        # We display the filename to the user
-                        item = QListWidgetItem(file_info.fileName(), self.ui.soundSearchResultsLW)
-
-                        # 2. Store the QFileInfo in the UserRole
-                        item.setData(Qt.UserRole, file_info)
-
-                        # 3. Apply your consistent styling (12pt font)
-                        font = item.font()
-                        font.setPointSize(12)
-                        item.setFont(font)
-        else:
-            QMessageBox.information(self.ui, 'No Search Results', 'No sounds with those tags found.')
+        # Update proxy filter instantly—no clearing or repopulating required
+        self.sound_proxy.invalidate()
+        self.sound_proxy.set_filter(query, match_all)
 
     # Respond to the request to change volume
     @Slot(int)
@@ -609,6 +657,7 @@ class MediaFeatures(QObject):
             self._settings.set_sound_directory(setDir)
             soundsCount = self.media_file_database.index_sounds(setDir)
             self.ui.soundFilesCountLBL.setText(str(soundsCount))
+            self.refresh_directory_watches() # Re-bind watcher tree
 
     # Responds to an OSC command to play an audio file
     @Slot(str)
@@ -789,22 +838,27 @@ class MediaFeatures(QObject):
             logger.debug("SoundFX sound sender was empty or not a QSoundEffect")
 
     @Slot()
-    def sound_play(self):
-        if self.music_player.playbackState() == QMediaPlayer.PausedState:
+    @Slot(QModelIndex)
+    def sound_play(self, index: QModelIndex = None):
+        if self.music_player.playbackState() == QMediaPlayer.PlaybackState.PausedState:
             self.music_player.play()
             return
 
         self.is_queue_mode = False
-        if self.ui.soundSearchResultsLW.currentItem() != None:
-            current = self.ui.soundSearchResultsLW.currentItem()
-            if current:
-                file_info = current.data(Qt.UserRole)
-                if file_info:
-                    path = file_info.absoluteFilePath()
-                    self.music_player.setSource(QUrl.fromLocalFile(path))
-                    self.music_player.setPosition(0)
-                    self.music_player.audioOutput().setVolume(self.ui.soundVolumeSL.value()/self.ui.soundVolumeSL.maximum())
-                    self.music_player.play()
+
+        # Use index passed by double-click; fallback to current selected index for push button
+        if not isinstance(index, QModelIndex) or not index.isValid():
+            index = self.ui.soundSearchResultsLV.currentIndex()
+
+        if index.isValid():
+            file_path = index.data(Qt.ItemDataRole.UserRole)
+            if file_path:
+                self.music_player.setSource(QUrl.fromLocalFile(file_path))
+                self.music_player.setPosition(0)
+
+                volume = self.ui.soundVolumeSL.value() / self.ui.soundVolumeSL.maximum()
+                self.music_player.audioOutput().setVolume(volume)
+                self.music_player.play()
 
     @Slot()
     def music_fade(self):
@@ -841,15 +895,15 @@ class MediaFeatures(QObject):
 
     @Slot()
     def sound_add_to_list(self):
-        if self.ui.soundSearchResultsLW.currentItem() != None:
-            sound = self.ui.soundSearchResultsLW.takeItem(self.ui.soundSearchResultsLW.currentRow())
+        if self.ui.soundSearchResultsLV.currentItem() != None:
+            sound = self.ui.soundSearchResultsLV.takeItem(self.ui.soundSearchResultsLV.currentRow())
             self.ui.soundQueueLW.addItem(sound)
 
     @Slot()
     def sound_remove_from_list(self):
         if self.ui.soundQueueLW.currentItem() != None:
             sound = self.ui.soundQueueLW.takeItem(self.ui.soundQueueLW.currentRow())
-            self.ui.soundSearchResultsLW.addItem(sound)
+            self.ui.soundSearchResultsLV.addItem(sound)
 
     @Slot()
     def load_sound_queue(self):
@@ -1141,6 +1195,41 @@ class MediaFeatures(QObject):
         self.ui.mediaSearchOverlayLE.clear()
         self.ui.mediaFileNameLBL.clear()
         self.ui.mediaSearchPreviewLBL.blackout()
+        self.ui.mediaSearchResultsLV.clearSelection()
+        self.ui.mediaSearchResultsLV.setCurrentIndex(QModelIndex())
+
+    # Model based slots
+    @Slot(str)
+    def on_search_text_changed(self, text: str):
+        self.sound_proxy.set_filter(text, match_all=self.allsoundTagsCB.isChecked())
+
+    @Slot()
+    def _on_media_search_changed(self):
+        query = self.ui.mediaSearchTagsLE.text()
+        match_all = self.ui.allMediaTagsCB.isChecked()
+        self.media_proxy.set_filter(query, match_all)
+
+    @Slot()
+    def fire_top_result_or_focus(self, view_type: str = "media"):
+        """Focuses the list view or fires the top result on Enter press."""
+        # Match the actual QListView widget names from Qt Designer
+        if view_type == "media":
+            view = self.ui.mediaSearchResultsLV
+        else:
+            view = self.ui.soundSearchResultsLV
+
+        model = view.model()
+        if model and model.rowCount() > 0:
+            # Select and set focus to the first item in the filtered view
+            first_index = model.index(0, 0)
+            view.setCurrentIndex(first_index)
+            view.setFocus()
+
+    @Slot()
+    def _on_sound_search_changed(self):
+        query = self.ui.soundSearchTagsLE.text()
+        match_all = self.ui.allMediaTagsCB.isChecked()
+        self.sound_proxy.set_filter(query, match_all)
 
 # In-place Fisher-Yates shuffle using QRandomGenerator. Works on any Python list or mutable sequence.
 class QtListShuffler:
