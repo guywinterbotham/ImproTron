@@ -8,8 +8,8 @@ from PySide6.QtCore import QObject, Slot, QItemSelection, Qt, QSize, QRect, QMod
 from PySide6.QtGui import QStandardItem, QStandardItemModel, QColor, QMovie, QPainter, QPen
 from PySide6.QtWidgets import QApplication, QStyle, QListWidgetItem, QFileDialog, QStyledItemDelegate, QLineEdit, QStyleOptionViewItem
 import utilities
-
 from monitor_preview import SmartOverlayLabel
+
 class TeamRole(IntEnum):
     UNASSIGNED = 0
     LEFT_TEAM = 1

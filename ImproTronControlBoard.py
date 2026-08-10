@@ -2,7 +2,7 @@ import json
 import logging
 
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QImageReader, QPixmap, QMovie
+from PySide6.QtGui import QImageReader, QPixmap
 from PySide6.QtWidgets import (QFileDialog, QFileSystemModel, QMessageBox, QWidget,
                                 QApplication, QPushButton, QDoubleSpinBox, QStyle, QListWidgetItem, QSizePolicy,
                                 QDialog,
@@ -27,6 +27,7 @@ from thingz_feature import ThingzFeature
 from roster_feature import RosterFeature
 from monitor_preview import MonitorPreview
 import utilities
+from monitor_preview import SmartOverlayLabel
 
 import ImproTronIcons
 from osc_server import OSCServer
@@ -84,7 +85,7 @@ class ImproTronControlBoard(QWidget):
         # Create a shared QNetworkAccessManager
         self.shared_network_manager = QNetworkAccessManager()
 
-        # Replace the main image preview with a DragDropLabel
+        # Replace the main image preview with a Smart Overlay
         self.main_preview = MonitorPreview(self.ui.imagePreviewMain, self.ui.imagePreviewMainHL, self.mainDisplay, self.ui.stretchMainCB.isChecked(), self.shared_network_manager, parent=self.ui.imagePreviewMain.parent())
         self.ui.imagePreviewMain = self.main_preview
         self.ui.loadImageMainPB.clicked.connect(self.getImageFileMain)
@@ -92,7 +93,7 @@ class ImproTronControlBoard(QWidget):
         self.ui.blackoutMainPB.clicked.connect(self.main_preview.blackout)
         self.ui.stretchMainCB.checkStateChanged.connect(self.main_preview.fit_to_width)
 
-        # Replace the auxilliary image preview with a DragDropLabel
+        # Replace the auxilliary image preview with a Smart Overlay
         self.aux_preview = MonitorPreview(self.ui.imagePreviewAuxiliary, self.ui.imagePreviewAuxiliaryHL, self.auxiliaryDisplay, self.ui.stretchMainCB.isChecked(), self.shared_network_manager, parent=self.ui.imagePreviewAuxiliary.parent())
         self.ui.imagePreviewAuxiliary = self.aux_preview
         self.ui.loadImageAuxiliaryPB.clicked.connect(self.getImageFileAuxiliary)
@@ -163,6 +164,31 @@ class ImproTronControlBoard(QWidget):
         self.ui.timerVisibleMainCB.stateChanged.connect(self.timerVisibleMain)
 
         # Slide Show Management
+        # Promote the slideshow preview labels so it can handle QMovies with smart overlays
+        old_label = self.ui.slidePreviewLBL
+        layout = self.ui.ssListFilesVL
+        index = layout.indexOf(old_label)
+
+        print("Index of slidePreviewLBL:", index)
+
+        if index != -1:
+            stretch = layout.stretch(index)
+            alignment = layout.alignment()
+            old_stylesheet = old_label.styleSheet()  # Capture Style Sheet
+
+            new_label = SmartOverlayLabel(old_label.parentWidget())
+            new_label.setObjectName(old_label.objectName())
+            new_label.setMinimumSize(old_label.minimumSize())
+            new_label.setMaximumSize(old_label.maximumSize())
+            new_label.setSizePolicy(old_label.sizePolicy())
+            new_label.setStyleSheet(old_stylesheet)  # Apply Style Sheet
+
+            layout.removeWidget(old_label)
+            layout.insertWidget(index, new_label, stretch=stretch, alignment=alignment)
+
+            self.ui.slidePreviewLBL = new_label
+            old_label.deleteLater()
+
         # Selection changes will trigger a slot
         selectionModel = self.ui.slideShowFilesTreeView.selectionModel()
         selectionModel.selectionChanged.connect(self.imageSelectedfromDir)
@@ -371,17 +397,6 @@ class ImproTronControlBoard(QWidget):
         self.deleteLater()
         QApplication.quit()
 
-    # Checks on various media types
-    def isAnimatedGIF(self, file_name):
-        if len(file_name) > 0:
-            if QFileInfo.exists(file_name):
-                mediaInfo = QFileInfo(file_name)
-                return bytes(mediaInfo.suffix().lower(),"ascii") in QMovie.supportedFormats()
-            else:
-                return False
-        else:
-            return False
-
     # Note: This is both a local call but a slot for images emitted from the media features
     @Slot(str)
     def showMediaOnMain(self, file_name: str) -> None:
@@ -540,18 +555,10 @@ class ImproTronControlBoard(QWidget):
     def imageSelectedfromDir(self, new_selection, old_selection):
         # get the text of the selected item
         index = self.ui.slideShowFilesTreeView.selectionModel().currentIndex()
+
         if not self.mediaModel.isDir(index):
             imageFileInfo = self.mediaModel.fileInfo(index)
-            reader = QImageReader(imageFileInfo.absoluteFilePath())
-            reader.setAutoTransform(True)
-            newImage = reader.read()
-            if newImage.isNull():
-                logger.warning(f"Slide preview: Failed to read image {imageFileInfo.absoluteFilePath()}. QImageReader error: {reader.errorString()}")
-                # self.ui.slidePreviewLBL.clear() # Optionally clear preview
-                return 
-
-            # Scale to match the preview
-            self.ui.slidePreviewLBL.setPixmap(QPixmap.fromImage(newImage.scaled(self.ui.slidePreviewLBL.size())))
+            self.ui.slidePreviewLBL.set_background(imageFileInfo.absoluteFilePath())
 
     #Previews an image slide from a list widget.
     @Slot(QListWidgetItem)
@@ -563,32 +570,7 @@ class ImproTronControlBoard(QWidget):
             return
 
         path = file_info.absoluteFilePath()
-
-        # 2. Use QImageReader to handle the image file
-        reader = QImageReader(path)
-        reader.setAutoTransform(True)
-        newImage = reader.read()
-
-        # 3. Validation and Error Handling
-        if newImage.isNull():
-            logger.debug(
-                f"Slide preview (from list): Failed to read image {path}. "
-                f"QImageReader error: {reader.errorString()}"
-            )
-            self.ui.slidePreviewLBL.clear()
-            return
-
-        # 4. Scale and Display
-        # Using KeepAspectRatio ensures the slide looks correct in the preview pane
-        scaled_pixmap = QPixmap.fromImage(
-            newImage.scaled(
-                self.ui.slidePreviewLBL.size(),
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation
-            )
-        )
-
-        self.ui.slidePreviewLBL.setPixmap(scaled_pixmap)
+        self.ui.slidePreviewLBL.set_background(path)
 
     @Slot()
     def addSlidetoList(self):
@@ -631,7 +613,7 @@ class ImproTronControlBoard(QWidget):
 
     @Slot()
     def removeSlidefromList(self):
-        self.ui.slidePreviewLBL.clear()
+        self.ui.slidePreviewLBL.blackout()
         self.ui.slideListLW.takeItem(self.ui.slideListLW.row(self.ui.slideListLW.currentItem()))
 
     # Loads a slideshow sequence from a JSON file and populates the list widget.
@@ -811,7 +793,7 @@ class ImproTronControlBoard(QWidget):
             if file_info:
                 file_name = file_info.absoluteFilePath()
 
-            if self.isAnimatedGIF(file_name) or self.media_features.isImage(file_name):
+            if self.media_features.isAnimatedGIF(file_name) or self.media_features.isImage(file_name):
                 self.showSlideMain()
             elif self.media_features.isVideo(file_name):
                 self.videoPlayer.setSource(QUrl(file_name))

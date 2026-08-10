@@ -2,7 +2,7 @@
 import logging
 from PySide6.QtCore import (Qt, QObject, Slot, Signal, QFileInfo, QDirIterator, QUrl, QRandomGenerator, QVariantAnimation,
                                 QEasingCurve, QFile, QJsonDocument, QSaveFile, QIODevice, QDir, QModelIndex, QFileSystemWatcher)
-from PySide6.QtGui import QImageReader, QColor
+from PySide6.QtGui import QImageReader, QColor, QMovie
 from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QStyle, QPushButton, QListWidgetItem, QColorDialog
 from PySide6.QtMultimedia import QMediaPlayer, QSoundEffect, QAudioOutput, QMediaMetaData, QMediaFormat
 from Improtronics import SoundFX
@@ -290,6 +290,17 @@ class MediaFeatures(QObject):
             if QFileInfo.exists(fileName):
                 mediaInfo = QFileInfo(fileName)
                 return bytes(mediaInfo.suffix().lower(),"ascii") in  QImageReader.supportedImageFormats()
+            else:
+                return False
+        else:
+            return False
+
+    # Checks on various media types
+    def isAnimatedGIF(self, file_name):
+        if len(file_name) > 0:
+            if QFileInfo.exists(file_name):
+                mediaInfo = QFileInfo(file_name)
+                return bytes(mediaInfo.suffix().lower(),"ascii") in QMovie.supportedFormats()
             else:
                 return False
         else:
