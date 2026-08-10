@@ -74,9 +74,9 @@ class MediaFeatures(QObject):
         self.music_player.mediaStatusChanged.connect(self._on_status_changed)
 
         # Variables for fade control
-        self.fade_anim = QVariantAnimation(self)
-        self.fade_anim.valueChanged.connect(self._handle_fade_step)
-        self.fade_anim.finished.connect(self._finalize_music_stop)
+        self._fade_animation = QVariantAnimation(self)
+        self._fade_animation.valueChanged.connect(self._handle_fade_step)
+        self._fade_animation.finished.connect(self._finalize_music_stop)
 
         # Promote the screen preview labels so they can handle GIFs with smart overlays
         # --- 1. GAME TAB PREVIEW (mediaSearchPreviewLBL) REPLACEMENT ---
@@ -425,6 +425,7 @@ class MediaFeatures(QObject):
         self.media_proxy.set_filter(query, match_all)
 
     # Music Player Controls
+    @Slot()
     def music_play(self):
         if self.music_player.playbackState() == QMediaPlayer.PausedState:
             self.music_player.play()
@@ -449,6 +450,15 @@ class MediaFeatures(QObject):
     def music_player_handle_error(self, error, error_string):
         # Log the error
         logger.error(f"Music Player Error: {error} - {error_string}")
+
+    # Stops any active fade animation and restores volume to the current UI slider level.
+    def reset_fade_and_restore_volume(self):
+        if self._fade_animation.state() == QVariantAnimation.State.Running:
+            self._fade_animation.stop()
+
+        # Restore target volume from UI slider
+        target_vol = self.ui.soundVolumeSL.value() / max(1, self.ui.soundVolumeSL.maximum())
+        self.music_audio.setVolume(target_vol)
 
     # Playlist controls
 
@@ -498,10 +508,10 @@ class MediaFeatures(QObject):
             song_path = self.playback_queue[self.current_track_index]
             self.ui.soundQueueLW.setCurrentRow(self.current_track_index)
 
+            # Stop active fade and restore volume
+            self.reset_fade_and_restore_volume()
+
             self.music_player.setSource(QUrl.fromLocalFile(song_path))
-            # Match the UI volume
-            vol = self.ui.soundVolumeSL.value() / self.ui.soundVolumeSL.maximum()
-            self.music_audio.setVolume(vol)
             self.music_player.play()
         else:
             logging.debug("Playlist finished")
@@ -672,9 +682,12 @@ class MediaFeatures(QObject):
             sound = foundSounds[0]
             soundFile = QFileInfo(sound)
             file = soundFile.absoluteFilePath()
+
+            # Stop active fade and restore volume
+            self.reset_fade_and_restore_volume()
+
             self.music_player.setSource(QUrl.fromLocalFile(file))
             self.music_player.setPosition(0)
-            self.music_player.audioOutput().setVolume(1)
             self.music_player.play()
 
         else:
@@ -693,13 +706,16 @@ class MediaFeatures(QObject):
             sound = foundSounds[0]
             soundFile = QFileInfo(sound)
             file = soundFile.absoluteFilePath()
+
+            # Stop active fade and restore volume
+            self.reset_fade_and_restore_volume()
+
             self.music_player.setSource(QUrl.fromLocalFile(file))
             self.music_player.setPosition(0)
             if self.music_player.isSeekable():
                 self.music_player.setPosition(int(seek_point*1000.0))
             else:
                 logging.warning("OSC Seek and Play Sound: Audio file does not support seeking")
-            self.music_player.audioOutput().setVolume(1)
             self.music_player.play()
 
         else:
@@ -724,9 +740,12 @@ class MediaFeatures(QObject):
 
             soundFile = QFileInfo(sound)
             file = soundFile.absoluteFilePath()
+
+            # Stop active fade and restore volume
+            self.reset_fade_and_restore_volume()
+
             self.music_player.setSource(QUrl.fromLocalFile(file))
             self.music_player.setPosition(0)
-            self.music_player.audioOutput().setVolume(1)
             self.music_player.play()
 
         else:
@@ -746,17 +765,17 @@ class MediaFeatures(QObject):
         start_vol = self.music_player.audioOutput().volume()
 
         # Stop any current fade to prevent conflicts
-        self.fade_anim.stop()
+        self._fade_animation.stop()
 
-        self.fade_anim.setDuration(fade_duration_ms)
-        self.fade_anim.setStartValue(start_vol)
-        self.fade_anim.setEndValue(0.0)
+        self._fade_animation.setDuration(fade_duration_ms)
+        self._fade_animation.setStartValue(start_vol)
+        self._fade_animation.setEndValue(0.0)
 
         # 3. Choose a Natural Curve
         # OutQuad or OutCubic sounds better than linear for volume fades
-        self.fade_anim.setEasingCurve(QEasingCurve.Type.OutQuad)
+        self._fade_animation.setEasingCurve(QEasingCurve.Type.OutQuad)
 
-        self.fade_anim.start()
+        self._fade_animation.start()
         logging.debug(f"OSC Fade started: {start_vol} -> 0.0 over {fade_duration_ms}ms")
 
     @Slot(object)
@@ -846,6 +865,9 @@ class MediaFeatures(QObject):
 
         self.is_queue_mode = False
 
+        # Reset the fader if songs are started before a fade action completed
+        self.reset_fade_and_restore_volume()
+
         # Use index passed by double-click; fallback to current selected index for push button
         if not isinstance(index, QModelIndex) or not index.isValid():
             index = self.ui.soundSearchResultsLV.currentIndex()
@@ -855,9 +877,6 @@ class MediaFeatures(QObject):
             if file_path:
                 self.music_player.setSource(QUrl.fromLocalFile(file_path))
                 self.music_player.setPosition(0)
-
-                volume = self.ui.soundVolumeSL.value() / self.ui.soundVolumeSL.maximum()
-                self.music_player.audioOutput().setVolume(volume)
                 self.music_player.play()
 
     @Slot()
