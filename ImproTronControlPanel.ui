@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1056</width>
-    <height>757</height>
+    <height>788</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -350,6 +350,12 @@ background-color: rgb(0, 0, 0);</string>
              <layout class="QVBoxLayout" name="verticalLayout_6">
               <item>
                <layout class="QHBoxLayout" name="playerButtonsHL">
+                <property name="spacing">
+                 <number>3</number>
+                </property>
+                <property name="sizeConstraint">
+                 <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+                </property>
                 <item>
                  <widget class="QPushButton" name="playPlayerPB">
                   <property name="sizePolicy">
@@ -411,6 +417,9 @@ background-color: rgb(0, 0, 0);</string>
               </item>
               <item>
                <layout class="QFormLayout" name="formLayout">
+                <property name="verticalSpacing">
+                 <number>6</number>
+                </property>
                 <item row="0" column="0">
                  <widget class="QLabel" name="titleLBL">
                   <property name="font">
@@ -420,57 +429,6 @@ background-color: rgb(0, 0, 0);</string>
                   </property>
                   <property name="text">
                    <string>Title:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="artistLBL">
-                  <property name="font">
-                   <font>
-                    <pointsize>12</pointsize>
-                   </font>
-                  </property>
-                  <property name="text">
-                   <string>Artist:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="reaminingLBL">
-                  <property name="font">
-                   <font>
-                    <pointsize>12</pointsize>
-                   </font>
-                  </property>
-                  <property name="text">
-                   <string>Time:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="1">
-                 <widget class="QLabel" name="timeRemainingLBL">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>150</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="font">
-                   <font>
-                    <pointsize>12</pointsize>
-                   </font>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="textInteractionFlags">
-                   <set>Qt::TextInteractionFlag::NoTextInteraction</set>
                   </property>
                  </widget>
                 </item>
@@ -498,6 +456,18 @@ background-color: rgb(0, 0, 0);</string>
                   </property>
                  </widget>
                 </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="artistLBL">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Artist:</string>
+                  </property>
+                 </widget>
+                </item>
                 <item row="1" column="1">
                  <widget class="QLabel" name="artistNameLBL">
                   <property name="maximumSize">
@@ -520,6 +490,19 @@ background-color: rgb(0, 0, 0);</string>
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item>
+               <widget class="QProgressBar" name="musicPlayerProgress">
+                <property name="value">
+                 <number>0</number>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+                <property name="format">
+                 <string>--:--</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -605,6 +588,9 @@ font: 12pt &quot;Segoe UI&quot;;</string>
               </item>
               <item>
                <layout class="QHBoxLayout" name="timerControlsHL">
+                <property name="spacing">
+                 <number>4</number>
+                </property>
                 <item>
                  <widget class="QPushButton" name="startTimerPB">
                   <property name="autoFillBackground">
@@ -1000,7 +986,7 @@ background-color: rgb(0, 0, 0);</string>
        </size>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>6</number>
       </property>
       <property name="iconSize">
        <size>
@@ -4290,7 +4276,7 @@ background-color: rgb(255, 255, 0);</string>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>387</height>
+              <height>365</height>
              </size>
             </property>
             <property name="font">
@@ -6052,7 +6038,19 @@ QPushButton:pressed {
             <property name="title">
              <string>Features</string>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_2">
+            <layout class="QVBoxLayout" name="prefFeatureGBVL">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>5</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
              <item>
               <widget class="QCheckBox" name="copytoAuxCB">
                <property name="font">
@@ -6080,7 +6078,7 @@ QPushButton:pressed {
                  </property>
                  <property name="font">
                   <font>
-                   <pointsize>10</pointsize>
+                   <pointsize>12</pointsize>
                   </font>
                  </property>
                  <property name="text">
@@ -6104,7 +6102,7 @@ QPushButton:pressed {
                  </property>
                  <property name="font">
                   <font>
-                   <pointsize>10</pointsize>
+                   <pointsize>12</pointsize>
                   </font>
                  </property>
                  <property name="maximum">
@@ -6116,6 +6114,17 @@ QPushButton:pressed {
              </item>
              <item>
               <widget class="QPushButton" name="setGamesListPB">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Set Games List</string>
                </property>

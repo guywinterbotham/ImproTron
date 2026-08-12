@@ -169,8 +169,6 @@ class ImproTronControlBoard(QWidget):
         layout = self.ui.ssListFilesVL
         index = layout.indexOf(old_label)
 
-        print("Index of slidePreviewLBL:", index)
-
         if index != -1:
             stretch = layout.stretch(index)
             alignment = layout.alignment()

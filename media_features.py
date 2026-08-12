@@ -139,7 +139,7 @@ class MediaFeatures(QObject):
         self.ui.soundMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
         self.ui.soundMoveDownPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowDown))
         self.ui.soundAddToListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowRight))
-        self.ui.soundRemoveFromListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowBack))
+        self.ui.soundRemoveFromListPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogCloseButton))
 
         # Sound Pallettes
         self.palletteSelect = self.ui.soundPalettesCB
@@ -181,6 +181,7 @@ class MediaFeatures(QObject):
         self.ui.setSoundLibraryPB.clicked.connect(self.set_sound_library)
 
         self.ui.soundSearchResultsLV.doubleClicked.connect(self.sound_play)
+        self.ui.soundQueueLW.itemDoubleClicked.connect(self.sound_play)
         self.ui.soundPlayPB.clicked.connect(self.sound_play)
         self.ui.soundPausePB.clicked.connect(self.music_pause)
         self.ui.soundStopPB.clicked.connect(self.music_stop)
@@ -217,7 +218,8 @@ class MediaFeatures(QObject):
         self.ui.fadePlayerPB.clicked.connect(self.music_fade)
 
         # Connect the media player to retrieve duration after the file is loaded
-        self.music_player.positionChanged.connect(self.update_time_remaining)
+        self.music_player.positionChanged.connect(self._update_player_progress)
+        self.music_player.durationChanged.connect(self._update_player_duration)
         self.music_player.metaDataChanged.connect(self.update_metadata_display)
 
         # Connect error signal
@@ -869,27 +871,43 @@ class MediaFeatures(QObject):
 
     @Slot()
     @Slot(QModelIndex)
-    def sound_play(self, index: QModelIndex = None):
+    @Slot(QListWidgetItem)
+    def sound_play(self, target: QModelIndex | QListWidgetItem | None = None):
         if self.music_player.playbackState() == QMediaPlayer.PlaybackState.PausedState:
             self.music_player.play()
             return
 
         self.is_queue_mode = False
-
-        # Reset the fader if songs are started before a fade action completed
         self.reset_fade_and_restore_volume()
 
-        # Use index passed by double-click; fallback to current selected index for push button
-        if not isinstance(index, QModelIndex) or not index.isValid():
-            index = self.ui.soundSearchResultsLV.currentIndex()
+        file_path = None
 
-        if index.isValid():
-            file_path = index.data(Qt.ItemDataRole.UserRole)
-            if file_path:
-                self.music_player.setSource(QUrl.fromLocalFile(file_path))
-                self.music_player.setPosition(0)
-                self.music_player.play()
+        # 1. From QListWidget (Queue double-click)
+        if isinstance(target, QListWidgetItem):
+            file_info = target.data(Qt.UserRole)
+            file_path = file_info.absoluteFilePath() if isinstance(file_info, QFileInfo) else file_info
 
+        # 2. From QListView (Search results double-click)
+        elif isinstance(target, QModelIndex) and target.isValid():
+            file_path = target.data(Qt.ItemDataRole.UserRole)
+
+        # 3. Fallback for QPushButton click (reads active selection from LV or Queue)
+        else:
+            # Check LV selection first
+            idx = self.ui.soundSearchResultsLV.currentIndex()
+            if idx.isValid():
+                file_path = idx.data(Qt.ItemDataRole.UserRole)
+            # Fallback to current QListWidget selection
+            elif self.ui.soundQueueLW.currentItem():
+                item = self.ui.soundQueueLW.currentItem()
+                file_info = item.data(Qt.UserRole)
+                file_path = file_info.absoluteFilePath() if isinstance(file_info, QFileInfo) else file_info
+
+        # Execute Playback
+        if file_path:
+            self.music_player.setSource(QUrl.fromLocalFile(file_path))
+            self.music_player.setPosition(0)
+            self.music_player.play()
     @Slot()
     def music_fade(self):
         fade_time = float(self.ui.fadeTimeSB.value())
@@ -925,15 +943,30 @@ class MediaFeatures(QObject):
 
     @Slot()
     def sound_add_to_list(self):
-        if self.ui.soundSearchResultsLV.currentItem() != None:
-            sound = self.ui.soundSearchResultsLV.takeItem(self.ui.soundSearchResultsLV.currentRow())
-            self.ui.soundQueueLW.addItem(sound)
+        current_index = self.ui.soundSearchResultsLV.selectionModel().currentIndex()
+        if not current_index.isValid():
+            return
+
+        # Extract path string from model and normalize to QFileInfo
+        file_path = current_index.data(Qt.UserRole)
+        if not file_path:
+            return
+
+        file_info = QFileInfo(file_path)
+
+        # Construct and style item for the queue (QListWidget)
+        item = QListWidgetItem(file_info.fileName(), self.ui.soundQueueLW)
+        item.setData(Qt.UserRole, file_info)
+
+        font = item.font()
+        font.setPointSize(12)
+        item.setFont(font)
 
     @Slot()
     def sound_remove_from_list(self):
         if self.ui.soundQueueLW.currentItem() != None:
             sound = self.ui.soundQueueLW.takeItem(self.ui.soundQueueLW.currentRow())
-            self.ui.soundSearchResultsLV.addItem(sound)
+            sound.deleteLater()
 
     @Slot()
     def load_sound_queue(self):
@@ -1101,38 +1134,25 @@ class MediaFeatures(QObject):
         self.stopAllSFX.emit()
 
     # Mini Music Player On the Main Control area monitors the currrently play song
-    #Calculates time remaining and updates the timeRemainingLBL.
-    #param position_ms: The current playback position in milliseconds.
+    # Calculates time remaining and updates the progress bar.
+    # param position: The current playback position in milliseconds.
     @Slot(int)
-    def update_time_remaining(self, position_ms: int):
+    def _update_player_duration(self, duration: int):
+        self.ui.musicPlayerProgress.setRange(0, duration)
 
-        # Get total duration (in milliseconds)
-        duration_ms = self.music_player.duration()
+    @Slot(int)
+    def _update_player_progress(self, position: int):
+        self.ui.musicPlayerProgress.setValue(position)
 
-        if duration_ms <= 0 or not self.music_player.isPlaying():
-            # Cannot calculate time remaining if duration is unknown
-            self.ui.timeRemainingLBL.setText("--:--")
-            return
+        duration = self.music_player.duration()
+        remaining_ms = max(0, duration - position)
 
-        # Calculate remaining time
-        remaining_ms = duration_ms - position_ms
+        seconds = (remaining_ms // 1000) % 60
+        minutes = (remaining_ms // (1000 * 60)) % 60
 
-        # Ensure remaining time is not negative
-        if remaining_ms < 0:
-            remaining_ms = 0
-
-        # Convert milliseconds to MM:SS format using Qt functionality
-
-        # Total seconds remaining
-        total_seconds = remaining_ms // 1000
-
-        minutes = total_seconds // 60
-        seconds = total_seconds % 60
-
-        # Use f-string formatting to ensure two digits (00:00)
+        # Format as negative remaining time (e.g., -01:45)
         time_str = f"{minutes:02d}:{seconds:02d}"
-
-        self.ui.timeRemainingLBL.setText(time_str)
+        self.ui.musicPlayerProgress.setFormat(time_str)
 
     # Reads standard metadata (Title, Artist) from QMediaPlayer and updates the UI labels.
     # Uses file name as a fallback if metadata is missing.
