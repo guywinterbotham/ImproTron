@@ -556,6 +556,11 @@ class ImproTronControlBoard(QWidget):
 
         if not self.mediaModel.isDir(index):
             imageFileInfo = self.mediaModel.fileInfo(index)
+
+            if self.media_features.isVideo(imageFileInfo.absoluteFilePath()):
+                self.ui.slidePreviewLBL.blackout()
+                return
+
             self.ui.slidePreviewLBL.set_background(imageFileInfo.absoluteFilePath())
 
     #Previews an image slide from a list widget.

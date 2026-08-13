@@ -1,6 +1,6 @@
 import logging
 
-from PySide6.QtCore import Slot, Qt, QFileInfo, QUrl, QSize, QRect
+from PySide6.QtCore import Slot, Qt, QFileInfo, QUrl, QSize, QRect, QBuffer, QIODevice
 from PySide6.QtGui import QFont, QColor, QMovie, QPixmap, QPainter, QDragEnterEvent, QDropEvent, QGuiApplication, QFontMetrics, QImageReader, QImage, QPalette
 from PySide6.QtWidgets import QLabel
 from PySide6.QtNetwork import QNetworkRequest, QNetworkReply
@@ -526,42 +526,74 @@ class MonitorPreview(SmartOverlayLabel):
         if mime_data.hasUrls():
             urls = mime_data.urls()
             if urls:
-                image_url = urls[0].toString()
-                self.load_image_from_url(image_url)
+                url = urls[0]
+                if url.isLocalFile():
+                    # Handle local file paths (GIF, WEBP, PNG, JPG)
+                    file_path = url.toLocalFile()
+                    self.load_media_from_file(file_path)
+                else:
+                    # Handle remote URLs
+                    self.load_image_from_url(url.toString())
         elif mime_data.hasImage():
             image = mime_data.imageData()
             self.load_image(image)
+
         event.acceptProposedAction()
 
-    def load_image(self, image):
-        if image:
-            self.blackout()
-            self.show_image(image, self._fit_to_width)
-            self.monitor.show_image(image, self._fit_to_width)
+    def load_media_from_file(self, file_path: str):
+        """Routes local file path to the overlay engine and synchs the monitor."""
+        if not QFileInfo.exists(file_path):
+            return
 
-    # Asynchronously fetches graphics from an external web URL stream.
+        # Load locally inside preview (SmartOverlayLabel determines QMovie vs QPixmap)
+        self.set_background(file_path, stretch=self._fit_to_width)
+
+        # Notify external monitor display engine
+        if hasattr(self.monitor, "set_background"):
+            self.monitor.set_background(file_path, stretch=self._fit_to_width)
+
     def load_image_from_url(self, dropped_url: str):
         url = QUrl(dropped_url)
         request = QNetworkRequest(url)
 
         reply = self.network_manager.get(request)
-        # Avoid lambda capturing self to break reference cycles
-        reply.finished.connect(Slot()(lambda r=reply, u=url: self._on_network_reply_finished(r, u)))
+        reply.finished.connect(
+            Slot()(lambda r=reply, u=url: self._on_network_reply_finished(r, u))
+        )
 
-    # Processes downloaded image payloads safely off the active interface track."""
     def _on_network_reply_finished(self, reply, url):
         try:
             if reply.error() == QNetworkReply.NetworkError.NoError:
-                image_data = reply.readAll()
-                pixmap = QPixmap()
-                if pixmap.loadFromData(image_data):
-                    self.set_background_pixmap(pixmap, self._fit_to_width)
-                    self.monitor.show_pixmap(pixmap, self._fit_to_width)
+                raw_data = reply.readAll()
+
+                # Check for animation signature or movie extension capability via QBuffer
+                buffer = QBuffer(self)
+                buffer.setData(raw_data)
+                buffer.open(QIODevice.ReadOnly)
+
+                movie = QMovie(buffer, parent=self)
+                if movie.isValid() and movie.frameCount() > 1:
+                    # Remote payload is an animated media stream (GIF/WEBP)
+                    self._clear_asset()
+                    self.movie = movie
+                    self.movie.frameChanged.connect(self._trigger_movie_repaint)
+                    self.movie.setScaledSize(self._calculate_movie_size())
+                    self.movie.start()
+
+                    if hasattr(self.monitor, "show_animated_buffer"):
+                        self.monitor.show_animated_buffer(raw_data, self._fit_to_width)
+                else:
+                    # Remote payload is a static frame
+                    buffer.close()
+                    pixmap = QPixmap()
+                    if pixmap.loadFromData(raw_data):
+                        self.set_background_pixmap(pixmap, self._fit_to_width)
+                        if hasattr(self.monitor, "show_pixmap"):
+                            self.monitor.show_pixmap(pixmap, self._fit_to_width)
             else:
                 logger.warning(f"Error downloading image: {reply.errorString()}")
         finally:
             reply.deleteLater()
-
     @Slot()
     def blackout(self):
         super().blackout()
