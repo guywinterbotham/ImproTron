@@ -402,8 +402,8 @@ class ImproTronControlBoard(QWidget):
             logger.warning(f"Missing Media File on Main: {file_name}")
             return
 
-        self.mainDisplay.show_file(file_name, self.ui.stretchMainCB.isChecked())
-        self.main_preview.set_background(file_name, self.ui.stretchMainCB.isChecked())
+        self.mainDisplay.show_file(file_name)
+        self.main_preview.set_background(file_name)
 
     # Note: This is both a local call but a slot for images emitted from the media features
     @Slot(str)
@@ -411,8 +411,8 @@ class ImproTronControlBoard(QWidget):
         if not file_name or not QFileInfo.exists(file_name):
             return
 
-        self.auxiliaryDisplay.show_file(file_name, self.ui.stretchAuxCB.isChecked())
-        self.aux_preview.set_background(file_name, self.ui.stretchAuxCB.isChecked())
+        self.auxiliaryDisplay.show_file(file_name)
+        self.aux_preview.set_background(file_name)
 
     def set_left_team_colors(self, color_selected):
         # Color the things and scoreboard colors
@@ -927,7 +927,7 @@ class ImproTronControlBoard(QWidget):
             else:
                 self.main_preview.setPixmap(QPixmap.fromImage(image.scaledToHeight(self.main_preview.size().height())))
 
-            self.mainDisplay.show_image(image, self.ui.stretchMainCB.isChecked())
+            self.mainDisplay.show_image(image)
 
         self.whams -= 1
         if self.whams <= 0:
@@ -945,24 +945,25 @@ class ImproTronControlBoard(QWidget):
     # Copies the selected item from Media Search Results to the Slide Show list.
     @Slot()
     def searchtoSlideShow(self):
-        # 1. Get the currently selected item from the search results
-        current_item = self.ui.mediaSearchResultsLV.currentItem()
+        # 1. Get the current QModelIndex from the QListView
+        current_index = self.ui.mediaSearchResultsLV.currentIndex()
 
-        if current_item is not None:
-            # 2. Retrieve the QFileInfo already stored in the search item
-            file_info = current_item.data(Qt.UserRole)
+        if current_index.isValid():
+            # 2. Retrieve data using the model and current_index
+            file_path = current_index.data(Qt.ItemDataRole.UserRole)
+            if file_path:
+                file_info = QFileInfo(file_path)
 
-            if file_info:
-                # 3. Create a new item in the slideListLW
-                new_item = QListWidgetItem(file_info.fileName(), self.ui.slideListLW)
+                # 3. Create a standard QListWidgetItem
+                item = QListWidgetItem(file_info.fileName(), self.ui.slideListLW)
 
-                # 4. Store the same QFileInfo in the new item's UserRole
-                new_item.setData(Qt.UserRole, file_info)
+                # 4. Store the QFileInfo in UserRole
+                item.setData(Qt.UserRole, file_info)
 
-                # 5. Apply standard styling
-                font = new_item.font()
+                # 5. Apply styling
+                font = item.font()
                 font.setPointSize(12)
-                new_item.setFont(font)
+                item.setFont(font)
 
     @Slot()
     def soundMoveUp(self):

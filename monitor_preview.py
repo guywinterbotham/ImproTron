@@ -1,6 +1,6 @@
 import logging
 
-from PySide6.QtCore import Slot, Qt, QFileInfo, QUrl, QSize, QRect, QBuffer, QIODevice
+from PySide6.QtCore import Slot, Qt, QFileInfo, QUrl, QSize, QRect, QBuffer, QIODevice, QByteArray
 from PySide6.QtGui import QFont, QColor, QMovie, QPixmap, QPainter, QDragEnterEvent, QDropEvent, QGuiApplication, QFontMetrics, QImageReader, QImage, QPalette
 from PySide6.QtWidgets import QLabel
 from PySide6.QtNetwork import QNetworkRequest, QNetworkReply
@@ -16,8 +16,9 @@ logger = logging.getLogger(__name__)
 # It is responsingle for managing it's internal support for movie playing and scaling, especially cleaning up when required to display a new
 # feature's visuals
 class SmartOverlayLabel(QLabel):
-    def __init__(self, parent=None, single_loop:bool = True):
+    def __init__(self, parent=None, stretch=True, single_loop:bool = True):
         super().__init__(parent)
+        self.stretch = stretch
 
         # Each of these variable should there value passed in or asserted at the start of each method
         self.stretch = True                     # Most features will want to stretch what is being view to fit inside the full area
@@ -31,6 +32,7 @@ class SmartOverlayLabel(QLabel):
         self.background_file = ""               # location of the background media
         self.movie = None                       # Instantiated dynamically to allow full garbage collection
         self._single_loop = single_loop         # Enables an additional event handler to stop the movie after one run
+        self._current_buffer = None             # Used for animated content from a drag and drop
 
         # Force background palette to solid black at initialization
         palette = self.palette()
@@ -63,6 +65,19 @@ class SmartOverlayLabel(QLabel):
     # -------------------------------------------------------------------------
     # Public Setup Methods (Unifies asset loading & overlay text setup)
     # -------------------------------------------------------------------------
+    def set_stretch(self, enable: bool):
+        """Updates scaling state and triggers immediate recalculation."""
+        if self.stretch == enable:
+            return
+
+        self.stretch = enable
+
+        # Instantly update active movie bounds if running
+        if self.movie and self.movie.isValid():
+            self.movie.setScaledSize(self._calculate_movie_size())
+
+        # Trigger a paintEvent to recalculate static images
+        self.update()
 
     # Clear the display
     def blackout(self):
@@ -92,16 +107,14 @@ class SmartOverlayLabel(QLabel):
         self.update()
 
     # Load a background image
-    def set_background(self, file_name: str, stretch: bool = True ):
+    def set_background(self, file_name: str):
         self._clear_asset()
-        self.stretch = stretch
         self._set_background_asset(file_name)
         self.update()
 
     # Set the background to an image, stretching if needed
-    def set_background_image(self, image: QImage, stretch = True):
+    def set_background_image(self, image: QImage):
         self._clear_asset()
-        self.stretch = stretch
         if image.isNull():
             logger.warning("Smart Overlay Set Background: No Background")
             return
@@ -123,16 +136,15 @@ class SmartOverlayLabel(QLabel):
         self.update()
 
     # Set the background to an image, stretching if needed
-    def set_background_pixmap(self, pixmap: QPixmap, stretch = True):
+    def set_background_pixmap(self, pixmap: QPixmap):
         self._clear_asset()
-        self.stretch = stretch
         if pixmap.isNull():
             logger.warning("Smart Overlay set to pixmap: No Background")
             return
 
         # Scaling and Display
         if pixmap != None:
-            if stretch:
+            if self.stretch:
                 # Stretch to fill
                 self.setPixmap(pixmap.scaled(self.size(),
                                 Qt.IgnoreAspectRatio,
@@ -189,6 +201,29 @@ class SmartOverlayLabel(QLabel):
 
         self._set_background_asset(background_path)
         self.update()
+
+    # Loads and plays animated GIF/WEBP binary stream from memory.
+    def set_animated_buffer(self, raw_data: QByteArray):
+        self._clear_asset()
+
+        # Store buffer reference on instance to prevent GC
+        self._current_buffer = QBuffer(self)
+        self._current_buffer.setData(raw_data)
+        self._current_buffer.open(QIODevice.OpenModeFlag.ReadOnly)
+
+        self.movie = QMovie(self._current_buffer, parent=self)
+        if not self.movie.isValid():
+            self._clear_asset()
+            return
+
+        # Force initial frame decode and connect repaints
+        self.movie.jumpToFrame(0)
+        self.movie.frameChanged.connect(self._trigger_movie_repaint)
+
+        # Calculate initial scale and play
+        self.movie.setScaledSize(self._calculate_movie_size())
+        self.setMovie(self.movie)
+        self.movie.start()
 
     # Internal function that load an image or movie from a file without altering the text
     def _set_background_asset(self, file_name: str):
@@ -263,6 +298,12 @@ class SmartOverlayLabel(QLabel):
         self.background_color = QColor(Qt.GlobalColor.black)
         self.overlay_color = QColor(Qt.GlobalColor.black)
         self.scale = 100.0
+
+        # ... stop movie/clear pixmaps ...
+        if getattr(self, "_current_buffer", None) is not None:
+            self._current_buffer.close()
+            self._current_buffer.deleteLater()
+            self._current_buffer = None
 
     # Fits font size so text fits cleanly inside target_rect across BOTH
     # width and height constraints with horizontal safety margins.
@@ -345,19 +386,22 @@ class SmartOverlayLabel(QLabel):
                 pass
 
     def _calculate_movie_size(self) -> QSize:
-        if not self.movie.isValid():
-            return self.size()
+            target_size = self.size()
+            if target_size.isEmpty() or target_size.width() <= 1:
+                return QSize()
 
-        if self.stretch:
-            return self.size()
+            if self.stretch:  # Unified variable
+                return target_size
 
-        # Get actual video/gif source dimensions
-        frame_size = self.movie.currentPixmap().size()
-        if frame_size.isEmpty() or not frame_size.isValid():
-            return self.size()
+            orig_size = self.movie.currentPixmap().size()
+            if not orig_size.isValid() or orig_size.isEmpty():
+                self.movie.jumpToFrame(0)
+                orig_size = self.movie.currentPixmap().size()
 
-        # Calculate centered KeepAspectRatio bounds
-        return frame_size.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio)
+            if orig_size.isValid() and not orig_size.isEmpty():
+                return orig_size.scaled(target_size, Qt.AspectRatioMode.KeepAspectRatio)
+
+            return target_size
 
     def setMovie(self, movie: QMovie) -> None:
         if movie:
@@ -368,12 +412,16 @@ class SmartOverlayLabel(QLabel):
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
-        if self.background_file:
-            suffix = QFileInfo(self.background_file).suffix().lower()
-            if bytes(suffix, "ascii") in QMovie.supportedFormats():
-                self.movie.setScaledSize(self._calculate_movie_size())
-            else:
-                pixmap = QPixmap(self.background_file)
+
+        # 1. Handle active animation streams (file-based or in-memory buffer)
+        if hasattr(self, "movie") and self.movie and self.movie.isValid():
+            self.movie.setScaledSize(self._calculate_movie_size())
+            return
+
+        # 2. Handle static background files
+        if getattr(self, "background_file", None):
+            pixmap = QPixmap(self.background_file)
+            if not pixmap.isNull():
                 self.setPixmap(
                     pixmap.scaled(
                         self.size(),
@@ -473,12 +521,12 @@ class SmartOverlayLabel(QLabel):
 class MonitorPreview(SmartOverlayLabel):
     def __init__(self, original_label, layout, monitor, stretch, shared_network_manager, parent=None):
         # Initialize the single permanent QMovie container inside SmartOverlayLabel
-        super().__init__(parent=parent)
+        super().__init__(parent=parent, stretch=stretch)
 
         self.setAcceptDrops(True)
         self.network_manager = shared_network_manager
         self.monitor = monitor
-        self._fit_to_width = stretch
+        self.monitor.set_stretch(stretch)
 
         # Copy and set properties from placeholder configuration elements
         self.setObjectName(original_label.objectName())
@@ -546,11 +594,11 @@ class MonitorPreview(SmartOverlayLabel):
             return
 
         # Load locally inside preview (SmartOverlayLabel determines QMovie vs QPixmap)
-        self.set_background(file_path, stretch=self._fit_to_width)
+        self.set_background(file_path)
 
         # Notify external monitor display engine
         if hasattr(self.monitor, "set_background"):
-            self.monitor.set_background(file_path, stretch=self._fit_to_width)
+            self.monitor.set_background(file_path)
 
     def load_image_from_url(self, dropped_url: str):
         url = QUrl(dropped_url)
@@ -562,38 +610,37 @@ class MonitorPreview(SmartOverlayLabel):
         )
 
     def _on_network_reply_finished(self, reply, url):
-        try:
-            if reply.error() == QNetworkReply.NetworkError.NoError:
-                raw_data = reply.readAll()
+            try:
+                if reply.error() == QNetworkReply.NetworkError.NoError:
+                    raw_data = reply.readAll()
 
-                # Check for animation signature or movie extension capability via QBuffer
-                buffer = QBuffer(self)
-                buffer.setData(raw_data)
-                buffer.open(QIODevice.ReadOnly)
+                    # Check if buffer is an animated format (GIF/WEBP)
+                    buffer = QBuffer(self)
+                    buffer.setData(raw_data)
+                    buffer.open(QIODevice.OpenModeFlag.ReadOnly)
 
-                movie = QMovie(buffer, parent=self)
-                if movie.isValid() and movie.frameCount() > 1:
-                    # Remote payload is an animated media stream (GIF/WEBP)
-                    self._clear_asset()
-                    self.movie = movie
-                    self.movie.frameChanged.connect(self._trigger_movie_repaint)
-                    self.movie.setScaledSize(self._calculate_movie_size())
-                    self.movie.start()
+                    movie = QMovie(buffer, parent=self)
+                    if movie.isValid() and movie.frameCount() > 1:
+                        buffer.close()
 
-                    if hasattr(self.monitor, "show_animated_buffer"):
-                        self.monitor.show_animated_buffer(raw_data, self._fit_to_width)
+                        # Use set_animated_buffer locally to handle aspect scaling and playback
+                        self.set_animated_buffer(raw_data)
+
+                        if hasattr(self.monitor, "show_animated_buffer"):
+                            self.monitor.show_animated_buffer(raw_data)
+                    else:
+                        # Static frame payload handling
+                        buffer.close()
+                        pixmap = QPixmap()
+                        if pixmap.loadFromData(raw_data):
+                            self.set_background_pixmap(pixmap)
+                            if hasattr(self.monitor, "show_pixmap"):
+                                self.monitor.show_pixmap(pixmap)
                 else:
-                    # Remote payload is a static frame
-                    buffer.close()
-                    pixmap = QPixmap()
-                    if pixmap.loadFromData(raw_data):
-                        self.set_background_pixmap(pixmap, self._fit_to_width)
-                        if hasattr(self.monitor, "show_pixmap"):
-                            self.monitor.show_pixmap(pixmap, self._fit_to_width)
-            else:
-                logger.warning(f"Error downloading image: {reply.errorString()}")
-        finally:
-            reply.deleteLater()
+                    logger.warning(f"Error downloading image: {reply.errorString()}")
+            finally:
+                reply.deleteLater()
+
     @Slot()
     def blackout(self):
         super().blackout()
@@ -603,14 +650,16 @@ class MonitorPreview(SmartOverlayLabel):
     def paste_image(self):
         pixmap = QGuiApplication.clipboard().pixmap()
         if pixmap is not None:
-            self.set_background_pixmap(pixmap, self._fit_to_width)
+            self.set_background_pixmap(pixmap)
 
-            self.monitor.show_pixmap(pixmap, self._fit_to_width)
+            self.monitor.show_pixmap(pixmap)
 
     # Remember the monitor stretch status
     @Slot(Qt.CheckState)
     def fit_to_width(self, check_state):
         if check_state == Qt.Checked:
-            self._fit_to_width = True
+            self.stretch = True
+            self.monitor.set_stretch(True)
         else:
-            self._fit_to_width = False
+            self.stretch = False
+            self.monitor.set_stretch(False)

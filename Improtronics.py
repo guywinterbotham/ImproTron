@@ -178,6 +178,10 @@ class ImproTron(QMainWindow):
         self.ui.textDisplay.blackout()
         self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
+    # Pass through to set stretch mode on the display
+    def set_stretch(self, enable: bool):
+        self.ui.textDisplay.set_stretch(enable)
+
     # Show a background then overlay text using a font and ratio to the display
     def show_player(
         self,
@@ -233,27 +237,34 @@ class ImproTron(QMainWindow):
         self.ui.textDisplay.set_plain_text(text = text_msg, font = font, background_color = color)
 
     # Show an image on the display
-    def show_image(self, image, stretch = True):
+    def show_image(self, image):
         self.blackout() # Clears the display
-        self.ui.textDisplay.set_background_image(image, stretch) # Clears the display
+        self.ui.textDisplay.set_background_image(image) # Clears the display
 
     # Show an image on the from the clipboard
-    def paste_image(self, stretch = True):
+    def paste_image(self):
         self.blackout() # Clears the display and sets it to the current tab
         pixmap = QGuiApplication.clipboard().pixmap()
         if pixmap != None:
-            self.ui.textDisplay.set_background_pixmap(pixmap, stretch)
+            self.ui.textDisplay.set_background_pixmap(pixmap)
+
+    # Show an animated image (GIF/WEBP) directly from an in-memory byte buffer
+    def show_animated_buffer(self, raw_data=True):
+        self.blackout()  # Resets assets and clears active overlays
+        if raw_data:
+            self.ui.textDisplay.set_animated_buffer(raw_data)
+            self.ui.stackedWidget.setCurrentWidget(self.ui.displayText)
 
     # Show an pixel map on the from a drop event on the preview
-    def show_pixmap(self, pixmap, stretch = True):
+    def show_pixmap(self, pixmap):
         self.blackout() # Clears the display
         if pixmap != None:
-            self.ui.textDisplay.set_background_pixmap(pixmap, stretch)
+            self.ui.textDisplay.set_background_pixmap(pixmap)
 
-    # Show a static or anitmted image on the display
-    def show_file(self, file_name, stretch = True):
+    # Show a static or animated image on the display
+    def show_file(self, file_name):
         self.blackout() # Clears the display
-        self.ui.textDisplay.set_background(file_name, stretch)
+        self.ui.textDisplay.set_background(file_name)
 
     # Find the optimal width for the team name
     def find_optimal_team_font_size(self, nameLabel):

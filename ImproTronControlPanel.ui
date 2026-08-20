@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1056</width>
-    <height>788</height>
+    <width>1048</width>
+    <height>769</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -986,7 +986,7 @@ background-color: rgb(0, 0, 0);</string>
        </size>
       </property>
       <property name="currentIndex">
-       <number>6</number>
+       <number>2</number>
       </property>
       <property name="iconSize">
        <size>
@@ -1950,17 +1950,8 @@ background-color: rgb(0, 0, 0);</string>
               <property name="placeholderText">
                <string>Start typing game...</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="searchGamePB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Search</string>
+              <property name="clearButtonEnabled">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -2018,6 +2009,20 @@ background-color: rgb(0, 0, 0);</string>
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="gameMoveUpPB">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="gameMoveDownPB">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="gametoListPB">
@@ -6384,7 +6389,6 @@ QPushButton:pressed {
   <tabstop>gameToAuxShowPB</tabstop>
   <tabstop>nextGameAuxPB</tabstop>
   <tabstop>gameSearchLE</tabstop>
-  <tabstop>searchGamePB</tabstop>
   <tabstop>gamesTreeView</tabstop>
   <tabstop>gameDescriptionTE</tabstop>
   <tabstop>gametoListPB</tabstop>
