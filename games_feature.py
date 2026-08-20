@@ -2,7 +2,7 @@
 # This Python file uses the following encoding: utf-8
 import csv
 import logging
-from PySide6.QtCore import QObject, Slot, QItemSelection, Qt, QTimer, QFileInfo, QRandomGenerator
+from PySide6.QtCore import QObject, Slot, QItemSelection, Qt, QTimer, QFileInfo, QRandomGenerator, QSortFilterProxyModel, QRegularExpression, QModelIndex
 from PySide6.QtGui import QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import QApplication, QStyle, QFileDialog, QColorDialog, QListWidgetItem
 from monitor_preview import SmartOverlayLabel
@@ -58,10 +58,17 @@ class GamesFeature(QObject):
         # Load file asset to setup engine previews
         self.load_background_file(self._games_background_path)
 
-        # Maintain a model/view of the games
+        # Maintain a model/view of the games with live filtering proxy
         self._games_tree_view = self.ui.gamesTreeView
         self._games_model = QStandardItemModel(self._games_tree_view)
-        self._games_tree_view.setModel(self._games_model)
+
+        self._proxy_model = QSortFilterProxyModel(self)
+        self._proxy_model.setSourceModel(self._games_model)
+        self._proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        # Enable recursive filtering so matching children keep their parent category visible
+        self._proxy_model.setRecursiveFilteringEnabled(True)
+
+        self._games_tree_view.setModel(self._proxy_model)
         self.read_games()
 
         self.connect_slots()
@@ -93,9 +100,14 @@ class GamesFeature(QObject):
         self.ui.removeAllGamesPB.clicked.connect(self.remove_all_games)
         self.ui.removeAllGamesPB.setIcon(QApplication.style().standardIcon(QStyle.SP_DialogDiscardButton))
 
+        self.ui.gameMoveUpPB.clicked.connect(self.move_game_up)
+        self.ui.gameMoveUpPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowUp))
+
+        self.ui.gameMoveDownPB.clicked.connect(self.move_game_down)
+        self.ui.gameMoveDownPB.setIcon(QApplication.style().standardIcon(QStyle.SP_ArrowDown))
+
         # Connect game search
-        self.ui.gameSearchLE.returnPressed.connect(self.search_game_tree)
-        self.ui.searchGamePB.clicked.connect(self.search_game_tree)
+        self.ui.gameSearchLE.textChanged.connect(self.filter_game_tree)
 
         # Selection changes will trigger a slot
         selectionModel = self._games_tree_view.selectionModel()
@@ -159,9 +171,21 @@ class GamesFeature(QObject):
             except csv.Error as e:
                 logger.error(f"Error parsing CSV file {games_file}: {e}")
 
-    @Slot()
-    def add_to_games(self, index):
-        item = self._games_model.itemFromIndex(index)
+    @Slot(str)
+    def filter_game_tree(self, text):
+        """Filters the tree view instantly on text change and expands matching nodes."""
+        pattern = QRegularExpression.escape(text)
+        regex = QRegularExpression(pattern, QRegularExpression.CaseInsensitiveOption)
+        self._proxy_model.setFilterRegularExpression(regex)
+
+        if text.strip():
+            self._games_tree_view.expandAll()
+
+    @Slot(QModelIndex)
+    def add_to_games(self, proxy_index):
+        """Handle double-click using proxy index conversion."""
+        source_index = self._proxy_model.mapToSource(proxy_index)
+        item = self._games_model.itemFromIndex(source_index)
         if item:
             if item.hasChildren():
                 for row in range(item.rowCount()):
@@ -172,17 +196,12 @@ class GamesFeature(QObject):
                 self.ui.gamesLW.addItem(list_item)
 
     @Slot()
-    def search_game_tree(self):
-        search_text = self.ui.gameSearchLE.text()
-        if search_text:
-            self._games_tree_view.keyboardSearch(search_text)
-
-    @Slot()
     def add_selected_to_games(self):
+        """Handle adding button selection using proxy index conversion."""
         selected_indexes = self._games_tree_view.selectionModel().selectedIndexes()
         if selected_indexes:
-            index = selected_indexes[0]
-            item = self._games_model.itemFromIndex(index)
+            source_index = self._proxy_model.mapToSource(selected_indexes[0])
+            item = self._games_model.itemFromIndex(source_index)
             if item:
                 if item.hasChildren():
                     for row in range(item.rowCount()):
@@ -191,6 +210,15 @@ class GamesFeature(QObject):
                 elif item.parent():
                     list_item = QListWidgetItem(item.text())
                     self.ui.gamesLW.addItem(list_item)
+
+    @Slot(QItemSelection, QItemSelection)
+    def game_selected(self, selected, deselected):
+        """Display description when game item selected."""
+        indexes = selected.indexes()
+        if len(indexes):
+            source_index = self._proxy_model.mapToSource(indexes[0])
+            description = source_index.data(Qt.UserRole)
+            self.ui.gameDescriptionTE.setText(description if description else "")
 
     @Slot()
     def remove_selected_games(self):
@@ -201,6 +229,24 @@ class GamesFeature(QObject):
     @Slot(int)
     def game_preview_changed(self, value):
         self.draw_games_slide(self.ui.gameBackgroundLBL)
+
+    @Slot()
+    def move_game_up(self):
+        game_row = self.ui.gamesLW.currentRow()
+        if game_row < 0:
+            return
+        game = self.ui.gamesLW.takeItem(game_row)
+        self.ui.gamesLW.insertItem(game_row-1,game)
+        self.ui.gamesLW.setCurrentRow(game_row-1)
+
+    @Slot()
+    def move_game_down(self):
+        game_row = self.ui.gamesLW.currentRow()
+        if game_row < 0:
+            return
+        game = self.ui.gamesLW.takeItem(game_row)
+        self.ui.gamesLW.insertItem(game_row+1,game)
+        self.ui.gamesLW.setCurrentRow(game_row+1)
 
     @Slot()
     def pick_game_text_color(self):
@@ -366,11 +412,3 @@ class GamesFeature(QObject):
     @Slot()
     def remove_all_games(self):
         self.ui.gamesLW.clear()
-
-    @Slot(QItemSelection, QItemSelection)
-    def game_selected(self, selected, deselected):
-        indexes = selected.indexes()
-        if len(indexes):
-            item = indexes[0]
-            description = item.data(Qt.UserRole)
-            self.ui.gameDescriptionTE.setText(description)
