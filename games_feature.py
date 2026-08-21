@@ -270,8 +270,6 @@ class GamesFeature(QObject):
         self._settings.set_game_background(games_background_file)
 
         # Set the preview to the new background
-        self.ui.gameBackgroundLBL.set_background(games_background_file)
-
         self.draw_games_slide(self.ui.gameBackgroundLBL)
 
     @Slot()

@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # It is responsingle for managing it's internal support for movie playing and scaling, especially cleaning up when required to display a new
 # feature's visuals
 class SmartOverlayLabel(QLabel):
-    def __init__(self, parent=None, stretch=True, single_loop:bool = True):
+    def __init__(self, parent=None, stretch:bool=True, single_loop:bool = False):
         super().__init__(parent)
         self.stretch = stretch
 
@@ -227,9 +227,8 @@ class SmartOverlayLabel(QLabel):
 
     # Internal function that load an image or movie from a file without altering the text
     def _set_background_asset(self, file_name: str):
-
         if not file_name or not QFileInfo.exists(file_name):
-            self._clear_asset() # Clear any event handling and dispose of the movie
+            self._clear_asset()
             logger.warning(f"Smart Overlay: Missing Asset {file_name}.")
             return
 
@@ -239,7 +238,7 @@ class SmartOverlayLabel(QLabel):
         self.background_file = file_name
         suffix = QFileInfo(file_name).suffix().lower()
 
-        # Disconnect any old loop handlers on active movies
+        # Clean up existing movie state
         if self.movie is not None:
             self.movie.stop()
             try:
@@ -249,17 +248,35 @@ class SmartOverlayLabel(QLabel):
             self.movie.deleteLater()
             self.movie = None
 
+        # Check if the format could be animated
+        is_animated = False
         if bytes(suffix, "ascii") in QMovie.supportedFormats():
-            # Instantiate a fresh QMovie to guarantee clean buffer allocations
-            self.movie = QMovie(file_name, parent=self)
-            if self.movie.isValid():
-                self.movie.frameChanged.connect(self._trigger_movie_repaint)
-                if self._single_loop:
-                    self.movie.frameChanged.connect(self._handle_single_loop)
-                self.movie.setScaledSize(self._calculate_movie_size())
-                self.movie.setSpeed(100)
-                self.movie.start()
-        else:
+            temp_movie = QMovie(file_name, parent=self)
+            if temp_movie.isValid():
+                frame_count = temp_movie.frameCount()
+                # If frameCount is 1, it's a static image (e.g., static WebP)
+                if frame_count > 1:
+                    is_animated = True
+                elif frame_count == 0:
+                    # Some animated WEBP/GIF files report 0 frames initially;
+                    # check if a second frame actually exists.
+                    temp_movie.jumpToFrame(0)
+                    is_animated = temp_movie.jumpToNextFrame()
+
+                if is_animated:
+                    self.movie = temp_movie
+                    self.movie.jumpToFrame(0)
+                    self.movie.frameChanged.connect(self._trigger_movie_repaint)
+                    if self._single_loop:
+                        self.movie.frameChanged.connect(self._handle_single_loop)
+                    self.movie.setScaledSize(self._calculate_movie_size())
+                    self.movie.setSpeed(100)
+                    self.movie.start()
+                else:
+                    temp_movie.deleteLater()
+
+        # Fallback to static QImageReader (handles static WebP, PNG, JPG, etc.)
+        if not is_animated:
             reader = QImageReader(self.background_file)
             reader.setAutoTransform(True)
             new_image = reader.read()
@@ -270,10 +287,10 @@ class SmartOverlayLabel(QLabel):
                 return
 
             target_size = self.size()
-            aspect_mode = Qt.IgnoreAspectRatio if self.stretch else Qt.KeepAspectRatio
+            aspect_mode = Qt.AspectRatioMode.IgnoreAspectRatio if self.stretch else Qt.AspectRatioMode.KeepAspectRatio
 
             scaled_pixmap = QPixmap.fromImage(
-                new_image.scaled(target_size, aspect_mode, Qt.SmoothTransformation)
+                new_image.scaled(target_size, aspect_mode, Qt.TransformationMode.SmoothTransformation)
             )
             self.setPixmap(scaled_pixmap)
 
@@ -521,7 +538,7 @@ class SmartOverlayLabel(QLabel):
 class MonitorPreview(SmartOverlayLabel):
     def __init__(self, original_label, layout, monitor, stretch, shared_network_manager, parent=None):
         # Initialize the single permanent QMovie container inside SmartOverlayLabel
-        super().__init__(parent=parent, stretch=stretch)
+        super().__init__(parent=parent, stretch=stretch, single_loop = True)
 
         self.setAcceptDrops(True)
         self.network_manager = shared_network_manager
