@@ -1,6 +1,6 @@
 # media_features.py
 import logging
-from PySide6.QtCore import (Qt, QObject, Slot, Signal, QFileInfo, QDirIterator, QUrl, QRandomGenerator, QVariantAnimation,
+from PySide6.QtCore import (Qt, QObject, Slot, Signal, QFileInfo, QDirIterator, QUrl, QRandomGenerator, QVariantAnimation, QTimer,
                                 QEasingCurve, QFile, QJsonDocument, QSaveFile, QIODevice, QDir, QModelIndex, QFileSystemWatcher)
 from PySide6.QtGui import QImageReader, QColor, QMovie
 from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QStyle, QPushButton, QListWidgetItem, QColorDialog
@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 class MediaFeatures(QObject):
     mainMediaShow = Signal(str)    # Custom signal that decouples the media display from controlboard
     auxMediaShow  = Signal(str)    # Custom signal that decouples the media display from controlboard
-    stopAllSFX    = Signal()       # Custom signal that signals all sound to stop
 
     def __init__(self, ui, settings, media_model, mainDisplay, auxiliaryDisplay):
         super(MediaFeatures, self).__init__()
@@ -33,13 +32,15 @@ class MediaFeatures(QObject):
         # Native Qt Registries for sound and media
         self.media_file_database = MediaFileRegistry()
 
-        # Wire Proxy Models for UI Views (Swapping QListWidget support to QListView)
+        # Wire Proxy Models for UI Views
         self.media_proxy = TagFilterProxyModel(self)
         self.media_proxy.setSourceModel(self.media_file_database.media_model)
         self.ui.mediaSearchResultsLV.setModel(self.media_proxy)
 
         self.sound_proxy = TagFilterProxyModel(self)
         self.sound_proxy.setSourceModel(self.media_file_database.sounds_model)
+        # Seed supported extensions from MediaFileRegistry
+        self.sound_proxy.set_sfx_extensions(self.media_file_database.sfx_supported())
         self.ui.soundSearchResultsLV.setModel(self.sound_proxy)
 
         # Initial Image Indexing
@@ -145,6 +146,12 @@ class MediaFeatures(QObject):
         self.palletteSelect = self.ui.soundPalettesCB
         self.load_sound_pallettes()
 
+        # Debounce timer for live search input, this will help with responsiveness during partial lookups.
+        self._search_timer = QTimer(self)
+        self._search_timer.setSingleShot(True)
+        self._search_timer.setInterval(75)  # 75ms delay
+        self._search_timer.timeout.connect(self._exec_sound_search)
+
         self.connect_slots()
 
     # Set up audio visual connections
@@ -165,6 +172,8 @@ class MediaFeatures(QObject):
         # Sound live search
         self.ui.soundSearchTagsLE.textChanged.connect(self.search_sounds)
         self.ui.allsoundTagsCB.toggled.connect(self.search_sounds)
+        self.ui.soundSearchSFXCB.toggled.connect(self.search_sounds)
+        self.ui.soundSearchSFXCB.toggled.connect(self.toggle_sfx_controls) # disables pause and fade for SFX mode
 
         self.ui.searchToMainShowPB.clicked.connect(self.search_to_main_show)
         self.ui.searchToAuxShowPB.clicked.connect(self.search_to_aux_show)
@@ -458,7 +467,10 @@ class MediaFeatures(QObject):
 
     @Slot()
     def music_stop(self):
-        self.music_player.stop()
+        if self.ui.soundSearchSFXCB.isChecked():
+            self.stop_all_sfx()
+        else:
+            self.music_player.stop()
 
     def music_player_handle_error(self, error, error_string):
         # Log the error
@@ -472,6 +484,13 @@ class MediaFeatures(QObject):
         # Restore target volume from UI slider
         target_vol = self.ui.soundVolumeSL.value() / max(1, self.ui.soundVolumeSL.maximum())
         self.music_audio.setVolume(target_vol)
+
+    # Disables Pause and Fade buttons when SFX mode is active.
+    @Slot(bool)
+    def toggle_sfx_controls(self, sfx_enabled: bool):
+        controls_enabled = not sfx_enabled
+        self.ui.soundPausePB.setEnabled(controls_enabled)
+        self.ui.soundFadePB.setEnabled(controls_enabled)
 
     # Playlist controls
 
@@ -656,15 +675,18 @@ class MediaFeatures(QObject):
             scale = self.ui.mediaSearchtOverlayColorSLD.value(),
             textColor = self._overlay_color)
 
-    # Sound Search Slots
     @Slot()
     def search_sounds(self):
+        """Restarts debounce timer on UI input."""
+        self._search_timer.start()
+
+    def _exec_sound_search(self):
+        """Executes actual proxy re-evaluation after input pause."""
         query = self.ui.soundSearchTagsLE.text()
         match_all = self.ui.allsoundTagsCB.isChecked()
+        sfx_only = self.ui.soundSearchSFXCB.isChecked()
 
-        # Update proxy filter instantly—no clearing or repopulating required
-        self.sound_proxy.invalidate()
-        self.sound_proxy.set_filter(query, match_all)
+        self.sound_proxy.set_filter(query, match_all, sfx_only)
 
     # Respond to the request to change volume
     @Slot(int)
@@ -807,42 +829,30 @@ class MediaFeatures(QObject):
 
     # Responds to an OSC command to play an audio file
     @Slot(str)
-    def onOSCServerSFXPlayAction(self, tags):
-        # Zero length tag list will stop play
-        if len(tags) == 0:
-            self.stopAllSFX.emit()
+    def onOSCServerSFXPlayAction(self, tags: str):
+        if not tags.strip():
+            logging.warning("OSC Play Sound Effect: sound tags missing")
             return
 
-        wav_tags = "wav " + tags
+        # Query using the sfx_only flag to simulate the UI checkbox behavior
+        found_sounds = self.media_file_database.search_sounds(tags, match_all=True, sfx_only=True)
+        if not found_sounds:
+            logging.warning(f"OSC Play Sound Effect: SFX sound matching '{tags}' not found")
+            return
 
-        foundSounds = self.media_file_database.search_sounds(wav_tags, True)
-        if len(foundSounds) > 0:
-            found_sound = foundSounds[0]
-            soundFile = QFileInfo(found_sound)
+        file_path = QFileInfo(found_sounds[0]).canonicalFilePath()
 
-            # Use canonicalFilePath() for better file resolution stability
-            file = soundFile.canonicalFilePath()
+        sound = QSoundEffect(self)
+        sound.setSource(QUrl.fromLocalFile(file_path))
 
-            # Instantiate and parent correctly
-            sound = QSoundEffect(self)
-            sound.setSource(QUrl.fromLocalFile(file))
+        max_vol = max(1, self.ui.soundFXVolumeHS.maximum())
+        sound.setVolume(self.ui.soundFXVolumeHS.value() / max_vol)
 
-            # Add to the list to prevent premature garbage collection while loading
-            self.active_sound_effects.append(sound)
+        self.active_sound_effects.append(sound)
+        sound.playingChanged.connect(self._handle_soundfx_state_change)
+        sound.play()
 
-            # Connect the correct self-destruct signal (playingChanged)
-            sound.playingChanged.connect(self._handle_soundfx_state_change)
-
-            # Connect the global stop signal
-            self.stopAllSFX.connect(sound.stop)
-
-            # TRUST the load and initiate play
-            sound.setVolume(1.0)
-            sound.play()
-            logging.debug("OSC Play Sound Effect initiated play.")
-
-        else:
-            logging.warning(f"OSC Play Sound Effect: sound matching {tags} not found")
+        logging.debug(f"OSC Play Sound Effect initiated play: {QFileInfo(file_path).fileName()}")
 
     # Called when the OSC server receives the /sfx/stop_all command.
     @Slot()
@@ -854,37 +864,29 @@ class MediaFeatures(QObject):
     # Triggers deletion of the QSoundEffect object when playback finishes.
     @Slot()
     def _handle_soundfx_state_change(self):
-        # Get the QSoundEffect object that emitted the signal
-        sound = self.sender()
+        sfx = self.sender()
+        if isinstance(sfx, QSoundEffect) and not sfx.isPlaying():
+            if sfx in self.active_sound_effects:
+                self.active_sound_effects.remove(sfx)
+            sfx.deleteLater()
 
-        if sound and isinstance(sound, QSoundEffect) and not sound.isPlaying():
-
-            if sound in self.active_sound_effects:
-                self.active_sound_effects.remove(sound)
-                logging.debug("Sound effect removed from active_sound_effects list.")
-
-            # 2. Then, safely destroy the object
-            sound.deleteLater()
-            logger.debug("QSoundEffect object deleted after playing.")
-        else:
-            logger.debug("SoundFX sound sender was empty or not a QSoundEffect")
-
+    # Play a sound which can be triggered form a button or double clicking elements in a list.
+    # Handle starting sound effects when in SFX Mode.
     @Slot()
     @Slot(QModelIndex)
     @Slot(QListWidgetItem)
     def sound_play(self, target: QModelIndex | QListWidgetItem | None = None):
-        if self.music_player.playbackState() == QMediaPlayer.PlaybackState.PausedState:
-            self.music_player.play()
-            return
-
-        self.is_queue_mode = False
-        self.reset_fade_and_restore_volume()
+        # Resume paused main track if SFX checkbox is NOT active
+        if not self.ui.soundSearchSFXCB.isChecked():
+            if self.music_player.playbackState() == QMediaPlayer.PlaybackState.PausedState:
+                self.music_player.play()
+                return
 
         file_path = None
 
         # 1. From QListWidget (Queue double-click)
         if isinstance(target, QListWidgetItem):
-            file_info = target.data(Qt.UserRole)
+            file_info = target.data(Qt.ItemDataRole.UserRole)
             file_path = file_info.absoluteFilePath() if isinstance(file_info, QFileInfo) else file_info
 
         # 2. From QListView (Search results double-click)
@@ -893,21 +895,39 @@ class MediaFeatures(QObject):
 
         # 3. Fallback for QPushButton click (reads active selection from LV or Queue)
         else:
-            # Check LV selection first
             idx = self.ui.soundSearchResultsLV.currentIndex()
             if idx.isValid():
                 file_path = idx.data(Qt.ItemDataRole.UserRole)
-            # Fallback to current QListWidget selection
             elif self.ui.soundQueueLW.currentItem():
                 item = self.ui.soundQueueLW.currentItem()
-                file_info = item.data(Qt.UserRole)
+                file_info = item.data(Qt.ItemDataRole.UserRole)
                 file_path = file_info.absoluteFilePath() if isinstance(file_info, QFileInfo) else file_info
 
-        # Execute Playback
-        if file_path:
+        if not file_path or not QFileInfo.exists(file_path):
+            return
+
+        # SFX Mode Branch: Spawns concurrent, overlapping QSoundEffect instance
+        if self.ui.soundSearchSFXCB.isChecked():
+            sound = QSoundEffect(self)
+            sound.setSource(QUrl.fromLocalFile(file_path))
+
+            max_vol = max(1, self.ui.soundFXVolumeHS.maximum())
+            sound.setVolume(self.ui.soundFXVolumeHS.value() / max_vol)
+
+            self.active_sound_effects.append(sound)
+            sound.playingChanged.connect(self._handle_soundfx_state_change)
+            sound.play()
+
+        # Standard Track Mode Branch: Single-source QMediaPlayer
+        else:
+            self.is_queue_mode = False
+            self.reset_fade_and_restore_volume()
+
             self.music_player.setSource(QUrl.fromLocalFile(file_path))
             self.music_player.setPosition(0)
             self.music_player.play()
+            self.ui.soundFileNameLBL.setText(QFileInfo(file_path).completeBaseName())
+
     @Slot()
     def music_fade(self):
         fade_time = float(self.ui.fadeTimeSB.value())
@@ -964,9 +984,11 @@ class MediaFeatures(QObject):
 
     @Slot()
     def sound_remove_from_list(self):
-        if self.ui.soundQueueLW.currentItem() != None:
-            sound = self.ui.soundQueueLW.takeItem(self.ui.soundQueueLW.currentRow())
-            sound.deleteLater()
+        current_row = self.ui.soundQueueLW.currentRow()
+        if current_row != -1:
+            # Using _ signals to the linter that the return value is intentionally unreferenced
+            # and scheduled for garbage collection.
+            _ = self.ui.soundQueueLW.takeItem(current_row)
 
     @Slot()
     def load_sound_queue(self):
@@ -1131,7 +1153,12 @@ class MediaFeatures(QObject):
         for sfx in self.sfx_buttons:
             sfx.fadeOut(duration=500) # Faster fade for panic situations
 
-        self.stopAllSFX.emit()
+        # Destroy sounds create by SFX Mode on the music search or via OSC. Copy list to safely iterate while items clear
+        for sfx in list(self.active_sound_effects):
+            sfx.stop()
+            sfx.deleteLater()
+
+        self.active_sound_effects.clear()
 
     # Mini Music Player On the Main Control area monitors the currrently play song
     # Calculates time remaining and updates the progress bar.

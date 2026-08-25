@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1048</width>
+    <width>1056</width>
     <height>769</height>
    </rect>
   </property>
@@ -986,7 +986,7 @@ background-color: rgb(0, 0, 0);</string>
        </size>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>6</number>
       </property>
       <property name="iconSize">
        <size>
@@ -3867,6 +3867,30 @@ background-color: rgb(255, 255, 0);</string>
              <number>0</number>
             </property>
             <item>
+             <widget class="QCheckBox" name="allsoundTagsCB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>All Tags</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="soundSearchSFXCB">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>SFX Mode</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="soundSpacerHS">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
@@ -3881,18 +3905,6 @@ background-color: rgb(255, 255, 0);</string>
                </size>
               </property>
              </spacer>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="allsoundTagsCB">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>All Tags</string>
-              </property>
-             </widget>
             </item>
             <item>
              <widget class="QLabel" name="soundFilesLBL">
@@ -4472,7 +4484,7 @@ background-color: rgb(255, 255, 0);</string>
              <number>100</number>
             </property>
             <property name="value">
-             <number>50</number>
+             <number>100</number>
             </property>
             <property name="orientation">
              <enum>Qt::Orientation::Horizontal</enum>

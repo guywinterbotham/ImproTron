@@ -10,31 +10,45 @@ logger = logging.getLogger(__name__)
 class TagFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._query = ""
+        self._search_terms = []
         self._match_all = False
+        self._sfx_only = False
+        self._sfx_extensions = set()
 
-    def set_filter(self, query: str, match_all: bool):
-        self._query = query.strip().lower()
+    def set_sfx_extensions(self, raw_extensions: set[str]):
+        # Strip wildcards and lower case once during startup
+        self._sfx_extensions = {ext.lstrip("*.").lower() for ext in raw_extensions}
+
+    def set_filter(self, query: str, match_all: bool, sfx_only: bool = False):
+        # Pre-process search terms ONCE per filter change, not per row
+        self._search_terms = query.strip().lower().split()
         self._match_all = match_all
-        self.invalidateFilter()  # Key PySide6 method to trigger row re-evaluation
+        self._sfx_only = sfx_only
+        self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
-        if not self._query:
+        index = self.sourceModel().index(source_row, 0, source_parent)
+        # Directly retrieve pre-parsed lowered set stored during indexing
+        item_tags: set = index.data(Qt.ItemDataRole.UserRole + 1) or set()
+
+        # 1. Hard SFX Check - O(1) set intersection
+        if self._sfx_only and not (self._sfx_extensions & item_tags):
+            return False
+
+        # 2. Empty query pass
+        if not self._search_terms:
             return True
 
-        # Extract tags or text stored in your model (e.g., via UserRole or DisplayRole)
-        index = self.sourceModel().index(source_row, 0, source_parent)
-        file_tags = index.data(Qt.ItemDataRole.UserRole + 1) or index.data(Qt.ItemDataRole.DisplayRole)
-
-        if isinstance(file_tags, list):
-            tags_str = " ".join(file_tags).lower()
-        else:
-            tags_str = str(file_tags).lower()
-
-        search_terms = self._query.split()
+        # 3. Substring search over pre-indexed tag tokens
         if self._match_all:
-            return all(term in tags_str for term in search_terms)
-        return any(term in tags_str for term in search_terms)
+            return all(
+                any(term in tag for tag in item_tags)
+                for term in self._search_terms
+            )
+        return any(
+            any(term in tag for tag in item_tags)
+            for term in self._search_terms
+        )
 
 class MediaFileRegistry:
     def __init__(self):
@@ -160,18 +174,10 @@ class MediaFileRegistry:
 
         return results
 
-    def search_sounds(self, tags: str = "", all_tags: bool = True) -> list[str]:
-        """Query sound file paths directly from the model data layer."""
+    def search_sounds(self, tags: str = "", all_tags: bool = True, sfx_only: bool = False) -> list[str]:
         query_str = tags.strip().lower()
-        if not query_str:
-            # Return all indexed audio paths if search is empty
-            return [
-                self.sounds_model.item(row).data(Qt.ItemDataRole.UserRole)
-                for row in range(self.sounds_model.rowCount())
-                if self.sounds_model.item(row)
-            ]
-
         tokens = set(filter(None, re.split(r'[_+\-.\s]+', query_str)))
+        clean_sfx = {ext.lstrip("*.").lower() for ext in self._soundfx_supported}
         results = []
 
         for row in range(self.sounds_model.rowCount()):
@@ -181,7 +187,14 @@ class MediaFileRegistry:
 
             item_tags = item.data(Qt.ItemDataRole.UserRole + 1) or set()
 
-            if all_tags:
+            # SFX Filter Guard
+            if sfx_only and not (clean_sfx & item_tags):
+                continue
+
+            # Tag Query Guard
+            if not tokens:
+                is_match = True
+            elif all_tags:
                 is_match = tokens.issubset(item_tags)
             else:
                 is_match = bool(tokens & item_tags)
