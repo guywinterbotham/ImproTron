@@ -986,7 +986,7 @@ background-color: rgb(0, 0, 0);</string>
        </size>
       </property>
       <property name="currentIndex">
-       <number>6</number>
+       <number>5</number>
       </property>
       <property name="iconSize">
        <size>
@@ -2311,6 +2311,9 @@ background-color: rgb(0, 0, 0);</string>
                 <property name="minimum">
                  <number>1</number>
                 </property>
+                <property name="value">
+                 <number>8</number>
+                </property>
                </widget>
               </item>
               <item>
@@ -3602,6 +3605,9 @@ background-color: rgb(255, 255, 0);</string>
               </property>
               <property name="minimum">
                <number>1</number>
+              </property>
+              <property name="value">
+               <number>8</number>
               </property>
              </widget>
             </item>
