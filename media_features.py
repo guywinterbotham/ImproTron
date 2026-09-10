@@ -835,7 +835,7 @@ class MediaFeatures(QObject):
             return
 
         # Query using the sfx_only flag to simulate the UI checkbox behavior
-        found_sounds = self.media_file_database.search_sounds(tags, match_all=True, sfx_only=True)
+        found_sounds = self.media_file_database.search_sounds(tags, all_tags=True, sfx_only=True)
         if not found_sounds:
             logging.warning(f"OSC Play Sound Effect: SFX sound matching '{tags}' not found")
             return
